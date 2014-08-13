@@ -162,6 +162,8 @@ module.exports = Mathf;
 },{}],5:[function(require,module,exports){
 
 var Node = module.exports = function(opts){
+  this.id = Utils.guid("nodes");
+
   this.pos = opts.pos;
   this.size = opts.size;
   this.color = "#fff";
@@ -318,8 +320,8 @@ Nodes.prototype.draw = function(ctx){
 },{"./Node":5,"./Paths":8}],7:[function(require,module,exports){
 
 var Path = module.exports = function(opts){
-  this.a = opts.a;
-  this.b = opts.b;
+  this.na = opts.na;
+  this.nb = opts.nb;
 
   this.size = 2;
   this.color = "#fff";
@@ -332,8 +334,8 @@ Path.prototype.update = function(){
 Path.prototype.draw = function(ctx){
 
   Renderer.drawLine(ctx, {
-    from: this.a,
-    to: this.b,
+    from: this.na.pos,
+    to: this.nb.pos,
     size: this.size,
     color: this.color
   });
@@ -347,24 +349,23 @@ var Paths = module.exports = function(){
   this.paths = [];
 };
 
-Paths.prototype.hasOne = function(a, b){
+Paths.prototype.hasOne = function(naId, nbId){
 
   return this.paths.some(function(path){
-    var pa = path.a, pb = path.b;
-
-    return (
-      (Vector.eql(a, pa) || Vector.eql(a, pb)) &&
-      (Vector.eql(b, pa) || Vector.eql(b, pb))
-    );
+    var pa = path.na.id, pb = path.nb.id;
+    return (naId === pa || naId === pb) && (nbId === pa || nbId === pb);
   });
 };
 
 Paths.prototype.addOne = function(nA, nB){
 
-  if (nB && !this.hasOne(nA.pos, nB.pos)){
+  if (nB && !this.hasOne(nA.id, nB.id)){
+    nA.addNear(nB);
+    nB.addNear(nA);
+    
     this.paths.push(new Path({
-      a: Vector.clone(nA.pos),
-      b: Vector.clone(nB.pos)
+      na: nA,
+      nb: nB
     }));
   }
 };
@@ -429,6 +430,17 @@ module.exports = {
 
 },{}],11:[function(require,module,exports){
 
+var Utils = module.exports = function(){
+  this.lastIds = {
+    nodes: 0
+  };
+};
+
+Utils.prototype.guid = function(type){
+  return ++this.lastIds[type];
+};
+},{}],12:[function(require,module,exports){
+
 var Vector = {};
 
 Vector.zero = { x: 0, y: 0 };
@@ -471,10 +483,11 @@ Vector.debug = function(vec){
 */
 module.exports = Vector;
 
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 
 require("./reqAnimFrame");
 var GameTime = require("./GameTime");
+var Utils = require("./Utils");
 
 window.Mathf = require("./Mathf");
 window.Vector = require("./Vector");
@@ -482,6 +495,7 @@ window.Renderer = require("./Renderer");
 
 window.onload = function() {
   
+  window.Utils = new Utils();  
   window.Time = new GameTime();
 
   var Game = require("./Game");
@@ -500,7 +514,7 @@ window.onload = function() {
 
   window.game.start();
 };
-},{"./Game":1,"./GameTime":2,"./Mathf":4,"./Renderer":9,"./Settings":10,"./Vector":11,"./reqAnimFrame":13}],13:[function(require,module,exports){
+},{"./Game":1,"./GameTime":2,"./Mathf":4,"./Renderer":9,"./Settings":10,"./Utils":11,"./Vector":12,"./reqAnimFrame":14}],14:[function(require,module,exports){
 // http://paulirish.com/2011/requestanimationframe-for-smart-animating/
 // http://my.opera.com/emoller/blog/2011/12/20/requestanimationframe-for-smart-er-animating
 
@@ -530,4 +544,4 @@ window.onload = function() {
     window.cancelAnimationFrame = function(id) { window.clearTimeout(id); };
   }
 }());
-},{}]},{},[12]);
+},{}]},{},[13]);

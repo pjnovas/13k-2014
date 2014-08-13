@@ -1,6 +1,7 @@
 
 require("./reqAnimFrame");
 var GameTime = require("./GameTime");
+var Utils = require("./Utils");
 
 window.Mathf = require("./Mathf");
 window.Vector = require("./Vector");
@@ -8,6 +9,7 @@ window.Renderer = require("./Renderer");
 
 window.onload = function() {
   
+  window.Utils = new Utils();  
   window.Time = new GameTime();
 
   var Game = require("./Game");

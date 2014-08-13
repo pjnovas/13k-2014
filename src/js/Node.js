@@ -1,5 +1,7 @@
 
 var Node = module.exports = function(opts){
+  this.id = Utils.guid("nodes");
+
   this.pos = opts.pos;
   this.size = opts.size;
   this.color = "#fff";

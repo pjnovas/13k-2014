@@ -5,24 +5,23 @@ var Paths = module.exports = function(){
   this.paths = [];
 };
 
-Paths.prototype.hasOne = function(a, b){
+Paths.prototype.hasOne = function(naId, nbId){
 
   return this.paths.some(function(path){
-    var pa = path.a, pb = path.b;
-
-    return (
-      (Vector.eql(a, pa) || Vector.eql(a, pb)) &&
-      (Vector.eql(b, pa) || Vector.eql(b, pb))
-    );
+    var pa = path.na.id, pb = path.nb.id;
+    return (naId === pa || naId === pb) && (nbId === pa || nbId === pb);
   });
 };
 
 Paths.prototype.addOne = function(nA, nB){
 
-  if (nB && !this.hasOne(nA.pos, nB.pos)){
+  if (nB && !this.hasOne(nA.id, nB.id)){
+    nA.addNear(nB);
+    nB.addNear(nA);
+    
     this.paths.push(new Path({
-      a: Vector.clone(nA.pos),
-      b: Vector.clone(nB.pos)
+      na: nA,
+      nb: nB
     }));
   }
 };

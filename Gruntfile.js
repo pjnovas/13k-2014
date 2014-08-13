@@ -78,6 +78,7 @@ module.exports = function(grunt) {
             ,Mathf: true
             ,Renderer: true
             ,config: true
+            ,Utils: true
           }
         }
       }
