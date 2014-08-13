@@ -49,7 +49,7 @@ Nodes.prototype.createGrid = function(){
       });
 */
       var point = Mathf.randomInCircle(rndR);
-      var center = Vector.getRectCenter({ x: cw*j, y: ch*i }, { x: cw, y: ch });
+      var center = Vector.center({ x: cw*j, y: ch*i }, { x: cw, y: ch });
 
       this.nodeGrid[i][j] = new Node({
         pos: Vector.add(center, point),
@@ -82,8 +82,8 @@ Nodes.prototype.findNearNodes = function(i, j, node){
       var pa = path.a, pb = path.b;
 
       return (
-        (Vector.isEqual(a, pa) || Vector.isEqual(a, pb)) &&
-        (Vector.isEqual(b, pa) || Vector.isEqual(b, pb))
+        (Vector.eql(a, pa) || Vector.eql(a, pb)) &&
+        (Vector.eql(b, pa) || Vector.eql(b, pb))
       );
     });
   }
@@ -121,14 +121,14 @@ Nodes.prototype.draw = function(ctx){
 
     if (c.color === "red"){
       Renderer.drawCircle(ctx, {
-        pos: Vector.getRectCenter(c.pos, c.size),
+        pos: Vector.center(c.pos, c.size),
         radius: c.size.y/2,
         color: "yellow"
       });
     }
 
     Renderer.drawCircle(ctx, {
-      pos: Vector.getRectCenter(c.pos, c.size),
+      pos: Vector.center(c.pos, c.size),
       radius: 3,
       color: "black"
     });
