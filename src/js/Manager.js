@@ -5,8 +5,8 @@ var Paths = require("./Paths");
 var Manager = module.exports = function(){
   
   this.nodes = new Nodes({
-    rows: 8,
-    cols: 11,
+    rows: 10,
+    cols: 15,
     nodeSize: 7
   });
 

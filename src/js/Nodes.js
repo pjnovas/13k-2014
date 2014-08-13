@@ -17,15 +17,15 @@ var Nodes = module.exports = function(opts){
 };
 
 Nodes.prototype.createGrid = function(){
-  var size = this.nodeSize;
-  var gsize = config.size;
+  var size = this.nodeSize
+    , gsize = config.size
 
-  var cw = gsize.x/this.cols;
-  var ch = gsize.y/this.rows;
-  var rndR = ch/2;
+    , cw = gsize.x/this.cols
+    , ch = gsize.y/this.rows
+    , rndR = ch/2;
 
   for (var i=0; i<this.rows; i++){
-    var col = [];
+    this.nodeGrid[i] = [];
 
     for (var j=0; j<this.cols; j++){
 
@@ -38,8 +38,6 @@ Nodes.prototype.createGrid = function(){
           color: "silver"
         });
 */
-        col.push(null);
-
         continue;
       }
 /*
@@ -52,83 +50,61 @@ Nodes.prototype.createGrid = function(){
 */
       var point = Mathf.randomInCircle(rndR);
       var center = Vector.getRectCenter({ x: cw*j, y: ch*i }, { x: cw, y: ch });
-      
-      var pos = Vector.add(center, point);
 
-      var cell = new Node({
-        pos: pos,
+      this.nodeGrid[i][j] = new Node({
+        pos: Vector.add(center, point),
         size: size
       });
-
-      col.push(cell);
     }
-
-    this.nodeGrid.push(col);
   }
 
 };
 
 Nodes.prototype.createPaths = function(){
 
-  for (var i=0; i<this.nodeGrid.length; i++){
-    var row = this.nodeGrid[i];
-
-    for (var j=0; j<row.length; j++){
-      var node = this.nodeGrid[i][j];
-
-      if (node){
+  this.nodeGrid.forEach(function (row, i) {
+    row.forEach(function (node, j) {
+      if (node) {
         this.findNearNodes(i, j, node);
       }
-    }
-  }
+    }, this);
+  }, this);
 
 };
 
 Nodes.prototype.findNearNodes = function(i, j, node){
-  var paths = this.paths;
+  var paths = this.paths
+    , rows = this.rows
+    , cols = this.cols;
 
   function hasPath(a, b){
-    for(var k=0; k<paths.length; k++){
-      var pa = paths[k].a, pb = paths[k].b;
-      if (
+    return paths.some(function(path){
+      var pa = path.a, pb = path.b;
+
+      return (
         (Vector.isEqual(a, pa) || Vector.isEqual(a, pb)) &&
         (Vector.isEqual(b, pa) || Vector.isEqual(b, pb))
-      ) {
-        return true;
-      }
-    }
-    return false;
+      );
+    });
   }
 
-  function addPath(nodeA, nodeB){
-    if (nodeB && !hasPath(nodeA.pos, nodeB.pos)){
-      
+  function addPath(nA, nB){
+    if (nB && !hasPath(nA.pos, nB.pos)){
       paths.push({
-        a: Vector.clone(nodeA.pos),
-        b: Vector.clone(nodeB.pos)
+        a: Vector.clone(nA.pos),
+        b: Vector.clone(nB.pos)
       });
     }
   }
 
-  //left - top
-  if (i-1 >= 0 && j-1 >= 0){
-    addPath(node, this.nodeGrid[i-1][j-1]);
-  }
-
-  //left - bottom
-  if (i-1 >= 0 && j+1 <= this.cols-1){
-    addPath(node, this.nodeGrid[i-1][j+1]);
-  }
-
-  //right - top
-  if (i+1 <= this.rows-1 && j-1 >= 0){
-    addPath(node, this.nodeGrid[i+1][j-1]);
-  }
-
-  //right - bottom
-  if (i+1 <= this.rows-1 && j+1 <= this.cols-1){
-    addPath(node, this.nodeGrid[i+1][j+1]);
-  }
+  [ [-1,-1], [1,1], [-1,1], [1,-1] ].forEach(function (box) {
+    var x = i + box[0]
+      , y = j + box[1];
+    
+    if (x >= 0 && x <= rows-1 && y >= 0 && y <= cols-1){
+      addPath(node, this.nodeGrid[x][y]);
+    }
+  }, this);
 
 };
 
@@ -159,26 +135,21 @@ Nodes.prototype.draw = function(ctx){
   }
 */
 
-  for (var i=0; i<this.nodeGrid.length; i++){
-    var row = this.nodeGrid[i];
-
-    for (var j=0; j<row.length; j++){
-      var node = this.nodeGrid[i][j];
+  this.nodeGrid.forEach(function (row) {
+    row.forEach(function (node) {
       if (node) {
         node.draw(ctx);
       }
-    }
-  }
+    });
+  });
 
-  for(var l=0; l<this.paths.length; l++){
-    var pa = this.paths[l].a, pb = this.paths[l].b;
-
+  this.paths.forEach(function (path) {
     Renderer.drawLine(ctx, {
-      from: pa,
-      to: pb,
+      from: path.a,
+      to: path.b,
       size: 2,
       color: "#fff"
     });
-  }
+  });
 
 };
