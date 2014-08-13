@@ -48,7 +48,7 @@ Nodes.prototype.createGrid = function(){
         color: "red"
       });
 */
-      var point = Mathf.randomInCircle(rndR);
+      var point = Mathf.rndInCircle(rndR);
       var center = Vector.center({ x: cw*j, y: ch*i }, { x: cw, y: ch });
 
       this.nodeGrid[i][j] = new Node({

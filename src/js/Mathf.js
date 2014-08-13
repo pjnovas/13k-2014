@@ -1,25 +1,25 @@
 
 var Mathf = {};
 
-Mathf.random = function(min, max){
+Mathf.rnd = function(min, max){
   return Math.floor(Math.random() * (max - min + 1) + min);
 };
-
-Mathf.random11 = function(){
+/*
+Mathf.rnd11 = function(){
   return Math.round(Math.random());
 };
 
-Mathf.random01 = function(){
+Mathf.rnd01 = function(){
   return Math.random();
 };
-
-Mathf.randomAngle = function(){
+*/
+Mathf.rndAngle = function(){
   return Math.random() * Math.PI * 2;
 };
 
-Mathf.randomInCircle = function(radius){
-  var angle = Mathf.randomAngle();
-  var rad = Mathf.random(0, radius);
+Mathf.rndInCircle = function(radius){
+  var angle = Mathf.rndAngle();
+  var rad = Mathf.rnd(0, radius);
 
   return {
       x: Math.cos(angle) * rad,
