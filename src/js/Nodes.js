@@ -1,5 +1,6 @@
 
-var Node = require("./Node");
+var Node = require("./Node")
+  , Paths = require("./Paths");
 
 var Nodes = module.exports = function(opts){
 
@@ -12,7 +13,7 @@ var Nodes = module.exports = function(opts){
 
   this.createGrid();
 
-  this.paths = [];
+  this.paths = new Paths();
   this.createPaths();
 };
 
@@ -73,36 +74,15 @@ Nodes.prototype.createPaths = function(){
 };
 
 Nodes.prototype.findNearNodes = function(i, j, node){
-  var paths = this.paths
-    , rows = this.rows
+  var rows = this.rows
     , cols = this.cols;
-
-  function hasPath(a, b){
-    return paths.some(function(path){
-      var pa = path.a, pb = path.b;
-
-      return (
-        (Vector.eql(a, pa) || Vector.eql(a, pb)) &&
-        (Vector.eql(b, pa) || Vector.eql(b, pb))
-      );
-    });
-  }
-
-  function addPath(nA, nB){
-    if (nB && !hasPath(nA.pos, nB.pos)){
-      paths.push({
-        a: Vector.clone(nA.pos),
-        b: Vector.clone(nB.pos)
-      });
-    }
-  }
 
   [ [-1,-1], [1,1], [-1,1], [1,-1] ].forEach(function (box) {
     var x = i + box[0]
       , y = j + box[1];
     
     if (x >= 0 && x <= rows-1 && y >= 0 && y <= cols-1){
-      addPath(node, this.nodeGrid[x][y]);
+      this.paths.addOne(node, this.nodeGrid[x][y]);
     }
   }, this);
 
@@ -135,20 +115,13 @@ Nodes.prototype.draw = function(ctx){
   }
 */
 
+  this.paths.draw(ctx);
+
   this.nodeGrid.forEach(function (row) {
     row.forEach(function (node) {
       if (node) {
         node.draw(ctx);
       }
-    });
-  });
-
-  this.paths.forEach(function (path) {
-    Renderer.drawLine(ctx, {
-      from: path.a,
-      to: path.b,
-      size: 2,
-      color: "#fff"
     });
   });
 

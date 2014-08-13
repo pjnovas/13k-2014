@@ -1,25 +1,30 @@
 
-//var Path = require("./Path");
+var Path = require("./Path");
 
-var Paths = module.exports = function(opts){
-  this.nodes = opts.nodes;
+var Paths = module.exports = function(){
   this.paths = [];
-  this.createPaths();
 };
 
-Paths.prototype.createPaths = function(){
-  /*
-  var ps = this.nodes;
-  var pl = ps.length;
+Paths.prototype.hasOne = function(a, b){
 
-  for (var i=0; i<pl; i++){
+  return this.paths.some(function(path){
+    var pa = path.a, pb = path.b;
+
+    return (
+      (Vector.eql(a, pa) || Vector.eql(a, pb)) &&
+      (Vector.eql(b, pa) || Vector.eql(b, pb))
+    );
+  });
+};
+
+Paths.prototype.addOne = function(nA, nB){
+
+  if (nB && !this.hasOne(nA.pos, nB.pos)){
     this.paths.push(new Path({
-      from: p,
-      to: p,
-      size: 7
+      a: Vector.clone(nA.pos),
+      b: Vector.clone(nB.pos)
     }));
   }
-  */
 };
 
 Paths.prototype.update = function(){
@@ -27,11 +32,9 @@ Paths.prototype.update = function(){
 };
 
 Paths.prototype.draw = function(ctx){
-  var ps = this.paths;
-  var pl = ps.length;
 
-  for (var i=0; i<pl; i++){
-    ps[i].draw(ctx);
-  }
+  this.paths.forEach(function (path) {
+    path.draw(ctx);
+  });
 
 };

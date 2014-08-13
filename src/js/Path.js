@@ -1,19 +1,22 @@
 
-var Node = module.exports = function(opts){
-  this.pos = opts.pos;
-  this.size = opts.size;
+var Path = module.exports = function(opts){
+  this.a = opts.a;
+  this.b = opts.b;
+
+  this.size = 2;
   this.color = "#fff";
 };
 
-Node.prototype.update = function(){
+Path.prototype.update = function(){
   
 };
 
-Node.prototype.draw = function(ctx){
+Path.prototype.draw = function(ctx){
 
   Renderer.drawLine(ctx, {
-    from: this.pos,
-    radius: this.size,
+    from: this.a,
+    to: this.b,
+    size: this.size,
     color: this.color
   });
 

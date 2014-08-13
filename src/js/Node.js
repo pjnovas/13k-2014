@@ -4,11 +4,11 @@ var Node = module.exports = function(opts){
   this.size = opts.size;
   this.color = "#fff";
 
-  this.nearNodes = [];
+  this.nears = [];
 };
 
-Node.prototype.addNearNode = function(node){
-  this.nearNodes.push(node);
+Node.prototype.addNear = function(node){
+  this.nears.push(node);
 };
 
 Node.prototype.update = function(){
