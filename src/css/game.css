@@ -1,3 +1,31 @@
 body {
   background: #000;
+  margin: 0;
+}
+
+.absoluted {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
+
+.game-ctn {
+  height: auto;
+  height: 100%;
+}
+
+.game-viewport-ctn {
+  z-index: 10;
+}
+
+.game-world-ctn {
+  z-index: 5;
+}
+
+#game-viewport,
+#game-world {
+  margin: 0 auto;
+  display: block;
+  border: 1px solid #fff;
 }

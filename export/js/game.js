@@ -1,12 +1,44 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-var Game = module.exports = function(){
+
+var Manager = require("./Manager");
+
+var Game = module.exports = function(opts){
+  this.cview = opts.viewport;
+  this.cworld = opts.world;
+
+  this.gameSize = opts.size;
+
+  this.viewCtx = null;
+  this.worldCtx = null;
+
   this.tLoop = null;
   this.paused = false;
   this.boundGameRun = this.gameRun.bind(this);
+
+  this.manager = new Manager({
+    size: opts.size
+  });
+
+  this.initialize();
+};
+
+Game.prototype.initialize = function(){
+  if (this.cview.getContext){
+    this.cview.width = this.gameSize.width;
+    this.cview.height = this.gameSize.height;
+    this.viewCtx = this.cview.getContext("2d");
+  }
+  else { throw "canvas not supported!"; }
+
+  this.worldCtx = this.cworld.getContext("2d");
+  this.cworld.width = this.gameSize.width;
+  this.cworld.height = this.gameSize.height;
 };
 
 Game.prototype.loop = function(){
   //console.log(Time.frameTime + "( " + Time.deltaTime + " ) / " + Time.time);
+  this.manager.update();
+  this.manager.draw(this.viewCtx, this.worldCtx);
 };
 
 Game.prototype.start = function(){
@@ -24,7 +56,7 @@ Game.prototype.gameRun = function(){
   this.tLoop = window.requestAnimationFrame(this.boundGameRun);
 };
 
-},{}],2:[function(require,module,exports){
+},{"./Manager":3}],2:[function(require,module,exports){
 // Manages the ticks for a Game Loop
 
 var GameTime = module.exports = function(){
@@ -69,6 +101,30 @@ GameTime.prototype.reset = function() {
 };
 },{}],3:[function(require,module,exports){
 
+var Manager = module.exports = function(opts){
+  this.size = opts.size;
+};
+
+Manager.prototype.update = function(){
+  //console.log(Time.frameTime + "( " + Time.deltaTime + " ) / " + Time.time);
+};
+
+Manager.prototype.draw = function(viewCtx, worldCtx){
+  viewCtx.clearRect(0, 0, this.size.width, this.size.height);
+  worldCtx.clearRect(0, 0, this.size.width, this.size.height);
+
+  viewCtx.beginPath();
+  viewCtx.arc(100, 100, 50, 0, 2 * Math.PI, false);
+  viewCtx.fillStyle = 'red';
+  viewCtx.fill();
+
+  worldCtx.beginPath();
+  worldCtx.arc(150, 150, 25, 0, 2 * Math.PI, false);
+  worldCtx.fillStyle = 'blue';
+  worldCtx.fill();
+};
+},{}],4:[function(require,module,exports){
+
 require("./reqAnimFrame");
 var GameTime = require("./GameTime");
 
@@ -76,12 +132,19 @@ window.onload = function() {
   
   window.Time = new GameTime();
 
-  var Game = require('./Game');
-  window.game = new Game();
+  var Game = require("./Game");
+  window.game = new Game({
+    viewport: document.getElementById("game-viewport"),
+    world: document.getElementById("game-world"),
+    size: {
+      width: 800,
+      height: 600
+    }
+  });
 
   window.game.start();
 };
-},{"./Game":1,"./GameTime":2,"./reqAnimFrame":4}],4:[function(require,module,exports){
+},{"./Game":1,"./GameTime":2,"./reqAnimFrame":5}],5:[function(require,module,exports){
 // http://paulirish.com/2011/requestanimationframe-for-smart-animating/
 // http://my.opera.com/emoller/blog/2011/12/20/requestanimationframe-for-smart-er-animating
 
@@ -111,4 +174,4 @@ window.onload = function() {
     window.cancelAnimationFrame = function(id) { window.clearTimeout(id); };
   }
 }());
-},{}]},{},[3]);
+},{}]},{},[4]);
