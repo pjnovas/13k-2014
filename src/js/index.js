@@ -1,5 +1,11 @@
+
+require("./reqAnimFrame");
+var GameTime = require("./GameTime");
+
 window.onload = function() {
-  require("./reqAnimFrame");
+  
+  window.Time = new GameTime();
+
   var Game = require('./Game');
   window.game = new Game();
 

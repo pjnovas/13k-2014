@@ -1,8 +1,4 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-
-var GameTime = require("./GameTime");
-window.gameTime = new GameTime();
-
 var Game = module.exports = function(){
   this.tLoop = null;
   this.paused = false;
@@ -10,7 +6,7 @@ var Game = module.exports = function(){
 };
 
 Game.prototype.loop = function(){
-  //console.log(window.gameTime.frameTime + "( " + window.gameTime.deltaTime + " ) / " + window.gameTime.time);
+  //console.log(Time.frameTime + "( " + Time.deltaTime + " ) / " + Time.time);
 };
 
 Game.prototype.start = function(){
@@ -24,11 +20,11 @@ Game.prototype.stop = function(){
 };
 
 Game.prototype.gameRun = function(){
-  if (window.gameTime.tick()) { this.loop(); }
+  if (Time.tick()) { this.loop(); }
   this.tLoop = window.requestAnimationFrame(this.boundGameRun);
 };
 
-},{"./GameTime":2}],2:[function(require,module,exports){
+},{}],2:[function(require,module,exports){
 // Manages the ticks for a Game Loop
 
 var GameTime = module.exports = function(){
@@ -72,14 +68,20 @@ GameTime.prototype.reset = function() {
   this.time = 0;
 };
 },{}],3:[function(require,module,exports){
+
+require("./reqAnimFrame");
+var GameTime = require("./GameTime");
+
 window.onload = function() {
-  require("./reqAnimFrame");
+  
+  window.Time = new GameTime();
+
   var Game = require('./Game');
   window.game = new Game();
 
   window.game.start();
 };
-},{"./Game":1,"./reqAnimFrame":4}],4:[function(require,module,exports){
+},{"./Game":1,"./GameTime":2,"./reqAnimFrame":4}],4:[function(require,module,exports){
 // http://paulirish.com/2011/requestanimationframe-for-smart-animating/
 // http://my.opera.com/emoller/blog/2011/12/20/requestanimationframe-for-smart-er-animating
 

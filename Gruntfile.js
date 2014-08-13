@@ -72,6 +72,8 @@ module.exports = function(grunt) {
             ,require: true
             ,module: true
             ,console: true
+            ,Time: true
+            ,game: true
           }
         }
       }

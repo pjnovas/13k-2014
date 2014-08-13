@@ -1,7 +1,3 @@
-
-var GameTime = require("./GameTime");
-window.gameTime = new GameTime();
-
 var Game = module.exports = function(){
   this.tLoop = null;
   this.paused = false;
@@ -9,7 +5,7 @@ var Game = module.exports = function(){
 };
 
 Game.prototype.loop = function(){
-  //console.log(window.gameTime.frameTime + "( " + window.gameTime.deltaTime + " ) / " + window.gameTime.time);
+  //console.log(Time.frameTime + "( " + Time.deltaTime + " ) / " + Time.time);
 };
 
 Game.prototype.start = function(){
@@ -23,6 +19,6 @@ Game.prototype.stop = function(){
 };
 
 Game.prototype.gameRun = function(){
-  if (window.gameTime.tick()) { this.loop(); }
+  if (Time.tick()) { this.loop(); }
   this.tLoop = window.requestAnimationFrame(this.boundGameRun);
 };
