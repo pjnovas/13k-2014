@@ -1,6 +1,18 @@
 
-var Manager = module.exports = function(opts){
-  this.size = opts.size;
+var Nodes = require("./Nodes");
+var Paths = require("./Paths");
+
+var Manager = module.exports = function(){
+  
+  this.nodes = new Nodes({
+    rows: 8,
+    cols: 11,
+    nodeSize: 7
+  });
+
+  this.paths = new Paths({
+    nodes: this.nodes
+  });
 };
 
 Manager.prototype.update = function(){
@@ -8,16 +20,10 @@ Manager.prototype.update = function(){
 };
 
 Manager.prototype.draw = function(viewCtx, worldCtx){
-  viewCtx.clearRect(0, 0, this.size.width, this.size.height);
-  worldCtx.clearRect(0, 0, this.size.width, this.size.height);
+  var s = config.size;
 
-  viewCtx.beginPath();
-  viewCtx.arc(100, 100, 50, 0, 2 * Math.PI, false);
-  viewCtx.fillStyle = 'red';
-  viewCtx.fill();
+  viewCtx.clearRect(0, 0, s.x, s.y);
+  worldCtx.clearRect(0, 0, s.x, s.y);
 
-  worldCtx.beginPath();
-  worldCtx.arc(150, 150, 25, 0, 2 * Math.PI, false);
-  worldCtx.fillStyle = 'blue';
-  worldCtx.fill();
+  this.nodes.draw(worldCtx);
 };

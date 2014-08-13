@@ -5,8 +5,6 @@ var Game = module.exports = function(opts){
   this.cview = opts.viewport;
   this.cworld = opts.world;
 
-  this.gameSize = opts.size;
-
   this.viewCtx = null;
   this.worldCtx = null;
 
@@ -14,24 +12,24 @@ var Game = module.exports = function(opts){
   this.paused = false;
   this.boundGameRun = this.gameRun.bind(this);
 
-  this.manager = new Manager({
-    size: opts.size
-  });
+  this.manager = new Manager();
 
   this.initialize();
 };
 
 Game.prototype.initialize = function(){
+  var size = config.size;
+
   if (this.cview.getContext){
-    this.cview.width = this.gameSize.width;
-    this.cview.height = this.gameSize.height;
+    this.cview.width = size.x;
+    this.cview.height = size.y;
     this.viewCtx = this.cview.getContext("2d");
   }
   else { throw "canvas not supported!"; }
 
   this.worldCtx = this.cworld.getContext("2d");
-  this.cworld.width = this.gameSize.width;
-  this.cworld.height = this.gameSize.height;
+  this.cworld.width = size.x;
+  this.cworld.height = size.y;
 };
 
 Game.prototype.loop = function(){

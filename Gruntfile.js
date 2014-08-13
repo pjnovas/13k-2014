@@ -74,6 +74,10 @@ module.exports = function(grunt) {
             ,console: true
             ,Time: true
             ,game: true
+            ,Vector: true
+            ,Mathf: true
+            ,Renderer: true
+            ,config: true
           }
         }
       }
