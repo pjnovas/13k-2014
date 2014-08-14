@@ -5,12 +5,22 @@ var Spiders = require("./Spiders");
 
 var Manager = module.exports = function(){
   
+  var wParts = 80;
+  var hParts = 22;
+
+  this.nodes = new Nodes({
+    rows: Math.round(config.size.x / wParts),
+    cols: Math.round(config.size.y / hParts),
+    nodeSize: 3
+  });
+
+/*
   this.nodes = new Nodes({
     rows: 30,
     cols: 45,
     nodeSize: 3
   });
-
+*/
   this.paths = new Paths({
     nodes: this.nodes
   });

@@ -204,12 +204,22 @@ var Spiders = require("./Spiders");
 
 var Manager = module.exports = function(){
   
+  var wParts = 80;
+  var hParts = 22;
+
+  this.nodes = new Nodes({
+    rows: Math.round(config.size.x / wParts),
+    cols: Math.round(config.size.y / hParts),
+    nodeSize: 3
+  });
+
+/*
   this.nodes = new Nodes({
     rows: 30,
     cols: 45,
     nodeSize: 3
   });
-
+*/
   this.paths = new Paths({
     nodes: this.nodes
   });
@@ -284,6 +294,11 @@ var Node = module.exports = function(opts){
 
   this.coldColor = [255,255,255,1];
   this.burnColor = [255,0,0,1];
+  
+/*
+  this.coldColor = [0,0,0,1];
+  this.burnColor = [255,0,0,1];
+*/
 
   this.color = this.coldColor;
 
@@ -582,7 +597,6 @@ var Path = module.exports = function(opts){
   this.nb = opts.nb;
 
   this.size = 2;
-  this.color = "#fff";
 
   this.burned = false;
 };
@@ -1116,10 +1130,32 @@ window.onload = function() {
 
   window.config = require("./Settings");
 
+  function getSize(which){
+    return Math.max(
+      document.documentElement["client" + which], 
+      document.body["scroll" + which], 
+      document.documentElement["scroll" + which], 
+      document.body["offset" + which], 
+      document.documentElement["offset" + which]
+    );
+  }
+
+  var width = getSize("Width");
+  var height = getSize("Height");
+
+  window.config.size = {
+    x: width - 50,
+    y: height - 50
+  };
+
+/*
   window.config.size = {
     x: 1850,
     y: 1000
   };
+*/
+
+  //console.log(width + ":" + height);
 
   window.game = new Game({
     viewport: cviewport,

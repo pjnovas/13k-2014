@@ -10,6 +10,11 @@ var Node = module.exports = function(opts){
 
   this.coldColor = [255,255,255,1];
   this.burnColor = [255,0,0,1];
+  
+/*
+  this.coldColor = [0,0,0,1];
+  this.burnColor = [255,0,0,1];
+*/
 
   this.color = this.coldColor;
 

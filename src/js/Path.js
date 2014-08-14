@@ -4,7 +4,6 @@ var Path = module.exports = function(opts){
   this.nb = opts.nb;
 
   this.size = 2;
-  this.color = "#fff";
 
   this.burned = false;
 };
