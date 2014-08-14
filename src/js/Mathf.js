@@ -27,4 +27,8 @@ Mathf.rndInCircle = function(radius){
   };
 };
 
+Mathf.lerp = function(a, b, u) {
+  return (1 - u) * a + u * b;
+};
+
 module.exports = Mathf;

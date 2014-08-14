@@ -103,6 +103,10 @@ Nodes.prototype.findNodeByCollider = function(pos){
 
 };
 
+Nodes.prototype.GetNodes = function(){
+  return this.nodes;
+};
+
 Nodes.prototype.update = function(){
   this.paths.update();
 

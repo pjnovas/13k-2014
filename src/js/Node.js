@@ -26,6 +26,11 @@ Node.prototype.select = function(){
   });
 };
 
+Node.prototype.getRandomNear = function(){
+  var idx = Mathf.rnd(0, this.nears.length-1);
+  return this.nears[idx];
+};
+
 Node.prototype.update = function(){
   this.color = "#fff";
 

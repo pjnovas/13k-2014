@@ -174,6 +174,7 @@ GameTime.prototype.reset = function() {
 
 var Nodes = require("./Nodes");
 var Paths = require("./Paths");
+var Spiders = require("./Spiders");
 
 var Manager = module.exports = function(){
   
@@ -186,11 +187,17 @@ var Manager = module.exports = function(){
   this.paths = new Paths({
     nodes: this.nodes
   });
+
+  this.spiders = new Spiders({
+    nodes: this.nodes,
+    amount: 10
+  });
 };
 
 Manager.prototype.update = function(){
   //console.log(Time.frameTime + "( " + Time.deltaTime + " ) / " + Time.time);
   this.nodes.update();
+  this.spiders.update();
 };
 
 Manager.prototype.draw = function(viewCtx, worldCtx){
@@ -200,8 +207,9 @@ Manager.prototype.draw = function(viewCtx, worldCtx){
   worldCtx.clearRect(0, 0, s.x, s.y);
 
   this.nodes.draw(worldCtx);
+  this.spiders.draw(worldCtx);
 };
-},{"./Nodes":7,"./Paths":9}],5:[function(require,module,exports){
+},{"./Nodes":7,"./Paths":9,"./Spiders":14}],5:[function(require,module,exports){
 
 var Mathf = {};
 
@@ -229,6 +237,10 @@ Mathf.rndInCircle = function(radius){
     x: Math.cos(angle) * rad,
     y: Math.sin(angle) * rad
   };
+};
+
+Mathf.lerp = function(a, b, u) {
+  return (1 - u) * a + u * b;
 };
 
 module.exports = Mathf;
@@ -260,6 +272,11 @@ Node.prototype.select = function(){
   this.nears.forEach(function (node){
     node.selected = selected;
   });
+};
+
+Node.prototype.getRandomNear = function(){
+  var idx = Mathf.rnd(0, this.nears.length-1);
+  return this.nears[idx];
 };
 
 Node.prototype.update = function(){
@@ -383,6 +400,10 @@ Nodes.prototype.findNodeByCollider = function(pos){
     }
   });
 
+};
+
+Nodes.prototype.GetNodes = function(){
+  return this.nodes;
 };
 
 Nodes.prototype.update = function(){
@@ -546,6 +567,114 @@ module.exports = {
 
 },{}],13:[function(require,module,exports){
 
+var Spider = module.exports = function(opts){
+
+  this.pos = opts.pos;
+  this.size = 10;
+  this.color = "yellow";
+
+  this.nodeFrom = null;
+  this.nodeTo = null;
+  this.startTime = null;
+  this.journeyLength = null;
+
+  this.speed = 0.05;
+  this.traveling = false;
+};
+
+Spider.prototype.setNode = function(nodeFrom, nodeTo){
+  this.nodeFrom = nodeFrom;
+  this.nodeTo = nodeTo;
+
+  this.startTime = Time.time;
+  this.journeyLength = Vector.length(nodeFrom.pos, nodeTo.pos);
+  this.traveling = true;
+};
+
+Spider.prototype.update = function(){
+  if (!this.journeyLength){
+    return;
+  }
+
+  var distCovered = (Time.time - this.startTime) * this.speed;
+  var fracJourney = distCovered / this.journeyLength;
+  
+  if (fracJourney > 1) {
+    this.traveling = false;
+    return;
+  }
+
+  this.pos = Vector.lerp(this.nodeFrom.pos, this.nodeTo.pos, fracJourney);
+};
+
+Spider.prototype.draw = function(ctx){
+
+  Renderer.drawCircle(ctx, {
+    pos: this.pos,
+    radius: this.size,
+    color: this.color
+  });
+
+};
+},{}],14:[function(require,module,exports){
+
+var Spider = require("./Spider");
+
+var Spiders = module.exports = function(opts){
+  this.nodes = opts.nodes;
+  this.amount = opts.amount;
+
+  this.spiders = [];
+
+  this.generateSpiders();
+};
+
+Spiders.prototype.generateSpiders = function(){
+  var nodes = this.nodes.GetNodes();
+  var len = nodes.length;
+
+  var nodesIds = [];
+
+  for (var i=0; i<this.amount; i++){
+    var index = Mathf.rnd(0, len-1);
+    var node = nodes[index];
+
+    if (nodesIds.indexOf(node.id) === -1){
+      nodesIds.push(node.id);
+
+      this.spiders.push(new Spider({
+        pos: node.pos
+      }));
+    }
+  }
+};
+
+Spiders.prototype.update = function(){
+  var nodes = this.nodes.GetNodes();
+
+  this.spiders.forEach(function (spider) {
+
+    if (!spider.traveling){
+      nodes.forEach(function (node) {
+
+        if (Vector.pointInCircle(spider.pos, node.pos, 5)) {
+          var nodeTo = node.getRandomNear();
+          spider.setNode(node, nodeTo);
+        }
+
+      });
+    }
+    spider.update();
+  });
+};
+
+Spiders.prototype.draw = function(ctx){
+  this.spiders.forEach(function (spider) {
+    spider.draw(ctx);
+  });
+};
+},{"./Spider":13}],15:[function(require,module,exports){
+
 var Utils = module.exports = function(){
   this.lastIds = {
     nodes: 0
@@ -555,7 +684,7 @@ var Utils = module.exports = function(){
 Utils.prototype.guid = function(type){
   return ++this.lastIds[type];
 };
-},{}],14:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 
 var Vector = {};
 
@@ -597,10 +726,22 @@ Vector.center = function(pos, size){
   };
 };
 
+Vector.length = function(a, b){
+  var dif = Vector.dif(a, b);
+  return Math.sqrt(dif.x*dif.x + dif.y*dif.y);
+};
+
 Vector.pointInCircle = function(p, pos, radius){
-  var dif = Vector.dif(p, pos);
-  var len = Math.sqrt(dif.x*dif.x + dif.y*dif.y);
-  return len < radius;
+  return Vector.length(p, pos) < radius;
+};
+
+Vector.lerp = function(from, to, t){
+
+  return {
+    x: from.x + (to.x - from.x) * t,
+    y: from.y + (to.y - from.y) * t
+  };
+
 };
 
 /*
@@ -610,7 +751,7 @@ Vector.debug = function(vec){
 */
 module.exports = Vector;
 
-},{}],15:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 
 require("./reqAnimFrame");
 var GameTime = require("./GameTime");
@@ -650,7 +791,7 @@ window.onload = function() {
 
   window.game.start();
 };
-},{"./Controls":1,"./Game":2,"./GameTime":3,"./Mathf":5,"./Physics":10,"./Renderer":11,"./Settings":12,"./Utils":13,"./Vector":14,"./reqAnimFrame":16}],16:[function(require,module,exports){
+},{"./Controls":1,"./Game":2,"./GameTime":3,"./Mathf":5,"./Physics":10,"./Renderer":11,"./Settings":12,"./Utils":15,"./Vector":16,"./reqAnimFrame":18}],18:[function(require,module,exports){
 // http://paulirish.com/2011/requestanimationframe-for-smart-animating/
 // http://my.opera.com/emoller/blog/2011/12/20/requestanimationframe-for-smart-er-animating
 
@@ -680,4 +821,4 @@ window.onload = function() {
     window.cancelAnimationFrame = function(id) { window.clearTimeout(id); };
   }
 }());
-},{}]},{},[15]);
+},{}]},{},[17]);

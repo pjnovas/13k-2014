@@ -39,10 +39,22 @@ Vector.center = function(pos, size){
   };
 };
 
+Vector.length = function(a, b){
+  var dif = Vector.dif(a, b);
+  return Math.sqrt(dif.x*dif.x + dif.y*dif.y);
+};
+
 Vector.pointInCircle = function(p, pos, radius){
-  var dif = Vector.dif(p, pos);
-  var len = Math.sqrt(dif.x*dif.x + dif.y*dif.y);
-  return len < radius;
+  return Vector.length(p, pos) < radius;
+};
+
+Vector.lerp = function(from, to, t){
+
+  return {
+    x: from.x + (to.x - from.x) * t,
+    y: from.y + (to.y - from.y) * t
+  };
+
 };
 
 /*
