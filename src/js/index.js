@@ -5,6 +5,7 @@ var Utils = require("./Utils");
 var Controls = require("./Controls");
 
 window.Mathf = require("./Mathf");
+window.Color = require("./Color");
 window.Vector = require("./Vector");
 window.Physics = require("./Physics");
 window.Renderer = require("./Renderer");

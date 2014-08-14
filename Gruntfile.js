@@ -81,6 +81,7 @@ module.exports = function(grunt) {
             ,Utils: true
             ,Controls: true
             ,Physics: true
+            ,Color: true
           }
         }
       }

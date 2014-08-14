@@ -1,5 +1,31 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 
+var Color = {};
+
+Color.toRGBA = function(arr){
+  return "rgba(" + arr[0] + "," + arr[1] + "," + arr[2] + "," + (arr[3] || 1) + ")";
+};
+
+Color.lerp = function(from, to, t){
+  var fromA = from[3] === undefined ? 1 : from[3];
+  var toA = to[3] === undefined ? 1 : to[3];
+
+  var r = Math.round(Mathf.lerp(from[0], to[0], t));
+  var g = Math.round(Mathf.lerp(from[1], to[1], t));
+  var b = Math.round(Mathf.lerp(from[2], to[2], t));
+  var a = Math.round(Mathf.lerp(fromA, toA, t) * 100) / 100;
+
+  return [r,g,b,a];
+};
+
+Color.eql = function(a, b){
+  return a[0] === b[0] && a[1] === b[1] && a[2] === b[2] && a[3] === b[3];
+};
+
+module.exports = Color;
+
+},{}],2:[function(require,module,exports){
+
 var Mouse = module.exports = function(options){
   this.container = options.container || window.document;
 
@@ -70,7 +96,7 @@ Mouse.prototype._onMouseUp = function(e){
     cb(pos);
   });
 };
-},{}],2:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
 
 var Manager = require("./Manager");
 
@@ -127,7 +153,7 @@ Game.prototype.gameRun = function(){
   this.tLoop = window.requestAnimationFrame(this.boundGameRun);
 };
 
-},{"./Manager":4}],3:[function(require,module,exports){
+},{"./Manager":5}],4:[function(require,module,exports){
 // Manages the ticks for a Game Loop
 
 var GameTime = module.exports = function(){
@@ -170,7 +196,7 @@ GameTime.prototype.reset = function() {
   this.minFrameTime = 12; 
   this.time = 0;
 };
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 
 var Nodes = require("./Nodes");
 var Paths = require("./Paths");
@@ -209,7 +235,7 @@ Manager.prototype.draw = function(viewCtx, worldCtx){
   this.nodes.draw(worldCtx);
   this.spiders.draw(worldCtx);
 };
-},{"./Nodes":7,"./Paths":9,"./Spiders":14}],5:[function(require,module,exports){
+},{"./Nodes":8,"./Paths":10,"./Spiders":15}],6:[function(require,module,exports){
 
 var Mathf = {};
 
@@ -245,7 +271,7 @@ Mathf.lerp = function(a, b, u) {
 
 module.exports = Mathf;
 
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 
 var Node = module.exports = function(opts){
   this.id = Utils.guid("nodes");
@@ -255,23 +281,37 @@ var Node = module.exports = function(opts){
 
   this.pos = opts.pos;
   this.size = opts.size;
-  this.color = "#fff";
+
+  this.coldColor = [255,255,255,1];
+  this.burnColor = [255,0,0,1];
+
+  this.color = this.coldColor;
 
   this.nears = [];
   this.selected = false;
+
+  this.increaseTempSize = 0.1;
+
+  this.temp = 0;
+  this.increaseTemp = 0;
+  this.burnTemp = 1;
+
+  this.collider = 1;
+  this.colliderTemp = 40;
+
+  this.burned = false;
 };
 
 Node.prototype.addNear = function(node){
   this.nears.push(node);
 };
 
-Node.prototype.select = function(){
-  var selected = !this.selected;
-  this.selected = selected;
+Node.prototype.burn = function(){
+  this.increaseTemp = 1;
+};
 
-  this.nears.forEach(function (node){
-    node.selected = selected;
-  });
+Node.prototype.cool = function(){
+  this.increaseTemp = -1;
 };
 
 Node.prototype.getRandomNear = function(){
@@ -279,24 +319,61 @@ Node.prototype.getRandomNear = function(){
   return this.nears[idx];
 };
 
-Node.prototype.update = function(){
-  this.color = "#fff";
+Node.prototype.notifyBurn = function(){
+  /*
+  this.nears.forEach(function (node){
+    node.burn();
+  });
+*/
+};
 
-  if (this.selected){
-    this.color = "red";
+Node.prototype.update = function(){
+
+  if (this.burned){
+    return;
   }
+
+  this.temp += this.increaseTemp * this.increaseTempSize * Time.deltaTime;
+
+  if (this.temp <= 0){
+    this.temp = 0;
+    //this.notifyCold();
+  }
+
+  this.color = Color.lerp(this.coldColor, this.burnColor, this.temp);
+
+  if (this.temp > 1){
+    this.burned = true;
+    this.notifyBurn();
+    return;
+  }
+
+  this.collider = this.temp ? this.temp * this.colliderTemp : 1 ;
+
 };
 
 Node.prototype.draw = function(ctx){
 
+  if (this.burned){
+    return;
+  }
+/*
+  //debug collider
+  Renderer.drawCircle(ctx, {
+    pos: this.pos,
+    radius: this.collider,
+    color: "rgba(255,0,0,0.5)"
+  });
+*/
+
   Renderer.drawCircle(ctx, {
     pos: this.pos,
     radius: this.size,
-    color: this.color
+    color: Color.toRGBA(this.color)
   });
 
 };
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 
 var Node = require("./Node")
   , Paths = require("./Paths");
@@ -356,7 +433,7 @@ Nodes.prototype.createGrid = function(){
       var center = Vector.center({ x: cw*j, y: ch*i }, { x: cw, y: ch });
 
       var node = new Node({
-        pos: Vector.add(center, point),
+        pos: Vector.round(Vector.add(center, point)),
         size: size,
         row: i,
         col: j
@@ -396,7 +473,7 @@ Nodes.prototype.findNodeByCollider = function(pos){
   
   this.nodes.forEach(function (node) {
     if (Vector.pointInCircle(pos, node.pos, node.size)) {
-      node.select();
+      node.burn();
     }
   });
 
@@ -444,7 +521,7 @@ Nodes.prototype.draw = function(ctx){
   });
 
 };
-},{"./Node":6,"./Paths":9}],8:[function(require,module,exports){
+},{"./Node":7,"./Paths":10}],9:[function(require,module,exports){
 
 var Path = module.exports = function(opts){
   this.na = opts.na;
@@ -452,14 +529,45 @@ var Path = module.exports = function(opts){
 
   this.size = 2;
   this.color = "#fff";
+
+  this.burned = false;
 };
 
 Path.prototype.update = function(){
-  
+  if (this.burned){
+    return;
+  }
+
+  this.burned = (this.na.burned || this.nb.burned);
+  if (this.burned){
+    return;
+  }
+
+  var naT = this.na.temp;
+  var nbT = this.nb.temp;
+
+  if (naT > 0.5 && nbT === 0){
+    this.nb.burn();
+  }
+  else if (nbT > 0.5 && naT === 0){
+    this.na.burn();
+  }
+
+  if (Color.eql(this.na.color,  this.nb.color)){
+    this.color = Color.toRGBA(this.na.color);
+  }
+  else {
+    this.color = Color.toRGBA(Color.lerp(this.na.color, this.nb.color, 0.5));
+  }
+
 };
 
 Path.prototype.draw = function(ctx){
+  if (this.burned){
+    return;
+  }
 
+  //if (Color.eql(this.na.color,  this.nb.color)){
   Renderer.drawLine(ctx, {
     from: this.na.pos,
     to: this.nb.pos,
@@ -467,8 +575,20 @@ Path.prototype.draw = function(ctx){
     color: this.color
   });
 
+  /*
+  else { toooooo expensive (blows in Mozilla)
+    Renderer.drawLinGradient(ctx, {
+      from: this.na.pos,
+      to: this.nb.pos,
+      size: this.size,
+      colorFrom: Color.toRGBA(this.na.color),
+      colorTo: Color.toRGBA(this.nb.color)
+    });
+  }
+  */
+
 };
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 
 var Path = require("./Path");
 
@@ -508,7 +628,7 @@ Paths.prototype.draw = function(ctx){
     path.draw(ctx);
   });
 };
-},{"./Path":8}],10:[function(require,module,exports){
+},{"./Path":9}],11:[function(require,module,exports){
 
 var Physics = {};
 
@@ -518,9 +638,11 @@ Physics.test = function(x, y){
 
 module.exports = Physics;
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 
 var Renderer = {};
+
+//Renderer.grads = [];
 
 Renderer.drawCircle = function(ctx, ps){
   ctx.beginPath();
@@ -542,7 +664,33 @@ Renderer.drawLine = function(ctx, ps){
   ctx.strokeStyle = ps.color;
   ctx.stroke();
 };
+/*
+Renderer.drawLinGradient = function(ctx, ps){
+  var a = ps.from
+    , b = ps.to
+    , cA = ps.colorFrom
+    , cB = ps.colorTo
+    , gid = a.x +"."+ a.y +"."+ b.x +"."+ b.y +"."+ cA +"."+ cB
+    , grad = Renderer.grads[gid];
 
+  if (!grad){
+    grad = ctx.createLinearGradient(a.x, a.y, b.x, b.y);
+    grad.addColorStop(0, cA);
+    grad.addColorStop(1, cB);
+    Renderer.grads[gid] = grad;
+  }
+
+  ctx.strokeStyle = grad;
+
+  ctx.beginPath();
+
+  ctx.moveTo(a.x, a.y);
+  ctx.lineTo(b.x, b.y);
+
+  ctx.lineWidth = ps.size;
+  ctx.stroke();
+};
+*/
 Renderer.drawRect = function(ctx, ps){
   ctx.beginPath();
   
@@ -557,7 +705,7 @@ Renderer.drawRect = function(ctx, ps){
 
 module.exports = Renderer;
 
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 
 module.exports = {
 
@@ -565,11 +713,11 @@ module.exports = {
 
 };
 
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 
 var Spider = module.exports = function(opts){
 
-  this.pos = opts.pos;
+  this.pos = Vector.round(opts.pos);
   this.size = 10;
   this.color = "yellow";
 
@@ -580,6 +728,7 @@ var Spider = module.exports = function(opts){
 
   this.speed = 0.05;
   this.traveling = false;
+  this.collider = this.size * 3;
 };
 
 Spider.prototype.setNode = function(nodeFrom, nodeTo){
@@ -604,10 +753,17 @@ Spider.prototype.update = function(){
     return;
   }
 
-  this.pos = Vector.lerp(this.nodeFrom.pos, this.nodeTo.pos, fracJourney);
+  this.pos = Vector.round(Vector.lerp(this.nodeFrom.pos, this.nodeTo.pos, fracJourney));
 };
 
 Spider.prototype.draw = function(ctx){
+
+  //debug collider
+  Renderer.drawCircle(ctx, {
+    pos: this.pos,
+    radius: this.collider,
+    color: "rgba(0,255,0,0.2)"
+  });
 
   Renderer.drawCircle(ctx, {
     pos: this.pos,
@@ -616,7 +772,7 @@ Spider.prototype.draw = function(ctx){
   });
 
 };
-},{}],14:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 
 var Spider = require("./Spider");
 
@@ -673,7 +829,7 @@ Spiders.prototype.draw = function(ctx){
     spider.draw(ctx);
   });
 };
-},{"./Spider":13}],15:[function(require,module,exports){
+},{"./Spider":14}],16:[function(require,module,exports){
 
 var Utils = module.exports = function(){
   this.lastIds = {
@@ -684,7 +840,7 @@ var Utils = module.exports = function(){
 Utils.prototype.guid = function(type){
   return ++this.lastIds[type];
 };
-},{}],16:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 
 var Vector = {};
 
@@ -744,6 +900,12 @@ Vector.lerp = function(from, to, t){
 
 };
 
+Vector.round = function(v){
+  v.x = Math.round(v.x);
+  v.y = Math.round(v.y);
+  return v;
+};
+
 /*
 Vector.debug = function(vec){
   console.log(vec.x + " : " + vec.y);
@@ -751,7 +913,7 @@ Vector.debug = function(vec){
 */
 module.exports = Vector;
 
-},{}],17:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 
 require("./reqAnimFrame");
 var GameTime = require("./GameTime");
@@ -759,6 +921,7 @@ var Utils = require("./Utils");
 var Controls = require("./Controls");
 
 window.Mathf = require("./Mathf");
+window.Color = require("./Color");
 window.Vector = require("./Vector");
 window.Physics = require("./Physics");
 window.Renderer = require("./Renderer");
@@ -791,7 +954,7 @@ window.onload = function() {
 
   window.game.start();
 };
-},{"./Controls":1,"./Game":2,"./GameTime":3,"./Mathf":5,"./Physics":10,"./Renderer":11,"./Settings":12,"./Utils":15,"./Vector":16,"./reqAnimFrame":18}],18:[function(require,module,exports){
+},{"./Color":1,"./Controls":2,"./Game":3,"./GameTime":4,"./Mathf":6,"./Physics":11,"./Renderer":12,"./Settings":13,"./Utils":16,"./Vector":17,"./reqAnimFrame":19}],19:[function(require,module,exports){
 // http://paulirish.com/2011/requestanimationframe-for-smart-animating/
 // http://my.opera.com/emoller/blog/2011/12/20/requestanimationframe-for-smart-er-animating
 
@@ -821,4 +984,4 @@ window.onload = function() {
     window.cancelAnimationFrame = function(id) { window.clearTimeout(id); };
   }
 }());
-},{}]},{},[17]);
+},{}]},{},[18]);

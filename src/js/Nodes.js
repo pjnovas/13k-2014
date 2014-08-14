@@ -57,7 +57,7 @@ Nodes.prototype.createGrid = function(){
       var center = Vector.center({ x: cw*j, y: ch*i }, { x: cw, y: ch });
 
       var node = new Node({
-        pos: Vector.add(center, point),
+        pos: Vector.round(Vector.add(center, point)),
         size: size,
         row: i,
         col: j
@@ -97,7 +97,7 @@ Nodes.prototype.findNodeByCollider = function(pos){
   
   this.nodes.forEach(function (node) {
     if (Vector.pointInCircle(pos, node.pos, node.size)) {
-      node.select();
+      node.burn();
     }
   });
 

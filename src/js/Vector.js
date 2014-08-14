@@ -57,6 +57,12 @@ Vector.lerp = function(from, to, t){
 
 };
 
+Vector.round = function(v){
+  v.x = Math.round(v.x);
+  v.y = Math.round(v.y);
+  return v;
+};
+
 /*
 Vector.debug = function(vec){
   console.log(vec.x + " : " + vec.y);

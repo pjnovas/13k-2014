@@ -1,7 +1,7 @@
 
 var Spider = module.exports = function(opts){
 
-  this.pos = opts.pos;
+  this.pos = Vector.round(opts.pos);
   this.size = 10;
   this.color = "yellow";
 
@@ -12,6 +12,7 @@ var Spider = module.exports = function(opts){
 
   this.speed = 0.05;
   this.traveling = false;
+  this.collider = this.size * 3;
 };
 
 Spider.prototype.setNode = function(nodeFrom, nodeTo){
@@ -36,10 +37,17 @@ Spider.prototype.update = function(){
     return;
   }
 
-  this.pos = Vector.lerp(this.nodeFrom.pos, this.nodeTo.pos, fracJourney);
+  this.pos = Vector.round(Vector.lerp(this.nodeFrom.pos, this.nodeTo.pos, fracJourney));
 };
 
 Spider.prototype.draw = function(ctx){
+
+  //debug collider
+  Renderer.drawCircle(ctx, {
+    pos: this.pos,
+    radius: this.collider,
+    color: "rgba(0,255,0,0.2)"
+  });
 
   Renderer.drawCircle(ctx, {
     pos: this.pos,
