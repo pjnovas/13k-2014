@@ -17,6 +17,7 @@ var Manager = module.exports = function(){
 
 Manager.prototype.update = function(){
   //console.log(Time.frameTime + "( " + Time.deltaTime + " ) / " + Time.time);
+  this.nodes.update();
 };
 
 Manager.prototype.draw = function(viewCtx, worldCtx){

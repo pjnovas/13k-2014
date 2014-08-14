@@ -22,8 +22,8 @@ Mathf.rndInCircle = function(radius){
   var rad = Mathf.rnd(0, radius);
 
   return {
-      x: Math.cos(angle) * rad,
-      y: Math.sin(angle) * rad
+    x: Math.cos(angle) * rad,
+    y: Math.sin(angle) * rad
   };
 };
 

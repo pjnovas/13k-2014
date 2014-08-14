@@ -18,7 +18,7 @@ Paths.prototype.addOne = function(nA, nB){
   if (nB && !this.hasOne(nA.id, nB.id)){
     nA.addNear(nB);
     nB.addNear(nA);
-    
+
     this.paths.push(new Path({
       na: nA,
       nb: nB
@@ -27,13 +27,13 @@ Paths.prototype.addOne = function(nA, nB){
 };
 
 Paths.prototype.update = function(){
-  
+  this.paths.forEach(function (path) {
+    path.update();
+  });
 };
 
 Paths.prototype.draw = function(ctx){
-
   this.paths.forEach(function (path) {
     path.draw(ctx);
   });
-
 };

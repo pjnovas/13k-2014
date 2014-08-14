@@ -8,13 +8,17 @@ var Nodes = module.exports = function(opts){
   this.cols = opts.cols;
   this.nodeSize = opts.nodeSize;
 
+  this.nodes = [];
   this.nodeGrid = [];
+
 //  this.gridCellsDebug = [];
 
   this.createGrid();
 
   this.paths = new Paths();
   this.createPaths();
+
+  Controls.on("pressed", this.findNodeByCollider.bind(this));
 };
 
 Nodes.prototype.createGrid = function(){
@@ -52,10 +56,15 @@ Nodes.prototype.createGrid = function(){
       var point = Mathf.rndInCircle(rndR);
       var center = Vector.center({ x: cw*j, y: ch*i }, { x: cw, y: ch });
 
-      this.nodeGrid[i][j] = new Node({
+      var node = new Node({
         pos: Vector.add(center, point),
-        size: size
+        size: size,
+        row: i,
+        col: j
       });
+
+      this.nodeGrid[i][j] = node;
+      this.nodes.push(node);
     }
   }
 
@@ -63,12 +72,8 @@ Nodes.prototype.createGrid = function(){
 
 Nodes.prototype.createPaths = function(){
 
-  this.nodeGrid.forEach(function (row, i) {
-    row.forEach(function (node, j) {
-      if (node) {
-        this.findNearNodes(i, j, node);
-      }
-    }, this);
+  this.nodes.forEach(function (node) {
+    this.findNearNodes(node.row, node.col, node);
   }, this);
 
 };
@@ -88,8 +93,22 @@ Nodes.prototype.findNearNodes = function(i, j, node){
 
 };
 
-Nodes.prototype.update = function(){
+Nodes.prototype.findNodeByCollider = function(pos){
   
+  this.nodes.forEach(function (node) {
+    if (Vector.pointInCircle(pos, node.pos, node.size)) {
+      node.select();
+    }
+  });
+
+};
+
+Nodes.prototype.update = function(){
+  this.paths.update();
+
+  this.nodes.forEach(function (node) {
+    node.update();
+  });
 };
 
 Nodes.prototype.draw = function(ctx){
@@ -117,12 +136,8 @@ Nodes.prototype.draw = function(ctx){
 
   this.paths.draw(ctx);
 
-  this.nodeGrid.forEach(function (row) {
-    row.forEach(function (node) {
-      if (node) {
-        node.draw(ctx);
-      }
-    });
+  this.nodes.forEach(function (node) {
+    node.draw(ctx);
   });
 
 };

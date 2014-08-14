@@ -79,6 +79,8 @@ module.exports = function(grunt) {
             ,Renderer: true
             ,config: true
             ,Utils: true
+            ,Controls: true
+            ,Physics: true
           }
         }
       }

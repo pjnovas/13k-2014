@@ -41,6 +41,7 @@ Game.prototype.loop = function(){
 Game.prototype.start = function(){
   this.paused = false;
   this.gameRun();
+  Controls.enable();
 };
 
 Game.prototype.stop = function(){

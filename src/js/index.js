@@ -2,15 +2,24 @@
 require("./reqAnimFrame");
 var GameTime = require("./GameTime");
 var Utils = require("./Utils");
+var Controls = require("./Controls");
 
 window.Mathf = require("./Mathf");
 window.Vector = require("./Vector");
+window.Physics = require("./Physics");
 window.Renderer = require("./Renderer");
 
 window.onload = function() {
   
+  var cviewport = document.getElementById("game-viewport");
+  var cworld = document.getElementById("game-world");
+
   window.Utils = new Utils();  
   window.Time = new GameTime();
+
+  window.Controls = new Controls({
+    container: cviewport
+  });
 
   var Game = require("./Game");
 
@@ -22,8 +31,8 @@ window.onload = function() {
   };
 
   window.game = new Game({
-    viewport: document.getElementById("game-viewport"),
-    world: document.getElementById("game-world")
+    viewport: cviewport,
+    world: cworld
   });
 
   window.game.start();
