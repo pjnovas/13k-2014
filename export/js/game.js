@@ -205,9 +205,9 @@ var Spiders = require("./Spiders");
 var Manager = module.exports = function(){
   
   this.nodes = new Nodes({
-    rows: 10,
-    cols: 15,
-    nodeSize: 7
+    rows: 30,
+    cols: 45,
+    nodeSize: 3
   });
 
   this.paths = new Paths({
@@ -216,7 +216,7 @@ var Manager = module.exports = function(){
 
   this.spiders = new Spiders({
     nodes: this.nodes,
-    amount: 10
+    amount: 100
   });
 };
 
@@ -314,17 +314,65 @@ Node.prototype.cool = function(){
   this.increaseTemp = -1;
 };
 
-Node.prototype.getRandomNear = function(){
-  var idx = Mathf.rnd(0, this.nears.length-1);
-  return this.nears[idx];
+Node.prototype.getRandomNear = function(excludeId){
+  var ns = [];
+
+  this.nears.forEach(function(n){
+    if (n.id !== excludeId && !n.burned && n.temp < 0.5){
+      ns.push(n);
+    }
+  });
+/*
+  if (ns.length === 0){
+    this.nears.forEach(function(n){
+      if (n.id !== excludeId && !n.burned){
+        ns.push(n);
+      }
+    });
+  }
+*/
+  if (ns.length > 0){
+    var idx = Mathf.rnd(0, ns.length-1);
+    return ns[idx];
+  }
+
+  return null;
 };
 
-Node.prototype.notifyBurn = function(){
-  /*
-  this.nears.forEach(function (node){
-    node.burn();
+Node.prototype.getRandomNearB = function(excludeId){
+  var ns = [];
+
+  this.nears.forEach(function(n){
+    if (n.id !== excludeId && !n.burned){
+      ns.push(n);
+    }
   });
-*/
+
+  if (ns.length > 0){
+    ns.sort(function(na, nb){
+      return na.temp - nb.temp;
+    });
+
+    if (ns[0].temp < 0.5){
+      return ns[0];
+    }
+
+    var found = null; 
+    ns.forEach(function(n){
+      if (n.temp < 0.5){
+        found = n;
+        return true;
+      }
+    });
+
+    return found || ns[0];
+  }
+
+  return null;
+};
+
+Node.prototype.setBurned = function(){
+  this.burned = true;
 };
 
 Node.prototype.update = function(){
@@ -333,18 +381,24 @@ Node.prototype.update = function(){
     return;
   }
 
+  var isAlone = this.nears.every(function(n){
+    return n.burned;
+  });
+
+  if (isAlone){
+    this.setBurned();
+  }
+
   this.temp += this.increaseTemp * this.increaseTempSize * Time.deltaTime;
 
   if (this.temp <= 0){
     this.temp = 0;
-    //this.notifyCold();
   }
 
   this.color = Color.lerp(this.coldColor, this.burnColor, this.temp);
 
   if (this.temp > 1){
-    this.burned = true;
-    this.notifyBurn();
+    this.setBurned();
     return;
   }
 
@@ -718,37 +772,125 @@ module.exports = {
 var Spider = module.exports = function(opts){
 
   this.pos = Vector.round(opts.pos);
-  this.size = 10;
-  this.color = "yellow";
+  this.size = 5;
+  this.color = [115,255,0];
 
   this.nodeFrom = null;
   this.nodeTo = null;
-  this.startTime = null;
   this.journeyLength = null;
 
   this.speed = 0.05;
+
   this.traveling = false;
   this.collider = this.size * 3;
+  this.isDead = false;
+
+  this.temp = 0;
+  this.scared = false;
+  this.staying = false;
+
+  this.t_stay = 2000;
+  this.t_startStay = 0;
+  this.t_nextStay = 0;
+
+  this.t_startMove = 0;
 };
 
 Spider.prototype.setNode = function(nodeFrom, nodeTo){
   this.nodeFrom = nodeFrom;
   this.nodeTo = nodeTo;
 
-  this.startTime = Time.time;
+  this.t_startMove = Time.time;
   this.journeyLength = Vector.length(nodeFrom.pos, nodeTo.pos);
   this.traveling = true;
+
+  this.nextStayTime = this.stayTime * 5;
+};
+/*
+Spider.prototype.switchTravel = function(){
+  var aux = this.nodeFrom;
+  this.nodeFrom = this.nodeTo;
+  this.nodeTo = aux;
+
+  this.t_startMove = Time.time;
+};
+*/
+Spider.prototype.setDead = function(){
+  this.isDead = true;
 };
 
-Spider.prototype.update = function(){
-  if (!this.journeyLength){
+Spider.prototype.updateTemp = function(){
+  var nfromT = this.nodeFrom.temp;
+  var ntoT = this.nodeTo.temp;
+
+  if (nfromT === 0 && ntoT === 0){
+    this.temp = 0;
     return;
   }
 
-  var distCovered = (Time.time - this.startTime) * this.speed;
+  if (nfromT > ntoT){
+    this.temp = nfromT;
+    return;
+  }
+
+  if (ntoT > nfromT){
+    this.temp = ntoT;
+    //this.switchTravel();
+  }
+};
+
+Spider.prototype.updateState = function(){
+
+  this.scared = true;
+  if (this.temp === 0){
+    this.scared = false;
+  }
+
+  if (this.scared){
+    this.speed = 0.1;
+    if (this.staying){
+      this.t_startMove += Time.time - this.t_startStay;
+    }
+
+    this.staying = false;
+    return;
+  }
+
+  this.speed = 0.05;
+  if (this.staying){
+    if(Time.time > this.t_startStay + this.t_stay) {
+      this.staying = false;
+      this.t_startMove += this.t_stay;
+      this.t_nextStay = Time.time + this.t_stay / Mathf.rnd(2, 5);
+    }
+  }
+  else {
+
+    if (Time.time > this.t_nextStay && Mathf.rnd(0, 1000) > 900){
+      this.staying = true;
+      this.t_startStay = Time.time;
+      this.t_stay = Mathf.rnd(3000, 10000);
+    }
+  }
+
+};
+
+Spider.prototype.updateMove = function(){
+
+  if (this.nodeFrom.burned || this.nodeTo.burned){
+    this.setDead();
+    return;
+  }
+
+  if (this.staying) {
+    return;
+  }
+
+  var distCovered = (Time.time - this.t_startMove) * this.speed;
   var fracJourney = distCovered / this.journeyLength;
   
   if (fracJourney > 1) {
+    this.pos = this.nodeTo.pos;
     this.traveling = false;
     return;
   }
@@ -756,22 +898,42 @@ Spider.prototype.update = function(){
   this.pos = Vector.round(Vector.lerp(this.nodeFrom.pos, this.nodeTo.pos, fracJourney));
 };
 
-Spider.prototype.draw = function(ctx){
+Spider.prototype.update = function(){
+  if (this.isDead){
+    return;
+  }
 
+  if (!this.journeyLength){
+    return;
+  }
+
+  this.updateTemp();
+  this.updateState();
+  this.updateMove();
+
+};
+
+Spider.prototype.draw = function(ctx){
+  if (this.isDead){
+    return;
+  }
+
+/*
   //debug collider
   Renderer.drawCircle(ctx, {
     pos: this.pos,
     radius: this.collider,
     color: "rgba(0,255,0,0.2)"
   });
+*/
 
   Renderer.drawCircle(ctx, {
     pos: this.pos,
     radius: this.size,
-    color: this.color
+    color: Color.toRGBA(this.color)
   });
-
 };
+
 },{}],15:[function(require,module,exports){
 
 var Spider = require("./Spider");
@@ -806,6 +968,7 @@ Spiders.prototype.generateSpiders = function(){
 };
 
 Spiders.prototype.update = function(){
+
   var nodes = this.nodes.GetNodes();
 
   this.spiders.forEach(function (spider) {
@@ -814,8 +977,19 @@ Spiders.prototype.update = function(){
       nodes.forEach(function (node) {
 
         if (Vector.pointInCircle(spider.pos, node.pos, 5)) {
-          var nodeTo = node.getRandomNear();
-          spider.setNode(node, nodeTo);
+          var fromId = (spider.nodeFrom && spider.nodeFrom.id) || -1;
+          var nodeTo = node.getRandomNear(fromId);
+          if (nodeTo){
+            spider.setNode(node, nodeTo);
+          }
+          else {
+            if(node.burned){
+              spider.setDead();
+            }
+            else {
+              spider.setNode(node, spider.nodeFrom);
+            }
+          }
         }
 
       });
@@ -943,8 +1117,8 @@ window.onload = function() {
   window.config = require("./Settings");
 
   window.config.size = {
-    x: 1000,
-    y: 600
+    x: 1850,
+    y: 1000
   };
 
   window.game = new Game({

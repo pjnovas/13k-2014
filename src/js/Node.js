@@ -40,17 +40,65 @@ Node.prototype.cool = function(){
   this.increaseTemp = -1;
 };
 
-Node.prototype.getRandomNear = function(){
-  var idx = Mathf.rnd(0, this.nears.length-1);
-  return this.nears[idx];
+Node.prototype.getRandomNear = function(excludeId){
+  var ns = [];
+
+  this.nears.forEach(function(n){
+    if (n.id !== excludeId && !n.burned && n.temp < 0.5){
+      ns.push(n);
+    }
+  });
+/*
+  if (ns.length === 0){
+    this.nears.forEach(function(n){
+      if (n.id !== excludeId && !n.burned){
+        ns.push(n);
+      }
+    });
+  }
+*/
+  if (ns.length > 0){
+    var idx = Mathf.rnd(0, ns.length-1);
+    return ns[idx];
+  }
+
+  return null;
 };
 
-Node.prototype.notifyBurn = function(){
-  /*
-  this.nears.forEach(function (node){
-    node.burn();
+Node.prototype.getRandomNearB = function(excludeId){
+  var ns = [];
+
+  this.nears.forEach(function(n){
+    if (n.id !== excludeId && !n.burned){
+      ns.push(n);
+    }
   });
-*/
+
+  if (ns.length > 0){
+    ns.sort(function(na, nb){
+      return na.temp - nb.temp;
+    });
+
+    if (ns[0].temp < 0.5){
+      return ns[0];
+    }
+
+    var found = null; 
+    ns.forEach(function(n){
+      if (n.temp < 0.5){
+        found = n;
+        return true;
+      }
+    });
+
+    return found || ns[0];
+  }
+
+  return null;
+};
+
+Node.prototype.setBurned = function(){
+  this.burned = true;
 };
 
 Node.prototype.update = function(){
@@ -59,18 +107,24 @@ Node.prototype.update = function(){
     return;
   }
 
+  var isAlone = this.nears.every(function(n){
+    return n.burned;
+  });
+
+  if (isAlone){
+    this.setBurned();
+  }
+
   this.temp += this.increaseTemp * this.increaseTempSize * Time.deltaTime;
 
   if (this.temp <= 0){
     this.temp = 0;
-    //this.notifyCold();
   }
 
   this.color = Color.lerp(this.coldColor, this.burnColor, this.temp);
 
   if (this.temp > 1){
-    this.burned = true;
-    this.notifyBurn();
+    this.setBurned();
     return;
   }
 

@@ -31,6 +31,7 @@ Spiders.prototype.generateSpiders = function(){
 };
 
 Spiders.prototype.update = function(){
+
   var nodes = this.nodes.GetNodes();
 
   this.spiders.forEach(function (spider) {
@@ -39,8 +40,19 @@ Spiders.prototype.update = function(){
       nodes.forEach(function (node) {
 
         if (Vector.pointInCircle(spider.pos, node.pos, 5)) {
-          var nodeTo = node.getRandomNear();
-          spider.setNode(node, nodeTo);
+          var fromId = (spider.nodeFrom && spider.nodeFrom.id) || -1;
+          var nodeTo = node.getRandomNear(fromId);
+          if (nodeTo){
+            spider.setNode(node, nodeTo);
+          }
+          else {
+            if(node.burned){
+              spider.setDead();
+            }
+            else {
+              spider.setNode(node, spider.nodeFrom);
+            }
+          }
         }
 
       });

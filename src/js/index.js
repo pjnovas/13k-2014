@@ -27,8 +27,8 @@ window.onload = function() {
   window.config = require("./Settings");
 
   window.config.size = {
-    x: 1000,
-    y: 600
+    x: 1850,
+    y: 1000
   };
 
   window.game = new Game({

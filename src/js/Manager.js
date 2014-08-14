@@ -6,9 +6,9 @@ var Spiders = require("./Spiders");
 var Manager = module.exports = function(){
   
   this.nodes = new Nodes({
-    rows: 10,
-    cols: 15,
-    nodeSize: 7
+    rows: 30,
+    cols: 45,
+    nodeSize: 3
   });
 
   this.paths = new Paths({
@@ -17,7 +17,7 @@ var Manager = module.exports = function(){
 
   this.spiders = new Spiders({
     nodes: this.nodes,
-    amount: 10
+    amount: 100
   });
 };
 
