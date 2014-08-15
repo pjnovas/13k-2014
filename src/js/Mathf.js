@@ -31,4 +31,18 @@ Mathf.lerp = function(a, b, u) {
   return (1 - u) * a + u * b;
 };
 
+Mathf.polygonPoints = function(center, radius, sides) {
+  var points = [];
+  var angle = (Math.PI * 2) / sides;
+
+  for (var i = 0; i < sides; i++) {
+    points.push({
+      x: center.x + radius * Math.cos(i * angle),
+      y: center.y + radius * Math.sin(i * angle)
+    });
+  }
+
+  return points;
+};
+
 module.exports = Mathf;

@@ -61,10 +61,11 @@ module.exports = function(grunt) {
           ,newcap: true
           ,noempty: true
           ,nonew: true
-          ,quotmark: false
           ,undef: true
           ,unused: true
           ,laxcomma: true
+          ,quotmark: false
+          ,loopfunc: false
 
           ,globals: {
             window: true
@@ -84,6 +85,7 @@ module.exports = function(grunt) {
             ,Color: true
           }
         }
+
       }
     },
 

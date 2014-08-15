@@ -1,97 +1,165 @@
+/*jslint -W083 */
 
 var Node = require("./Node")
   , Paths = require("./Paths");
 
-var Nodes = module.exports = function(opts){
+var Nodes = module.exports = function(/*opts*/){
 
+  /*
   this.rows = opts.rows;
   this.cols = opts.cols;
   this.nodeSize = opts.nodeSize;
+  */
 
+  this.nodeSize = 3;
   this.nodes = [];
-  this.nodeGrid = [];
-
-//  this.gridCellsDebug = [];
-
-  this.createGrid();
-
   this.paths = new Paths();
-  this.createPaths();
+
+  this.createWeb();
 
   this.applyPos = null;
   this.applyRatio = 0;
   this.element = null;
+
 };
 
-Nodes.prototype.createGrid = function(){
+Nodes.prototype.addControlNodes = function(min, max){
   var size = this.nodeSize
-    , gsize = config.size
+    , xMax = max.x
+    , yMax = max.y
+    , xMin = min.x
+    , yMin = min.y
+    /*, xMid = ((xMax - xMin) / 2) + xMin
+    , yMid = ((yMax - yMin) / 2) + yMin*/;
 
-    , cw = gsize.x/this.cols
-    , ch = gsize.y/this.rows
-    , rndR = ch/2;
+  var ctrlNodes = [];
+  
+  // right-mid
+  //ctrlNodes.push(new Node({ pos: { x: xMax, y: yMid }, size: size }));
+  
+  // bot-right
+  ctrlNodes.push(new Node({ pos: { x: xMax, y: yMax }, size: size }));
+  // bot-mid
+  //ctrlNodes.push(new Node({ pos: { x: xMid, y: yMax }, size: size }));
+  // bot-left
+  ctrlNodes.push(new Node({ pos: { x: xMin, y: yMax }, size: size }));
 
-  for (var i=0; i<this.rows; i++){
-    this.nodeGrid[i] = [];
+  // left-mid
+  //ctrlNodes.push(new Node({ pos: { x: xMin, y: yMid }, size: size }));
 
-    for (var j=0; j<this.cols; j++){
+  // top-left
+  ctrlNodes.push(new Node({ pos: { x: xMin, y: yMin }, size: size }));
+  // top-mid
+  //ctrlNodes.push(new Node({ pos: { x: xMid, y: yMin }, size: size }));
+  // top-right
+  ctrlNodes.push(new Node({ pos: { x: xMax, y: yMin }, size: size }));
 
-      if ( (i % 2 === 0 && j % 2 === 0) || (i % 2 !== 0 && j % 2 !== 0) ){
-/*
-        //debug cell
-        this.gridCellsDebug.push({
-          pos: { x: cw*j, y: ch*i },
-          size: { x: cw, y: ch },
-          color: "silver"
-        });
-*/
-        continue;
-      }
-/*
-      //debug cell
-      this.gridCellsDebug.push({
-        pos: { x: cw*j, y: ch*i },
-        size: { x: cw, y: ch },
-        color: "red"
+  return ctrlNodes;
+};
+
+Nodes.prototype.createWeb = function(){
+  var size = this.nodeSize
+    , ringsAm = 11
+    , ringsGap = 30
+    , rndRadius = ringsGap/5
+    , nodesByRing = 16
+    , center = { x: config.size.x/2, y: config.size.y/2 }
+    , rings = []
+    , node
+    , bigRad = (ringsGap * (ringsAm-1)) + 50;
+
+  var ctrlNodes = this.addControlNodes({ 
+    x: center.x - bigRad,
+    y: center.y - bigRad
+  }, {
+    x: center.x + bigRad,
+    y: center.y + bigRad
+  });
+
+  this.nodes = this.nodes.concat(this.nodes, ctrlNodes);
+
+  /*
+  var cNode = new Node({
+    pos: center,
+    size: size
+  });
+
+  this.nodes.push(cNode);
+  */
+
+  for (var i=1; i<=ringsAm; i++){
+
+    var ps = Mathf.polygonPoints(center, i*ringsGap, nodesByRing);
+
+    var cRing = [];
+
+    ps.forEach(function(p){
+
+      node = new Node({
+        pos: Vector.round(Vector.add(p, Mathf.rndInCircle(rndRadius))),
+        size: size
       });
-*/
-      var point = Mathf.rndInCircle(rndR);
-      var center = Vector.center({ x: cw*j, y: ch*i }, { x: cw, y: ch });
 
-      var node = new Node({
-        pos: Vector.round(Vector.add(center, point)),
-        size: size,
-        row: i,
-        col: j
-      });
-
-      this.nodeGrid[i][j] = node;
       this.nodes.push(node);
+      cRing.push(node);  
+
+    }, this);
+
+    rings[i-1] = cRing;
+  }
+
+  // path from center to first ring
+  /*
+  rings[0].forEach(function(rNode){
+    this.paths.addOne(cNode, rNode);
+  }, this);
+  */
+
+  var j, k, l;
+
+  // Paths connections between rings
+  for (j=0; j<ringsAm-1; j++){
+    var currRing = rings[j];
+    var max = currRing.length;
+
+    for (k=0; k<max; k++){
+
+      l = k+1;
+      if (l > max-1){
+        l = 0;
+      }
+
+      var currNode = rings[j][l];
+      this.paths.addOne(currNode, rings[j+1][l]);
     }
   }
 
-};
+  // Circle paths for each ring
+  rings.forEach(function(rNodes){
+    var max = rNodes.length;
+    for (j=0; j<max;j++){
+      k = j+1;
+      if (k > max-1){
+        k = 0;
+      }
 
-Nodes.prototype.createPaths = function(){
-
-  this.nodes.forEach(function (node) {
-    this.findNearNodes(node.row, node.col, node);
-  }, this);
-
-};
-
-Nodes.prototype.findNearNodes = function(i, j, node){
-  var rows = this.rows
-    , cols = this.cols;
-
-  [ [-1,-1], [1,1], [-1,1], [1,-1] ].forEach(function (box) {
-    var x = i + box[0]
-      , y = j + box[1];
-    
-    if (x >= 0 && x <= rows-1 && y >= 0 && y <= cols-1){
-      this.paths.addOne(node, this.nodeGrid[x][y]);
+      this.paths.addOne(rNodes[j], rNodes[k]);
     }
   }, this);
+
+
+  // last ring paths to ControlNodes
+  var lastRing = rings[ringsAm-1];
+  var m = 0;
+  
+  ctrlNodes.forEach(function(ctrlNode){
+    for(k=m; k<=m+4; k++){
+      this.paths.addOne(ctrlNode, lastRing[k]);
+    }
+    m+=4;
+  }, this);
+
+  this.paths.addOne(ctrlNodes[ctrlNodes.length-1], lastRing[0]);
 
 };
 
@@ -127,30 +195,10 @@ Nodes.prototype.update = function(){
   this.nodes.forEach(function (node) {
     node.update();
   });
+
 };
 
 Nodes.prototype.draw = function(ctx){
-/*
-  // for debug
-  for (var k=0; k<this.gridCellsDebug.length; k++){
-    var c = this.gridCellsDebug[k];
-    Renderer.drawRect(ctx, c);
-
-    if (c.color === "red"){
-      Renderer.drawCircle(ctx, {
-        pos: Vector.center(c.pos, c.size),
-        radius: c.size.y/2,
-        color: "yellow"
-      });
-    }
-
-    Renderer.drawCircle(ctx, {
-      pos: Vector.center(c.pos, c.size),
-      radius: 3,
-      color: "black"
-    });
-  }
-*/
 
   this.paths.draw(ctx);
 

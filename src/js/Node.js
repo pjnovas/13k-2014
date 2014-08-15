@@ -2,8 +2,8 @@
 var Node = module.exports = function(opts){
   this.id = Utils.guid("nodes");
 
-  this.row = opts.row;
-  this.col = opts.col;
+  //this.row = opts.row;
+  //this.col = opts.col;
 
   this.pos = opts.pos;
   this.size = opts.size;

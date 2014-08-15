@@ -39,10 +39,18 @@ window.onload = function() {
   var width = getSize("Width");
   var height = getSize("Height");
 
+
   window.config.size = {
     x: width - 50,
     y: height - 50
   };
+
+/*
+  window.config.size = {
+    x: 600,
+    y: 600
+  };
+*/
 
   window.game = new Game({
     viewport: cviewport,
