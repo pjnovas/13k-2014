@@ -42,24 +42,11 @@ Path.prototype.draw = function(ctx){
     return;
   }
 
-  //if (Color.eql(this.na.color,  this.nb.color)){
   Renderer.drawLine(ctx, {
     from: this.na.pos,
     to: this.nb.pos,
     size: this.size,
     color: this.color
   });
-
-  /*
-  else { toooooo expensive (blows in Mozilla)
-    Renderer.drawLinGradient(ctx, {
-      from: this.na.pos,
-      to: this.nb.pos,
-      size: this.size,
-      colorFrom: Color.toRGBA(this.na.color),
-      colorTo: Color.toRGBA(this.nb.color)
-    });
-  }
-  */
 
 };

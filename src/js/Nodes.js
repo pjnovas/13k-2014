@@ -18,7 +18,9 @@ var Nodes = module.exports = function(opts){
   this.paths = new Paths();
   this.createPaths();
 
-  Controls.on("pressed", this.findNodeByCollider.bind(this));
+  this.applyPos = null;
+  this.applyRatio = 0;
+  this.element = null;
 };
 
 Nodes.prototype.createGrid = function(){
@@ -93,11 +95,18 @@ Nodes.prototype.findNearNodes = function(i, j, node){
 
 };
 
-Nodes.prototype.findNodeByCollider = function(pos){
+Nodes.prototype.findNodeByCollider = function(pos, size, type){
   
   this.nodes.forEach(function (node) {
-    if (Vector.pointInCircle(pos, node.pos, node.size)) {
-      node.burn();
+    if (Vector.pointInCircle(pos, node.pos, size)) {
+      switch(type){
+        case "fire":
+          node.burn();
+          break;
+        case "water":
+          node.cool();
+          break;
+      }
     }
   });
 
@@ -108,6 +117,11 @@ Nodes.prototype.GetNodes = function(){
 };
 
 Nodes.prototype.update = function(){
+
+  if (this.applyPos){
+    this.findNodeByCollider(this.applyPos, this.applyRatio, this.element);
+  }
+
   this.paths.update();
 
   this.nodes.forEach(function (node) {

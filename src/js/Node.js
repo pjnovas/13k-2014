@@ -10,11 +10,6 @@ var Node = module.exports = function(opts){
 
   this.coldColor = [255,255,255,1];
   this.burnColor = [255,0,0,1];
-  
-/*
-  this.coldColor = [0,0,0,1];
-  this.burnColor = [255,0,0,1];
-*/
 
   this.color = this.coldColor;
 
@@ -53,50 +48,10 @@ Node.prototype.getRandomNear = function(excludeId){
       ns.push(n);
     }
   });
-/*
-  if (ns.length === 0){
-    this.nears.forEach(function(n){
-      if (n.id !== excludeId && !n.burned){
-        ns.push(n);
-      }
-    });
-  }
-*/
+
   if (ns.length > 0){
     var idx = Mathf.rnd(0, ns.length-1);
     return ns[idx];
-  }
-
-  return null;
-};
-
-Node.prototype.getRandomNearB = function(excludeId){
-  var ns = [];
-
-  this.nears.forEach(function(n){
-    if (n.id !== excludeId && !n.burned){
-      ns.push(n);
-    }
-  });
-
-  if (ns.length > 0){
-    ns.sort(function(na, nb){
-      return na.temp - nb.temp;
-    });
-
-    if (ns[0].temp < 0.5){
-      return ns[0];
-    }
-
-    var found = null; 
-    ns.forEach(function(n){
-      if (n.temp < 0.5){
-        found = n;
-        return true;
-      }
-    });
-
-    return found || ns[0];
   }
 
   return null;

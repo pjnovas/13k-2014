@@ -40,12 +40,13 @@ Game.prototype.loop = function(){
 
 Game.prototype.start = function(){
   this.paused = false;
-  this.gameRun();
   Controls.enable();
+  this.gameRun();
 };
 
 Game.prototype.stop = function(){
   this.paused = true;
+  Controls.disable();
   window.cancelAnimationFrame(this.tLoop);
 };
 

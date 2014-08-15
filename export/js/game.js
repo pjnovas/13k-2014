@@ -26,30 +26,41 @@ module.exports = Color;
 
 },{}],2:[function(require,module,exports){
 
-var Mouse = module.exports = function(options){
+var Desktop = module.exports = function(options){
   this.container = options.container || window.document;
 
   this.events = {
-      "pressed": null
+      "pressing": null
+    , "moving": null
+    , "release": null
+    , "element": null
+    , "pause": null
   };
 
   this.enabled = false;
 
   this.onMouseUp = this._onMouseUp.bind(this);
+  this.onMouseDown = this._onMouseDown.bind(this);
+  this.onMouseMove = this._onMouseMove.bind(this);
+  this.keyUp = this._onKeyUp.bind(this);
+
   this.container.onmouseup = this.onMouseUp;
+  this.container.onmousedown = this.onMouseDown;
+  this.container.onmousemove = this.onMouseMove;
+  window.document.onkeyup = this.keyUp;
 };
 
-Mouse.prototype.enable = function(){
+Desktop.prototype.enable = function(){
   this.enabled = true;
   return this;
 };
 
-Mouse.prototype.disable = function(){
+Desktop.prototype.disable = function(){
   this.enabled = false;
   return this;
 };
 
-Mouse.prototype.on = function(evName, callback){
+Desktop.prototype.on = function(evName, callback){
   if (!this.events[evName]){
     this.events[evName] = [];
   }
@@ -59,7 +70,7 @@ Mouse.prototype.on = function(evName, callback){
   return this;
 };
 
-Mouse.prototype.off = function(evName){
+Desktop.prototype.off = function(evName){
   if (this.events[evName]){
     this.events[evName].length = 0;
   }
@@ -85,18 +96,144 @@ function getCoordsEvent(e, canvas){
   return { x: x, y: y };
 }
 
-Mouse.prototype._onMouseUp = function(e){
+Desktop.prototype._getEventName = function(e){
+  var key = e.which || e.keyCode;
+  switch(key){
+    case 81: //Q
+    case 113: //q
+      return "element:fire";
+    case 87: //W
+    case 119: //w
+      return "element:water";
+    case 112: //P
+    case 80: //p
+      return "pause";
+  }
+
+  return;
+};
+
+Desktop.prototype._onKeyUp = function(e){
+  var evName = this._getEventName(e);
+
+  if (!this.enabled && evName !== "pause"){
+    return;
+  }
+
+  if (evName){
+
+    if (evName.indexOf("element") > -1){
+      var element = evName.split(":")[1];
+      this.events.element.forEach(function(cb){
+        cb(element);
+      });
+
+      return;
+    }
+
+    this.events[evName].forEach(function(cb){
+      cb();
+    });
+  }
+};
+
+Desktop.prototype._onMouseUp = function(e){
   if (!this.enabled){
     return;
   }
 
   var pos = getCoordsEvent(e, this.container);
 
-  this.events.pressed.forEach(function(cb){
+  this.events.release.forEach(function(cb){
+    cb(pos);
+  });
+};
+
+Desktop.prototype._onMouseDown = function(e){
+  if (!this.enabled){
+    return;
+  }
+
+  var pos = getCoordsEvent(e, this.container);
+
+  this.events.pressing.forEach(function(cb){
+    cb(pos);
+  });
+};
+
+Desktop.prototype._onMouseMove = function(e){
+  if (!this.enabled){
+    return;
+  }
+
+  var pos = getCoordsEvent(e, this.container);
+
+  this.events.moving.forEach(function(cb){
     cb(pos);
   });
 };
 },{}],3:[function(require,module,exports){
+
+var Cursor = module.exports = function(){
+  this.pos = Vector.zero;
+  this.size = 20;
+
+  this.coldColor = [0,0,255,0.5];
+  this.burnColor = [255,0,0,0.4];
+
+  this.color = [255,255,255,0.5];
+
+  this.active = false;
+  this.element = "fire";
+
+  Controls.on("pressing", this.onPressing.bind(this));
+  Controls.on("moving", this.onMoving.bind(this));
+  Controls.on("release", this.onRelease.bind(this));
+  Controls.on("element", this.onElement.bind(this));
+};
+
+Cursor.prototype.onPressing = function(pos){
+  this.pos = pos;
+  this.active = true;
+};
+
+Cursor.prototype.onMoving = function(pos){
+  this.pos = pos;
+};
+
+Cursor.prototype.onRelease = function(){
+  this.active = false;
+};
+
+Cursor.prototype.onElement = function(element){
+  this.element = element;
+};
+
+Cursor.prototype.update = function(){
+  switch(this.element){
+    case "fire":
+      this.color = this.burnColor;
+      break;
+    case "water":
+      this.color = this.coldColor;
+      break;
+  }
+};
+
+Cursor.prototype.draw = function(ctx){
+
+  Renderer.drawCircle(ctx, {
+    pos: this.pos,
+    radius: this.size,
+    color: Color.toRGBA(this.color),
+    stroke: {
+      color: "#fff",
+      size: 2
+    } 
+  });
+
+};
+},{}],4:[function(require,module,exports){
 
 var Manager = require("./Manager");
 
@@ -139,12 +276,13 @@ Game.prototype.loop = function(){
 
 Game.prototype.start = function(){
   this.paused = false;
-  this.gameRun();
   Controls.enable();
+  this.gameRun();
 };
 
 Game.prototype.stop = function(){
   this.paused = true;
+  Controls.disable();
   window.cancelAnimationFrame(this.tLoop);
 };
 
@@ -153,7 +291,7 @@ Game.prototype.gameRun = function(){
   this.tLoop = window.requestAnimationFrame(this.boundGameRun);
 };
 
-},{"./Manager":5}],4:[function(require,module,exports){
+},{"./Manager":6}],5:[function(require,module,exports){
 // Manages the ticks for a Game Loop
 
 var GameTime = module.exports = function(){
@@ -196,14 +334,17 @@ GameTime.prototype.reset = function() {
   this.minFrameTime = 12; 
   this.time = 0;
 };
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 
 var Nodes = require("./Nodes");
 var Paths = require("./Paths");
+var Cursor = require("./Cursor");
 var Spiders = require("./Spiders");
 
 var Manager = module.exports = function(){
   
+  this.cursor = new Cursor();
+
   var wParts = 80;
   var hParts = 22;
 
@@ -213,13 +354,6 @@ var Manager = module.exports = function(){
     nodeSize: 3
   });
 
-/*
-  this.nodes = new Nodes({
-    rows: 30,
-    cols: 45,
-    nodeSize: 3
-  });
-*/
   this.paths = new Paths({
     nodes: this.nodes
   });
@@ -231,7 +365,15 @@ var Manager = module.exports = function(){
 };
 
 Manager.prototype.update = function(){
-  //console.log(Time.frameTime + "( " + Time.deltaTime + " ) / " + Time.time);
+  
+  this.cursor.update();
+
+  if (this.cursor.active){
+    this.nodes.applyPos = this.cursor.pos;
+    this.nodes.applyRatio = this.cursor.size;
+    this.nodes.element = this.cursor.element;
+  }
+
   this.nodes.update();
   this.spiders.update();
 };
@@ -242,10 +384,11 @@ Manager.prototype.draw = function(viewCtx, worldCtx){
   viewCtx.clearRect(0, 0, s.x, s.y);
   worldCtx.clearRect(0, 0, s.x, s.y);
 
+  this.cursor.draw(viewCtx);
   this.nodes.draw(worldCtx);
   this.spiders.draw(worldCtx);
 };
-},{"./Nodes":8,"./Paths":10,"./Spiders":15}],6:[function(require,module,exports){
+},{"./Cursor":3,"./Nodes":9,"./Paths":11,"./Spiders":16}],7:[function(require,module,exports){
 
 var Mathf = {};
 
@@ -281,7 +424,7 @@ Mathf.lerp = function(a, b, u) {
 
 module.exports = Mathf;
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 
 var Node = module.exports = function(opts){
   this.id = Utils.guid("nodes");
@@ -294,11 +437,6 @@ var Node = module.exports = function(opts){
 
   this.coldColor = [255,255,255,1];
   this.burnColor = [255,0,0,1];
-  
-/*
-  this.coldColor = [0,0,0,1];
-  this.burnColor = [255,0,0,1];
-*/
 
   this.color = this.coldColor;
 
@@ -337,50 +475,10 @@ Node.prototype.getRandomNear = function(excludeId){
       ns.push(n);
     }
   });
-/*
-  if (ns.length === 0){
-    this.nears.forEach(function(n){
-      if (n.id !== excludeId && !n.burned){
-        ns.push(n);
-      }
-    });
-  }
-*/
+
   if (ns.length > 0){
     var idx = Mathf.rnd(0, ns.length-1);
     return ns[idx];
-  }
-
-  return null;
-};
-
-Node.prototype.getRandomNearB = function(excludeId){
-  var ns = [];
-
-  this.nears.forEach(function(n){
-    if (n.id !== excludeId && !n.burned){
-      ns.push(n);
-    }
-  });
-
-  if (ns.length > 0){
-    ns.sort(function(na, nb){
-      return na.temp - nb.temp;
-    });
-
-    if (ns[0].temp < 0.5){
-      return ns[0];
-    }
-
-    var found = null; 
-    ns.forEach(function(n){
-      if (n.temp < 0.5){
-        found = n;
-        return true;
-      }
-    });
-
-    return found || ns[0];
   }
 
   return null;
@@ -442,7 +540,7 @@ Node.prototype.draw = function(ctx){
   });
 
 };
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 
 var Node = require("./Node")
   , Paths = require("./Paths");
@@ -463,7 +561,9 @@ var Nodes = module.exports = function(opts){
   this.paths = new Paths();
   this.createPaths();
 
-  Controls.on("pressed", this.findNodeByCollider.bind(this));
+  this.applyPos = null;
+  this.applyRatio = 0;
+  this.element = null;
 };
 
 Nodes.prototype.createGrid = function(){
@@ -538,11 +638,18 @@ Nodes.prototype.findNearNodes = function(i, j, node){
 
 };
 
-Nodes.prototype.findNodeByCollider = function(pos){
+Nodes.prototype.findNodeByCollider = function(pos, size, type){
   
   this.nodes.forEach(function (node) {
-    if (Vector.pointInCircle(pos, node.pos, node.size)) {
-      node.burn();
+    if (Vector.pointInCircle(pos, node.pos, size)) {
+      switch(type){
+        case "fire":
+          node.burn();
+          break;
+        case "water":
+          node.cool();
+          break;
+      }
     }
   });
 
@@ -553,6 +660,11 @@ Nodes.prototype.GetNodes = function(){
 };
 
 Nodes.prototype.update = function(){
+
+  if (this.applyPos){
+    this.findNodeByCollider(this.applyPos, this.applyRatio, this.element);
+  }
+
   this.paths.update();
 
   this.nodes.forEach(function (node) {
@@ -590,7 +702,7 @@ Nodes.prototype.draw = function(ctx){
   });
 
 };
-},{"./Node":7,"./Paths":10}],9:[function(require,module,exports){
+},{"./Node":8,"./Paths":11}],10:[function(require,module,exports){
 
 var Path = module.exports = function(opts){
   this.na = opts.na;
@@ -635,7 +747,6 @@ Path.prototype.draw = function(ctx){
     return;
   }
 
-  //if (Color.eql(this.na.color,  this.nb.color)){
   Renderer.drawLine(ctx, {
     from: this.na.pos,
     to: this.nb.pos,
@@ -643,20 +754,8 @@ Path.prototype.draw = function(ctx){
     color: this.color
   });
 
-  /*
-  else { toooooo expensive (blows in Mozilla)
-    Renderer.drawLinGradient(ctx, {
-      from: this.na.pos,
-      to: this.nb.pos,
-      size: this.size,
-      colorFrom: Color.toRGBA(this.na.color),
-      colorTo: Color.toRGBA(this.nb.color)
-    });
-  }
-  */
-
 };
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 
 var Path = require("./Path");
 
@@ -696,7 +795,7 @@ Paths.prototype.draw = function(ctx){
     path.draw(ctx);
   });
 };
-},{"./Path":9}],11:[function(require,module,exports){
+},{"./Path":10}],12:[function(require,module,exports){
 
 var Physics = {};
 
@@ -706,17 +805,21 @@ Physics.test = function(x, y){
 
 module.exports = Physics;
 
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 
 var Renderer = {};
-
-//Renderer.grads = [];
 
 Renderer.drawCircle = function(ctx, ps){
   ctx.beginPath();
   ctx.arc(ps.pos.x, ps.pos.y, ps.radius, 0, 2 * Math.PI, false);
   ctx.fillStyle = ps.color;
   ctx.fill();
+
+  if (ps.stroke){
+    ctx.lineWidth = ps.stroke.size || 1;
+    ctx.strokeStyle = ps.stroke.color || "#000";
+    ctx.stroke();
+  }
 };
 
 Renderer.drawLine = function(ctx, ps){
@@ -732,33 +835,7 @@ Renderer.drawLine = function(ctx, ps){
   ctx.strokeStyle = ps.color;
   ctx.stroke();
 };
-/*
-Renderer.drawLinGradient = function(ctx, ps){
-  var a = ps.from
-    , b = ps.to
-    , cA = ps.colorFrom
-    , cB = ps.colorTo
-    , gid = a.x +"."+ a.y +"."+ b.x +"."+ b.y +"."+ cA +"."+ cB
-    , grad = Renderer.grads[gid];
 
-  if (!grad){
-    grad = ctx.createLinearGradient(a.x, a.y, b.x, b.y);
-    grad.addColorStop(0, cA);
-    grad.addColorStop(1, cB);
-    Renderer.grads[gid] = grad;
-  }
-
-  ctx.strokeStyle = grad;
-
-  ctx.beginPath();
-
-  ctx.moveTo(a.x, a.y);
-  ctx.lineTo(b.x, b.y);
-
-  ctx.lineWidth = ps.size;
-  ctx.stroke();
-};
-*/
 Renderer.drawRect = function(ctx, ps){
   ctx.beginPath();
   
@@ -773,7 +850,7 @@ Renderer.drawRect = function(ctx, ps){
 
 module.exports = Renderer;
 
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 
 module.exports = {
 
@@ -781,7 +858,7 @@ module.exports = {
 
 };
 
-},{}],14:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 
 var Spider = module.exports = function(opts){
 
@@ -948,7 +1025,7 @@ Spider.prototype.draw = function(ctx){
   });
 };
 
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 
 var Spider = require("./Spider");
 
@@ -1017,7 +1094,7 @@ Spiders.prototype.draw = function(ctx){
     spider.draw(ctx);
   });
 };
-},{"./Spider":14}],16:[function(require,module,exports){
+},{"./Spider":15}],17:[function(require,module,exports){
 
 var Utils = module.exports = function(){
   this.lastIds = {
@@ -1028,7 +1105,7 @@ var Utils = module.exports = function(){
 Utils.prototype.guid = function(type){
   return ++this.lastIds[type];
 };
-},{}],17:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 
 var Vector = {};
 
@@ -1101,7 +1178,7 @@ Vector.debug = function(vec){
 */
 module.exports = Vector;
 
-},{}],18:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 
 require("./reqAnimFrame");
 var GameTime = require("./GameTime");
@@ -1148,23 +1225,25 @@ window.onload = function() {
     y: height - 50
   };
 
-/*
-  window.config.size = {
-    x: 1850,
-    y: 1000
-  };
-*/
-
-  //console.log(width + ":" + height);
-
   window.game = new Game({
     viewport: cviewport,
     world: cworld
   });
 
   window.game.start();
+
+  function pauseGame(){
+    if (game.paused){
+      game.start();
+    }
+    else {
+      game.stop(); 
+    }
+  }
+
+  window.Controls.on('pause', pauseGame);
 };
-},{"./Color":1,"./Controls":2,"./Game":3,"./GameTime":4,"./Mathf":6,"./Physics":11,"./Renderer":12,"./Settings":13,"./Utils":16,"./Vector":17,"./reqAnimFrame":19}],19:[function(require,module,exports){
+},{"./Color":1,"./Controls":2,"./Game":4,"./GameTime":5,"./Mathf":7,"./Physics":12,"./Renderer":13,"./Settings":14,"./Utils":17,"./Vector":18,"./reqAnimFrame":20}],20:[function(require,module,exports){
 // http://paulirish.com/2011/requestanimationframe-for-smart-animating/
 // http://my.opera.com/emoller/blog/2011/12/20/requestanimationframe-for-smart-er-animating
 
@@ -1194,4 +1273,4 @@ window.onload = function() {
     window.cancelAnimationFrame = function(id) { window.clearTimeout(id); };
   }
 }());
-},{}]},{},[18]);
+},{}]},{},[19]);

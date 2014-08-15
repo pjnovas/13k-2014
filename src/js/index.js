@@ -44,19 +44,21 @@ window.onload = function() {
     y: height - 50
   };
 
-/*
-  window.config.size = {
-    x: 1850,
-    y: 1000
-  };
-*/
-
-  //console.log(width + ":" + height);
-
   window.game = new Game({
     viewport: cviewport,
     world: cworld
   });
 
   window.game.start();
+
+  function pauseGame(){
+    if (game.paused){
+      game.start();
+    }
+    else {
+      game.stop(); 
+    }
+  }
+
+  window.Controls.on('pause', pauseGame);
 };
