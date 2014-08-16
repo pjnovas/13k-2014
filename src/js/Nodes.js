@@ -8,7 +8,12 @@ var Nodes = module.exports = function(){
   this.nodes = [];
   this.paths = new Paths();
 
-  this.createWeb(config.size);
+  //var radius = { x: 400, y: 300 };
+  //var radius = Vector.multiply(Vector.one, config.size.y/2 - 10);
+  var radius = Vector.divide(config.size, 2);
+  var center = Vector.center(Vector.zero, config.size);
+
+  this.createWeb(center, radius);
 
   this.applyPos = null;
   this.applyRatio = 0;
@@ -16,98 +21,73 @@ var Nodes = module.exports = function(){
 
 };
 
-Nodes.prototype.addControlNodes = function(min, max/*, rndRadius*/){
-  var /*rnd = rndRadius*5
-    , */xMax = max.x
-    , yMax = max.y
-    , xMin = min.x
-    , yMin = min.y
-    /*, xMid = ((xMax - xMin) / 2) + xMin
-    , yMid = ((yMax - yMin) / 2) + yMin*/;
+Nodes.prototype.createWeb = function(center, rad){
 
-  var ctrlNodes = [];
-  
-  function add(p){
-    var newp = Vector.round(p/*Vector.add(p, Mathf.rndInCircle(rnd))*/);
-    ctrlNodes.push(new Node(newp));  
-  }
-
-  // right-mid
-  //add({ x: xMax, y: yMid });
-  
-  // bot-right
-  add({ x: xMax, y: yMax });
-  
-  // bot-mid
-  //add({ x: xMid, y: yMax );
-  
-  // bot-left
-  add({ x: xMin, y: yMax });
-
-  // left-mid
-  //add({ x: xMin, y: yMid });
-
-  // top-left
-  add({ x: xMin, y: yMin });
-  
-  // top-mid
-  //add({ x: xMid, y: yMin });
-  
-  // top-right
-  add({ x: xMax, y: yMin });
-
-  return ctrlNodes;
-};
-
-Nodes.prototype.createWeb = function(bounds){
-
-  var ringsAm = Math.round(bounds.y / 100) + 2
-    , ringsGap = Math.round(ringsAm * 2.5)
+  var ringsAm = 0
+    , ringsGap = 25
     , rndRadius = ringsGap/5
-    , nodesByRing = 16
-    , center = { x: bounds.x/2, y: bounds.y/2 }
-    , rings = []
-    , bigRad = (ringsGap * (ringsAm-1)) + (ringsGap * 3);
-
-  var ctrlNodes = this.addControlNodes({ 
-    x: center.x - bigRad,
-    y: center.y - bigRad
-  }, {
-    x: center.x + bigRad,
-    y: center.y + bigRad
-  }, rndRadius);
-
-  this.nodes = this.nodes.concat(this.nodes, ctrlNodes);
-
+    , nodesByRing = 40
+    , boundMin = Vector.add(center, Vector.multiply(rad, -1))
+    , boundMax = Vector.add(center, rad)
+    , rings = [];
   /*
-  var cNode = new Node(center);
-  this.nodes.push(cNode);
-  */
+  if (DEBUG){
+    this.debugRect = {
+      pos: boundMin,
+      size: Vector.multiply(rad, 2)
+    };
+  }
+*/
+  //var cNode = new Node(center);
+  //this.nodes.push(cNode);
 
-  for (var i=1; i<=ringsAm; i++){
+  var start = 40;
+  var i = 1;
+  var aNodeInside;
 
-    var ps = Mathf.polygonPoints(center, i*ringsGap, nodesByRing);
+  var countNodes = 0;
 
+  do {
+    aNodeInside = false;
+
+    var ps = Mathf.polygonPoints(center, (i*ringsGap) + start, nodesByRing);
+    countNodes += ps.length;
     var cRing = [];
+
+    if (i === 10 || i === 20){
+      rndRadius += 0.1;
+    }
 
     ps.forEach(function(p){
 
-      var node = new Node(
-        Vector.round(Vector.add(p, Mathf.rndInCircle(rndRadius)))
-      );
-
-      this.nodes.push(node);
-      cRing.push(node);  
+      var np = Vector.round(Vector.add(p, Mathf.rndInCircle(rndRadius)));
+      var node = new Node(np);
+      
+      if (Vector.isOut(np, boundMin, boundMax)) {
+        node.out = true;
+      }
+      else {
+        aNodeInside = true;
+        this.nodes.push(node);
+      }
+      
+      cRing.push(node);
 
     }, this);
 
     rings[i-1] = cRing;
-  }
+    i++;
 
-  // path from center to first ring
+  } while(aNodeInside);
+
+  ringsAm = i-2;
+
   /*
+  // path from center to first ring
   rings[0].forEach(function(rNode){
-    this.paths.addOne(cNode, rNode);
+    if (Mathf.rnd01() < 0.4){
+      this.paths.addOne(cNode, rNode);
+    }
   }, this);
   */
 
@@ -126,57 +106,27 @@ Nodes.prototype.createWeb = function(bounds){
       }
 
       var currNode = rings[j][l];
-      if (j < ringsAm-1){
-        this.paths.addOne(currNode, rings[j+1][l]);
+      if (currNode.out){
+        continue;
       }
 
-      // Circle paths for each ring
-      this.paths.addOne(currNode, rings[j][k]);
+      var rSibling = rings[j+1][l];
+      if (j < ringsAm-1 && !rSibling.out){
+        this.paths.addOne(currNode, rSibling);
+      }
+
+      var sibling = rings[j][k];
+      if (!sibling.out){
+        this.paths.addOne(currNode, sibling);
+      }
     }
   }
 
-  // TODO: Refactor this crap code
-  // last 3 rings paths to ControlNodes
-  var lRing = rings[ringsAm-1]
-    , plRing = rings[ringsAm-2]
-    , pplRing = rings[ringsAm-3]
-    , m = 1;
+  // burn some nodes randomly
+  this.nodes.forEach(function(node){
+    node.randomBurn();
+  });
 
-  function getPos(from, to, delta){
-    var p = Vector.part(from.pos, to.pos, delta);
-    return Vector.round(Vector.add(p, Mathf.rndInCircle(rndRadius*2)));
-  }
-  
-  ctrlNodes.forEach(function(ctrlNode){
-    for(k=m; k<=m+2; k++){
-
-      var pprend = pplRing[k]
-        , prend = plRing[k]
-        , lastnd = lRing[k];
-
-      if (k % 2 === 0) {
-        lastnd.pos = getPos(ctrlNode, lastnd, 7);
-        prend.pos = getPos(lastnd, prend, 5);
-        pprend.pos = getPos(lastnd, pprend, 8);
-      }
-      else {
-        lastnd.pos = getPos(ctrlNode, lastnd, 5);
-        prend.pos = getPos(lastnd, prend, 8);
-      }
-
-      this.paths.addOne(ctrlNode, lastnd);
-    }
-
-    m+=4;
-  }, this);
-
-  // clean memory
-  rings.length = 0;
-  ctrlNodes.length = 0;
-
-  lRing = null;
-  plRing = null;
-  pplRing = null;
 };
 
 Nodes.prototype.findNodeByCollider = function(){
@@ -219,7 +169,11 @@ Nodes.prototype.update = function(){
 };
 
 Nodes.prototype.draw = function(ctx){
-
+/*
+  if (DEBUG){
+    Renderer.drawRect(ctx, this.debugRect);
+  }
+*/
   this.paths.draw(ctx);
 
   this.nodes.forEach(function (node) {

@@ -1,6 +1,9 @@
 
 var Vector = {};
 
+Vector.zero = { x: 0, y: 0 };
+Vector.one = { x: 1, y: 1 };
+
 Vector.multiply = function(vector, delta){
   return { x: vector.x * delta, y: vector.y * delta };
 };
@@ -60,6 +63,10 @@ Vector.round = function(v){
   v.x = Math.round(v.x);
   v.y = Math.round(v.y);
   return v;
+};
+
+Vector.isOut = function(p, min, max){
+  return (p.x < min.x || p.x > max.x || p.y < min.y || p.y > max.y);
 };
 
 /*

@@ -32,11 +32,11 @@ Renderer.drawRect = function(ctx, ps){
   ctx.beginPath();
   
   ctx.rect(ps.pos.x, ps.pos.y, ps.size.x, ps.size.y);
-  ctx.fillStyle = ps.color || "yellow";
-  ctx.fill();
+  //ctx.fillStyle = ps.color || "yellow";
+  //ctx.fill();
 
   ctx.lineWidth = 1;
-  ctx.strokeStyle = 'black';
+  ctx.strokeStyle = 'red';
   ctx.stroke();
 };
 

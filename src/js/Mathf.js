@@ -4,7 +4,7 @@ var Mathf = {};
 Mathf.rnd = function(min, max){
   return Math.floor(Math.random() * (max - min + 1) + min);
 };
-/*
+
 Mathf.rnd11 = function(){
   return Math.round(Math.random());
 };
@@ -12,7 +12,7 @@ Mathf.rnd11 = function(){
 Mathf.rnd01 = function(){
   return Math.random();
 };
-*/
+
 Mathf.rndAngle = function(){
   return Math.random() * Math.PI * 2;
 };

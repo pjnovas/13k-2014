@@ -25,6 +25,17 @@ Node.prototype.addNear = function(node){
   this.nears.push(node);
 };
 
+Node.prototype.randomBurn = function(){
+  
+  var oneBurned = this.nears.some(function(node){
+    return node.burned;
+  });
+
+  if (!oneBurned && Mathf.rnd01() < 0.15){
+    this.setBurned();
+  }
+};
+
 Node.prototype.burn = function(){
   this.incTemp = 1;
 };
