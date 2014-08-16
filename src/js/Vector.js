@@ -14,7 +14,6 @@ Vector.clone = function(vec){
   return { x: vec.x, y: vec.y };
 };
 
-/*
 Vector.multiply = function(vector, delta){
   return { x: vector.x * delta, y: vector.y * delta };
 };
@@ -22,13 +21,23 @@ Vector.multiply = function(vector, delta){
 Vector.divide = function(vector, delta){
   return { x: vector.x / delta, y: vector.y / delta };
 };
-*/
+
 Vector.add = function(a, b){
   return { x: a.x + b.x, y: a.y + b.y };
 };
 
 Vector.dif = function(from, to){
   return { x: to.x - from.x, y: to.y - from.y };
+};
+
+// get "which" part of a point between 2 (i.e. 4th part)
+Vector.part = function(from, to, which){
+  return Vector.lerp(from, to, which/10);
+};
+
+// get mid point between 2
+Vector.mid = function(from, to){
+  return Vector.divide(Vector.add(from, to), 2);
 };
 
 Vector.eql = function(a, b){

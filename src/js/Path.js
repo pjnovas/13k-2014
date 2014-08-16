@@ -38,15 +38,17 @@ Path.prototype.update = function(){
 };
 
 Path.prototype.draw = function(ctx){
+  /*
   if (this.burned){
     return;
   }
+  */
 
   Renderer.drawLine(ctx, {
     from: this.na.pos,
     to: this.nb.pos,
     size: this.size,
-    color: this.color
+    color: this.burned ? Color.toRGBA([0,0,0,0.2]) : this.color
   });
 
 };

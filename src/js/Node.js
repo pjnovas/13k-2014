@@ -93,11 +93,11 @@ Node.prototype.update = function(){
 };
 
 Node.prototype.draw = function(ctx){
-
+/*
   if (this.burned){
     return;
   }
-/*
+
   //debug collider
   Renderer.drawCircle(ctx, {
     pos: this.pos,
@@ -109,7 +109,7 @@ Node.prototype.draw = function(ctx){
   Renderer.drawCircle(ctx, {
     pos: this.pos,
     radius: this.size,
-    color: Color.toRGBA(this.color)
+    color: Color.toRGBA(this.burned ? [0,0,0,0.2] : this.color)
   });
 
 };

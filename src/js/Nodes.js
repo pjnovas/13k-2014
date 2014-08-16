@@ -23,8 +23,9 @@ var Nodes = module.exports = function(/*opts*/){
 
 };
 
-Nodes.prototype.addControlNodes = function(min, max){
-  var size = this.nodeSize
+Nodes.prototype.addControlNodes = function(min, max, rndRadius){
+  var sz = this.nodeSize
+    , rnd = rndRadius*5
     , xMax = max.x
     , yMax = max.y
     , xMin = min.x
@@ -34,25 +35,34 @@ Nodes.prototype.addControlNodes = function(min, max){
 
   var ctrlNodes = [];
   
+  function add(p){
+    var newp = Vector.round(Vector.add(p, Mathf.rndInCircle(rnd)));
+    ctrlNodes.push(new Node({ pos: newp, size: sz }));  
+  }
+
   // right-mid
-  //ctrlNodes.push(new Node({ pos: { x: xMax, y: yMid }, size: size }));
+  //add({ x: xMax, y: yMid });
   
   // bot-right
-  ctrlNodes.push(new Node({ pos: { x: xMax, y: yMax }, size: size }));
+  add({ x: xMax, y: yMax });
+  
   // bot-mid
-  //ctrlNodes.push(new Node({ pos: { x: xMid, y: yMax }, size: size }));
+  //add({ x: xMid, y: yMax );
+  
   // bot-left
-  ctrlNodes.push(new Node({ pos: { x: xMin, y: yMax }, size: size }));
+  add({ x: xMin, y: yMax });
 
   // left-mid
-  //ctrlNodes.push(new Node({ pos: { x: xMin, y: yMid }, size: size }));
+  //add({ x: xMin, y: yMid });
 
   // top-left
-  ctrlNodes.push(new Node({ pos: { x: xMin, y: yMin }, size: size }));
+  add({ x: xMin, y: yMin });
+  
   // top-mid
-  //ctrlNodes.push(new Node({ pos: { x: xMid, y: yMin }, size: size }));
+  //add({ x: xMid, y: yMin });
+  
   // top-right
-  ctrlNodes.push(new Node({ pos: { x: xMax, y: yMin }, size: size }));
+  add({ x: xMax, y: yMin });
 
   return ctrlNodes;
 };
@@ -66,7 +76,7 @@ Nodes.prototype.createWeb = function(){
     , center = { x: config.size.x/2, y: config.size.y/2 }
     , rings = []
     , node
-    , bigRad = (ringsGap * (ringsAm-1)) + 50;
+    , bigRad = (ringsGap * (ringsAm-1)) + (ringsGap * 3);
 
   var ctrlNodes = this.addControlNodes({ 
     x: center.x - bigRad,
@@ -74,7 +84,7 @@ Nodes.prototype.createWeb = function(){
   }, {
     x: center.x + bigRad,
     y: center.y + bigRad
-  });
+  }, rndRadius);
 
   this.nodes = this.nodes.concat(this.nodes, ctrlNodes);
 
@@ -118,7 +128,7 @@ Nodes.prototype.createWeb = function(){
   var j, k, l;
 
   // Paths connections between rings
-  for (j=0; j<ringsAm-1; j++){
+  for (j=0; j<ringsAm/*-1*/; j++){
     var currRing = rings[j];
     var max = currRing.length;
 
@@ -130,10 +140,15 @@ Nodes.prototype.createWeb = function(){
       }
 
       var currNode = rings[j][l];
-      this.paths.addOne(currNode, rings[j+1][l]);
+      if (j < ringsAm-1){
+        this.paths.addOne(currNode, rings[j+1][l]);
+      }
+
+      // Circle paths for each ring
+      this.paths.addOne(currNode, rings[j][k]);
     }
   }
-
+/*
   // Circle paths for each ring
   rings.forEach(function(rNodes){
     var max = rNodes.length;
@@ -146,28 +161,52 @@ Nodes.prototype.createWeb = function(){
       this.paths.addOne(rNodes[j], rNodes[k]);
     }
   }, this);
+*/
 
+  // TODO: Refactor this crap code
+  // last 3 rings paths to ControlNodes
+  var lRing = rings[ringsAm-1]
+    , plRing = rings[ringsAm-2]
+    , pplRing = rings[ringsAm-3]
+    , m = 1; //0
 
-  // last ring paths to ControlNodes
-  var lastRing = rings[ringsAm-1];
-  var m = 0;
+  function getPos(from, to, delta){
+    var p = Vector.part(from.pos, to.pos, delta);
+    return Vector.round(Vector.add(p, Mathf.rndInCircle(rndRadius*2)));
+  }
   
   ctrlNodes.forEach(function(ctrlNode){
-    for(k=m; k<=m+4; k++){
-      this.paths.addOne(ctrlNode, lastRing[k]);
+    for(k=m; k<=m+2/*4*/; k++){
+
+      var pprend = pplRing[k]
+        , prend = plRing[k]
+        , lastnd = lRing[k];
+
+      if (k % 2 === 0) { //mid
+        lastnd.pos = getPos(ctrlNode, lastnd, 7);
+        prend.pos = getPos(lastnd, prend, 5);
+        pprend.pos = getPos(lastnd, pprend, 8);
+      }
+      else {
+        lastnd.pos = getPos(ctrlNode, lastnd, 5);
+        prend.pos = getPos(lastnd, prend, 8);
+      }
+
+      this.paths.addOne(ctrlNode, lastnd);
     }
+
     m+=4;
   }, this);
 
-  this.paths.addOne(ctrlNodes[ctrlNodes.length-1], lastRing[0]);
-
 };
 
-Nodes.prototype.findNodeByCollider = function(pos, size, type){
+Nodes.prototype.findNodeByCollider = function(){
   
   this.nodes.forEach(function (node) {
-    if (Vector.pointInCircle(pos, node.pos, size)) {
-      switch(type){
+    if (Vector.pointInCircle(this.applyPos, node.pos, this.applyRatio)) {
+      //TODO: break each when found one and 
+      // add a timer so it won't get busy appling the same several times
+      switch(this.element){
         case "fire":
           node.burn();
           break;
@@ -176,7 +215,7 @@ Nodes.prototype.findNodeByCollider = function(pos, size, type){
           break;
       }
     }
-  });
+  }, this);
 
 };
 
@@ -187,7 +226,7 @@ Nodes.prototype.GetNodes = function(){
 Nodes.prototype.update = function(){
 
   if (this.applyPos){
-    this.findNodeByCollider(this.applyPos, this.applyRatio, this.element);
+    this.findNodeByCollider();
   }
 
   this.paths.update();
