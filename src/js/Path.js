@@ -1,54 +1,47 @@
 
-var Path = module.exports = function(opts){
-  this.na = opts.na;
-  this.nb = opts.nb;
+var Path = module.exports = function(na, nb){
+  this.na = na;
+  this.nb = nb;
 
-  this.size = 2;
+  this.size = config.paths.size;
+  this.tBurn = config.paths.tBurn;
 
   this.burned = false;
 };
 
 Path.prototype.update = function(){
-  if (this.burned){
-    return;
-  }
+  var naT = this.na.temp
+    , nbT = this.nb.temp
+    , naC = this.na.color
+    , nbC = this.nb.color;
 
-  this.burned = (this.na.burned || this.nb.burned);
-  if (this.burned){
-    return;
-  }
-
-  var naT = this.na.temp;
-  var nbT = this.nb.temp;
-
-  if (naT > 0.5 && nbT === 0){
+  if (naT > this.tBurn && nbT === 0){
     this.nb.burn();
   }
-  else if (nbT > 0.5 && naT === 0){
+  else if (nbT > this.tBurn && naT === 0){
     this.na.burn();
   }
 
-  if (Color.eql(this.na.color,  this.nb.color)){
-    this.color = Color.toRGBA(this.na.color);
+  if (Color.eql(naC,  nbC)){
+    this.color = Color.toRGBA(naC);
   }
   else {
-    this.color = Color.toRGBA(Color.lerp(this.na.color, this.nb.color, 0.5));
+    this.color = Color.toRGBA(Color.lerp(naC, nbC, this.tBurn));
+  }
+
+  if (this.na.burned || this.nb.burned) {
+    this.burned = true;
+    this.color = Color.toRGBA(config.paths.colors.burned);
   }
 
 };
 
 Path.prototype.draw = function(ctx){
-  /*
-  if (this.burned){
-    return;
-  }
-  */
-
   Renderer.drawLine(ctx, {
     from: this.na.pos,
     to: this.nb.pos,
     size: this.size,
-    color: this.burned ? Color.toRGBA([0,0,0,0.2]) : this.color
+    color: this.color
   });
 
 };

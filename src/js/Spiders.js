@@ -1,9 +1,9 @@
 
 var Spider = require("./Spider");
 
-var Spiders = module.exports = function(opts){
-  this.nodes = opts.nodes;
-  this.amount = opts.amount;
+var Spiders = module.exports = function(nodes){
+  this.nodes = nodes;
+  this.amount = config.spiders.quantity;
 
   this.spiders = [];
 
@@ -22,10 +22,7 @@ Spiders.prototype.generateSpiders = function(){
 
     if (nodesIds.indexOf(node.id) === -1){
       nodesIds.push(node.id);
-
-      this.spiders.push(new Spider({
-        pos: node.pos
-      }));
+      this.spiders.push(new Spider(node.pos));
     }
   }
 };
@@ -49,9 +46,11 @@ Spiders.prototype.update = function(){
             if(node.burned){
               spider.setDead();
             }
+            /*
             else {
               spider.setNode(node, spider.nodeFrom);
             }
+            */
           }
         }
 

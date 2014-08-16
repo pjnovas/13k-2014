@@ -1,19 +1,6 @@
 
 var Vector = {};
 
-Vector.zero = { x: 0, y: 0 };
-Vector.one = { x: 1, y: 1 };
-Vector.down = { x: 1, y: 0 };
-Vector.up = { x: 0, y: 1 };
-
-Vector.create = function(x, y){
-  return { x: x, y: y};
-};
-
-Vector.clone = function(vec){
-  return { x: vec.x, y: vec.y };
-};
-
 Vector.multiply = function(vector, delta){
   return { x: vector.x * delta, y: vector.y * delta };
 };

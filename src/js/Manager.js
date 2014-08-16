@@ -5,26 +5,10 @@ var Cursor = require("./Cursor");
 var Spiders = require("./Spiders");
 
 var Manager = module.exports = function(){
-  
   this.cursor = new Cursor();
-
-  var wParts = 80;
-  var hParts = 22;
-
-  this.nodes = new Nodes({
-    rows: Math.round(config.size.x / wParts),
-    cols: Math.round(config.size.y / hParts),
-    nodeSize: 3
-  });
-
-  this.paths = new Paths({
-    nodes: this.nodes
-  });
-
-  this.spiders = new Spiders({
-    nodes: this.nodes,
-    amount: 100
-  });
+  this.nodes = new Nodes();
+  this.paths = new Paths();
+  this.spiders = new Spiders(this.nodes);
 };
 
 Manager.prototype.update = function(){

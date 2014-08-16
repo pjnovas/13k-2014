@@ -175,7 +175,7 @@ Desktop.prototype._onMouseMove = function(e){
 },{}],3:[function(require,module,exports){
 
 var Cursor = module.exports = function(){
-  this.pos = Vector.zero;
+  this.pos = { x: 0, y: 0 };
   this.size = 20;
 
   this.coldColor = [0,0,255,0.5];
@@ -342,26 +342,10 @@ var Cursor = require("./Cursor");
 var Spiders = require("./Spiders");
 
 var Manager = module.exports = function(){
-  
   this.cursor = new Cursor();
-
-  var wParts = 80;
-  var hParts = 22;
-
-  this.nodes = new Nodes({
-    rows: Math.round(config.size.x / wParts),
-    cols: Math.round(config.size.y / hParts),
-    nodeSize: 3
-  });
-
-  this.paths = new Paths({
-    nodes: this.nodes
-  });
-
-  this.spiders = new Spiders({
-    nodes: this.nodes,
-    amount: 100
-  });
+  this.nodes = new Nodes();
+  this.paths = new Paths();
+  this.spiders = new Spiders(this.nodes);
 };
 
 Manager.prototype.update = function(){
@@ -440,31 +424,24 @@ module.exports = Mathf;
 
 },{}],8:[function(require,module,exports){
 
-var Node = module.exports = function(opts){
-  this.id = Utils.guid("nodes");
+var Node = module.exports = function(pos){
+  
+  this.id = _.guid("nodes");
 
-  //this.row = opts.row;
-  //this.col = opts.col;
+  this.pos = pos;
+  this.size = config.nodes.size;
 
-  this.pos = opts.pos;
-  this.size = opts.size;
-
-  this.coldColor = [255,255,255,1];
-  this.burnColor = [255,0,0,1];
-
-  this.color = this.coldColor;
+  this.color = config.nodes.colors.cold;
+  this.dColor = Color.toRGBA(this.color);
 
   this.nears = [];
   this.selected = false;
 
-  this.increaseTempSize = 0.1;
+  this.incTempSize = 0.1;
 
   this.temp = 0;
-  this.increaseTemp = 0;
+  this.incTemp = 0;
   this.burnTemp = 1;
-
-  this.collider = 1;
-  this.colliderTemp = 40;
 
   this.burned = false;
 };
@@ -474,11 +451,11 @@ Node.prototype.addNear = function(node){
 };
 
 Node.prototype.burn = function(){
-  this.increaseTemp = 1;
+  this.incTemp = 1;
 };
 
 Node.prototype.cool = function(){
-  this.increaseTemp = -1;
+  this.incTemp = -1;
 };
 
 Node.prototype.getRandomNear = function(excludeId){
@@ -500,57 +477,41 @@ Node.prototype.getRandomNear = function(excludeId){
 
 Node.prototype.setBurned = function(){
   this.burned = true;
+  this.color = config.nodes.colors.burned;
+  this.dColor = Color.toRGBA(this.color);
 };
 
 Node.prototype.update = function(){
-
-  if (this.burned){
-    return;
-  }
-
   var isAlone = this.nears.every(function(n){
     return n.burned;
   });
 
   if (isAlone){
     this.setBurned();
+    return;
   }
 
-  this.temp += this.increaseTemp * this.increaseTempSize * Time.deltaTime;
+  this.temp += this.incTemp * this.incTempSize * Time.deltaTime;
 
   if (this.temp <= 0){
     this.temp = 0;
   }
 
-  this.color = Color.lerp(this.coldColor, this.burnColor, this.temp);
+  this.color = Color.lerp(config.nodes.colors.cold, config.nodes.colors.burn, this.temp);
+  this.dColor = Color.toRGBA(this.color);
 
   if (this.temp > 1){
     this.setBurned();
     return;
   }
 
-  this.collider = this.temp ? this.temp * this.colliderTemp : 1 ;
-
 };
 
 Node.prototype.draw = function(ctx){
-/*
-  if (this.burned){
-    return;
-  }
-
-  //debug collider
-  Renderer.drawCircle(ctx, {
-    pos: this.pos,
-    radius: this.collider,
-    color: "rgba(255,0,0,0.5)"
-  });
-*/
-
   Renderer.drawCircle(ctx, {
     pos: this.pos,
     radius: this.size,
-    color: Color.toRGBA(this.burned ? [0,0,0,0.2] : this.color)
+    color: this.dColor
   });
 
 };
@@ -560,19 +521,12 @@ Node.prototype.draw = function(ctx){
 var Node = require("./Node")
   , Paths = require("./Paths");
 
-var Nodes = module.exports = function(/*opts*/){
+var Nodes = module.exports = function(){
 
-  /*
-  this.rows = opts.rows;
-  this.cols = opts.cols;
-  this.nodeSize = opts.nodeSize;
-  */
-
-  this.nodeSize = 3;
   this.nodes = [];
   this.paths = new Paths();
 
-  this.createWeb();
+  this.createWeb(config.size);
 
   this.applyPos = null;
   this.applyRatio = 0;
@@ -580,10 +534,9 @@ var Nodes = module.exports = function(/*opts*/){
 
 };
 
-Nodes.prototype.addControlNodes = function(min, max, rndRadius){
-  var sz = this.nodeSize
-    , rnd = rndRadius*5
-    , xMax = max.x
+Nodes.prototype.addControlNodes = function(min, max/*, rndRadius*/){
+  var /*rnd = rndRadius*5
+    , */xMax = max.x
     , yMax = max.y
     , xMin = min.x
     , yMin = min.y
@@ -593,8 +546,8 @@ Nodes.prototype.addControlNodes = function(min, max, rndRadius){
   var ctrlNodes = [];
   
   function add(p){
-    var newp = Vector.round(Vector.add(p, Mathf.rndInCircle(rnd)));
-    ctrlNodes.push(new Node({ pos: newp, size: sz }));  
+    var newp = Vector.round(p/*Vector.add(p, Mathf.rndInCircle(rnd))*/);
+    ctrlNodes.push(new Node(newp));  
   }
 
   // right-mid
@@ -624,15 +577,14 @@ Nodes.prototype.addControlNodes = function(min, max, rndRadius){
   return ctrlNodes;
 };
 
-Nodes.prototype.createWeb = function(){
-  var size = this.nodeSize
-    , ringsAm = 11
-    , ringsGap = 30
+Nodes.prototype.createWeb = function(bounds){
+
+  var ringsAm = Math.round(bounds.y / 100) + 2
+    , ringsGap = Math.round(ringsAm * 2.5)
     , rndRadius = ringsGap/5
     , nodesByRing = 16
-    , center = { x: config.size.x/2, y: config.size.y/2 }
+    , center = { x: bounds.x/2, y: bounds.y/2 }
     , rings = []
-    , node
     , bigRad = (ringsGap * (ringsAm-1)) + (ringsGap * 3);
 
   var ctrlNodes = this.addControlNodes({ 
@@ -646,11 +598,7 @@ Nodes.prototype.createWeb = function(){
   this.nodes = this.nodes.concat(this.nodes, ctrlNodes);
 
   /*
-  var cNode = new Node({
-    pos: center,
-    size: size
-  });
-
+  var cNode = new Node(center);
   this.nodes.push(cNode);
   */
 
@@ -662,10 +610,9 @@ Nodes.prototype.createWeb = function(){
 
     ps.forEach(function(p){
 
-      node = new Node({
-        pos: Vector.round(Vector.add(p, Mathf.rndInCircle(rndRadius))),
-        size: size
-      });
+      var node = new Node(
+        Vector.round(Vector.add(p, Mathf.rndInCircle(rndRadius)))
+      );
 
       this.nodes.push(node);
       cRing.push(node);  
@@ -685,7 +632,7 @@ Nodes.prototype.createWeb = function(){
   var j, k, l;
 
   // Paths connections between rings
-  for (j=0; j<ringsAm/*-1*/; j++){
+  for (j=0; j<ringsAm; j++){
     var currRing = rings[j];
     var max = currRing.length;
 
@@ -705,27 +652,13 @@ Nodes.prototype.createWeb = function(){
       this.paths.addOne(currNode, rings[j][k]);
     }
   }
-/*
-  // Circle paths for each ring
-  rings.forEach(function(rNodes){
-    var max = rNodes.length;
-    for (j=0; j<max;j++){
-      k = j+1;
-      if (k > max-1){
-        k = 0;
-      }
-
-      this.paths.addOne(rNodes[j], rNodes[k]);
-    }
-  }, this);
-*/
 
   // TODO: Refactor this crap code
   // last 3 rings paths to ControlNodes
   var lRing = rings[ringsAm-1]
     , plRing = rings[ringsAm-2]
     , pplRing = rings[ringsAm-3]
-    , m = 1; //0
+    , m = 1;
 
   function getPos(from, to, delta){
     var p = Vector.part(from.pos, to.pos, delta);
@@ -733,13 +666,13 @@ Nodes.prototype.createWeb = function(){
   }
   
   ctrlNodes.forEach(function(ctrlNode){
-    for(k=m; k<=m+2/*4*/; k++){
+    for(k=m; k<=m+2; k++){
 
       var pprend = pplRing[k]
         , prend = plRing[k]
         , lastnd = lRing[k];
 
-      if (k % 2 === 0) { //mid
+      if (k % 2 === 0) {
         lastnd.pos = getPos(ctrlNode, lastnd, 7);
         prend.pos = getPos(lastnd, prend, 5);
         pprend.pos = getPos(lastnd, pprend, 8);
@@ -755,6 +688,13 @@ Nodes.prototype.createWeb = function(){
     m+=4;
   }, this);
 
+  // clean memory
+  rings.length = 0;
+  ctrlNodes.length = 0;
+
+  lRing = null;
+  plRing = null;
+  pplRing = null;
 };
 
 Nodes.prototype.findNodeByCollider = function(){
@@ -789,7 +729,9 @@ Nodes.prototype.update = function(){
   this.paths.update();
 
   this.nodes.forEach(function (node) {
-    node.update();
+    if (!node.burned){
+      node.update();
+    }
   });
 
 };
@@ -805,56 +747,49 @@ Nodes.prototype.draw = function(ctx){
 };
 },{"./Node":8,"./Paths":11}],10:[function(require,module,exports){
 
-var Path = module.exports = function(opts){
-  this.na = opts.na;
-  this.nb = opts.nb;
+var Path = module.exports = function(na, nb){
+  this.na = na;
+  this.nb = nb;
 
-  this.size = 2;
+  this.size = config.paths.size;
+  this.tBurn = config.paths.tBurn;
 
   this.burned = false;
 };
 
 Path.prototype.update = function(){
-  if (this.burned){
-    return;
-  }
+  var naT = this.na.temp
+    , nbT = this.nb.temp
+    , naC = this.na.color
+    , nbC = this.nb.color;
 
-  this.burned = (this.na.burned || this.nb.burned);
-  if (this.burned){
-    return;
-  }
-
-  var naT = this.na.temp;
-  var nbT = this.nb.temp;
-
-  if (naT > 0.5 && nbT === 0){
+  if (naT > this.tBurn && nbT === 0){
     this.nb.burn();
   }
-  else if (nbT > 0.5 && naT === 0){
+  else if (nbT > this.tBurn && naT === 0){
     this.na.burn();
   }
 
-  if (Color.eql(this.na.color,  this.nb.color)){
-    this.color = Color.toRGBA(this.na.color);
+  if (Color.eql(naC,  nbC)){
+    this.color = Color.toRGBA(naC);
   }
   else {
-    this.color = Color.toRGBA(Color.lerp(this.na.color, this.nb.color, 0.5));
+    this.color = Color.toRGBA(Color.lerp(naC, nbC, this.tBurn));
+  }
+
+  if (this.na.burned || this.nb.burned) {
+    this.burned = true;
+    this.color = Color.toRGBA(config.paths.colors.burned);
   }
 
 };
 
 Path.prototype.draw = function(ctx){
-  /*
-  if (this.burned){
-    return;
-  }
-  */
-
   Renderer.drawLine(ctx, {
     from: this.na.pos,
     to: this.nb.pos,
     size: this.size,
-    color: this.burned ? Color.toRGBA([0,0,0,0.2]) : this.color
+    color: this.color
   });
 
 };
@@ -879,17 +814,15 @@ Paths.prototype.addOne = function(nA, nB){
   if (nB && !this.hasOne(nA.id, nB.id)){
     nA.addNear(nB);
     nB.addNear(nA);
-
-    this.paths.push(new Path({
-      na: nA,
-      nb: nB
-    }));
+    this.paths.push(new Path(nA, nB));
   }
 };
 
 Paths.prototype.update = function(){
   this.paths.forEach(function (path) {
-    path.update();
+    if (!path.burned){
+      path.update();
+    }
   });
 };
 
@@ -957,30 +890,58 @@ module.exports = Renderer;
 
 module.exports = {
 
-  
+  nodes: {
+      size: 3
+    , colors: {
+        cold: [255,255,255,1]
+      , burn: [255,0,0,1]
+      , burned: [0,0,0,0.2]
+    }
+  },
+
+  paths: {
+      size: 2
+    , tBurn: 0.5
+    , colors: {
+        burned: [0,0,0,0.2]
+    }
+  },
+
+  spiders: {
+      size: 5
+    , quantity: 50
+    , color: [115,255,0]
+    , speed: 0.05
+    , speedAlert: 0.1
+    , behaviour: {
+        alertTemp: 0
+      , tStayA: 3000
+      , tStayB: 10000
+    }
+  }
 
 };
 
 },{}],15:[function(require,module,exports){
 
-var Spider = module.exports = function(opts){
+var Spider = module.exports = function(pos){
+  var cfg = config.spiders;
 
-  this.pos = Vector.round(opts.pos);
-  this.size = 5;
-  this.color = [115,255,0];
+  this.pos = Vector.round(pos);
 
-  this.nodeFrom = null;
-  this.nodeTo = null;
+  this.size = cfg.size;
+  this.color = cfg.color;
+  this.speed = cfg.speed;
+
+  this.nFrom = null;
+  this.nTo = null;
   this.journeyLength = null;
-
-  this.speed = 0.05;
 
   this.traveling = false;
   this.collider = this.size * 3;
   this.isDead = false;
 
   this.temp = 0;
-  this.scared = false;
   this.staying = false;
 
   this.t_stay = 2000;
@@ -990,21 +951,19 @@ var Spider = module.exports = function(opts){
   this.t_startMove = 0;
 };
 
-Spider.prototype.setNode = function(nodeFrom, nodeTo){
-  this.nodeFrom = nodeFrom;
-  this.nodeTo = nodeTo;
+Spider.prototype.setNode = function(nFrom, nTo){
+  this.nFrom = nFrom;
+  this.nTo = nTo;
 
   this.t_startMove = Time.time;
-  this.journeyLength = Vector.length(nodeFrom.pos, nodeTo.pos);
+  this.journeyLength = Vector.length(nFrom.pos, nTo.pos);
   this.traveling = true;
-
-  this.nextStayTime = this.stayTime * 5;
 };
 /*
 Spider.prototype.switchTravel = function(){
-  var aux = this.nodeFrom;
-  this.nodeFrom = this.nodeTo;
-  this.nodeTo = aux;
+  var aux = this.nFrom;
+  this.nFrom = this.nTo;
+  this.nTo = aux;
 
   this.t_startMove = Time.time;
 };
@@ -1014,8 +973,8 @@ Spider.prototype.setDead = function(){
 };
 
 Spider.prototype.updateTemp = function(){
-  var nfromT = this.nodeFrom.temp;
-  var ntoT = this.nodeTo.temp;
+  var nfromT = this.nFrom.temp;
+  var ntoT = this.nTo.temp;
 
   if (nfromT === 0 && ntoT === 0){
     this.temp = 0;
@@ -1034,44 +993,45 @@ Spider.prototype.updateTemp = function(){
 };
 
 Spider.prototype.updateState = function(){
+  var cfg = config.spiders
+    , tm = Time.time
+    , cfgTm = cfg.behaviour
+    , tstart = this.t_startStay
+    , tstay = this.t_stay;
 
-  this.scared = true;
-  if (this.temp === 0){
-    this.scared = false;
-  }
+  if (this.temp > cfgTm.alertTemp){ //alert behaviour!
 
-  if (this.scared){
-    this.speed = 0.1;
+    this.speed = cfg.speedAlert;
+
     if (this.staying){
-      this.t_startMove += Time.time - this.t_startStay;
+      this.t_startMove += tm - tstart;
     }
 
     this.staying = false;
     return;
   }
 
-  this.speed = 0.05;
+  // calm behaviour
+  this.speed = cfg.speed;
+
   if (this.staying){
-    if(Time.time > this.t_startStay + this.t_stay) {
+    if(tm > tstart + tstay) {
       this.staying = false;
-      this.t_startMove += this.t_stay;
-      this.t_nextStay = Time.time + this.t_stay / Mathf.rnd(2, 5);
+      this.t_startMove += tstay;
+      this.t_nextStay = tm + tstay / Mathf.rnd(2, 5);
     }
   }
-  else {
-
-    if (Time.time > this.t_nextStay && Mathf.rnd(0, 1000) > 900){
-      this.staying = true;
-      this.t_startStay = Time.time;
-      this.t_stay = Mathf.rnd(3000, 10000);
-    }
+  else if (tm > this.t_nextStay && Mathf.rnd(0, 1000) > 900){
+    this.staying = true;
+    this.t_startStay = tm;
+    this.t_stay = Mathf.rnd(cfgTm.tStayA, cfgTm.tStayB);
   }
 
 };
 
 Spider.prototype.updateMove = function(){
 
-  if (this.nodeFrom.burned || this.nodeTo.burned){
+  if (this.nFrom.burned || this.nTo.burned){
     this.setDead();
     return;
   }
@@ -1084,12 +1044,12 @@ Spider.prototype.updateMove = function(){
   var fracJourney = distCovered / this.journeyLength;
   
   if (fracJourney > 1) {
-    this.pos = this.nodeTo.pos;
+    this.pos = this.nTo.pos;
     this.traveling = false;
     return;
   }
 
-  this.pos = Vector.round(Vector.lerp(this.nodeFrom.pos, this.nodeTo.pos, fracJourney));
+  this.pos = Vector.round(Vector.lerp(this.nFrom.pos, this.nTo.pos, fracJourney));
 };
 
 Spider.prototype.update = function(){
@@ -1132,9 +1092,9 @@ Spider.prototype.draw = function(ctx){
 
 var Spider = require("./Spider");
 
-var Spiders = module.exports = function(opts){
-  this.nodes = opts.nodes;
-  this.amount = opts.amount;
+var Spiders = module.exports = function(nodes){
+  this.nodes = nodes;
+  this.amount = config.spiders.quantity;
 
   this.spiders = [];
 
@@ -1153,10 +1113,7 @@ Spiders.prototype.generateSpiders = function(){
 
     if (nodesIds.indexOf(node.id) === -1){
       nodesIds.push(node.id);
-
-      this.spiders.push(new Spider({
-        pos: node.pos
-      }));
+      this.spiders.push(new Spider(node.pos));
     }
   }
 };
@@ -1180,9 +1137,11 @@ Spiders.prototype.update = function(){
             if(node.burned){
               spider.setDead();
             }
+            /*
             else {
               spider.setNode(node, spider.nodeFrom);
             }
+            */
           }
         }
 
@@ -1208,22 +1167,10 @@ var Utils = module.exports = function(){
 Utils.prototype.guid = function(type){
   return ++this.lastIds[type];
 };
+
 },{}],18:[function(require,module,exports){
 
 var Vector = {};
-
-Vector.zero = { x: 0, y: 0 };
-Vector.one = { x: 1, y: 1 };
-Vector.down = { x: 1, y: 0 };
-Vector.up = { x: 0, y: 1 };
-
-Vector.create = function(x, y){
-  return { x: x, y: y};
-};
-
-Vector.clone = function(vec){
-  return { x: vec.x, y: vec.y };
-};
 
 Vector.multiply = function(vector, delta){
   return { x: vector.x * delta, y: vector.y * delta };
@@ -1306,12 +1253,14 @@ window.Vector = require("./Vector");
 window.Physics = require("./Physics");
 window.Renderer = require("./Renderer");
 
+window.DEBUG = true;
+
 window.onload = function() {
   
   var cviewport = document.getElementById("game-viewport");
   var cworld = document.getElementById("game-world");
 
-  window.Utils = new Utils();  
+  window._ = new Utils();  
   window.Time = new GameTime();
 
   window.Controls = new Controls({
@@ -1340,13 +1289,6 @@ window.onload = function() {
     x: width - 50,
     y: height - 50
   };
-
-/*
-  window.config.size = {
-    x: 600,
-    y: 600
-  };
-*/
 
   window.game = new Game({
     viewport: cviewport,

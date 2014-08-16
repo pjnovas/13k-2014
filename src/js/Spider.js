@@ -1,22 +1,22 @@
 
-var Spider = module.exports = function(opts){
+var Spider = module.exports = function(pos){
+  var cfg = config.spiders;
 
-  this.pos = Vector.round(opts.pos);
-  this.size = 5;
-  this.color = [115,255,0];
+  this.pos = Vector.round(pos);
 
-  this.nodeFrom = null;
-  this.nodeTo = null;
+  this.size = cfg.size;
+  this.color = cfg.color;
+  this.speed = cfg.speed;
+
+  this.nFrom = null;
+  this.nTo = null;
   this.journeyLength = null;
-
-  this.speed = 0.05;
 
   this.traveling = false;
   this.collider = this.size * 3;
   this.isDead = false;
 
   this.temp = 0;
-  this.scared = false;
   this.staying = false;
 
   this.t_stay = 2000;
@@ -26,21 +26,19 @@ var Spider = module.exports = function(opts){
   this.t_startMove = 0;
 };
 
-Spider.prototype.setNode = function(nodeFrom, nodeTo){
-  this.nodeFrom = nodeFrom;
-  this.nodeTo = nodeTo;
+Spider.prototype.setNode = function(nFrom, nTo){
+  this.nFrom = nFrom;
+  this.nTo = nTo;
 
   this.t_startMove = Time.time;
-  this.journeyLength = Vector.length(nodeFrom.pos, nodeTo.pos);
+  this.journeyLength = Vector.length(nFrom.pos, nTo.pos);
   this.traveling = true;
-
-  this.nextStayTime = this.stayTime * 5;
 };
 /*
 Spider.prototype.switchTravel = function(){
-  var aux = this.nodeFrom;
-  this.nodeFrom = this.nodeTo;
-  this.nodeTo = aux;
+  var aux = this.nFrom;
+  this.nFrom = this.nTo;
+  this.nTo = aux;
 
   this.t_startMove = Time.time;
 };
@@ -50,8 +48,8 @@ Spider.prototype.setDead = function(){
 };
 
 Spider.prototype.updateTemp = function(){
-  var nfromT = this.nodeFrom.temp;
-  var ntoT = this.nodeTo.temp;
+  var nfromT = this.nFrom.temp;
+  var ntoT = this.nTo.temp;
 
   if (nfromT === 0 && ntoT === 0){
     this.temp = 0;
@@ -70,44 +68,45 @@ Spider.prototype.updateTemp = function(){
 };
 
 Spider.prototype.updateState = function(){
+  var cfg = config.spiders
+    , tm = Time.time
+    , cfgTm = cfg.behaviour
+    , tstart = this.t_startStay
+    , tstay = this.t_stay;
 
-  this.scared = true;
-  if (this.temp === 0){
-    this.scared = false;
-  }
+  if (this.temp > cfgTm.alertTemp){ //alert behaviour!
 
-  if (this.scared){
-    this.speed = 0.1;
+    this.speed = cfg.speedAlert;
+
     if (this.staying){
-      this.t_startMove += Time.time - this.t_startStay;
+      this.t_startMove += tm - tstart;
     }
 
     this.staying = false;
     return;
   }
 
-  this.speed = 0.05;
+  // calm behaviour
+  this.speed = cfg.speed;
+
   if (this.staying){
-    if(Time.time > this.t_startStay + this.t_stay) {
+    if(tm > tstart + tstay) {
       this.staying = false;
-      this.t_startMove += this.t_stay;
-      this.t_nextStay = Time.time + this.t_stay / Mathf.rnd(2, 5);
+      this.t_startMove += tstay;
+      this.t_nextStay = tm + tstay / Mathf.rnd(2, 5);
     }
   }
-  else {
-
-    if (Time.time > this.t_nextStay && Mathf.rnd(0, 1000) > 900){
-      this.staying = true;
-      this.t_startStay = Time.time;
-      this.t_stay = Mathf.rnd(3000, 10000);
-    }
+  else if (tm > this.t_nextStay && Mathf.rnd(0, 1000) > 900){
+    this.staying = true;
+    this.t_startStay = tm;
+    this.t_stay = Mathf.rnd(cfgTm.tStayA, cfgTm.tStayB);
   }
 
 };
 
 Spider.prototype.updateMove = function(){
 
-  if (this.nodeFrom.burned || this.nodeTo.burned){
+  if (this.nFrom.burned || this.nTo.burned){
     this.setDead();
     return;
   }
@@ -120,12 +119,12 @@ Spider.prototype.updateMove = function(){
   var fracJourney = distCovered / this.journeyLength;
   
   if (fracJourney > 1) {
-    this.pos = this.nodeTo.pos;
+    this.pos = this.nTo.pos;
     this.traveling = false;
     return;
   }
 
-  this.pos = Vector.round(Vector.lerp(this.nodeFrom.pos, this.nodeTo.pos, fracJourney));
+  this.pos = Vector.round(Vector.lerp(this.nFrom.pos, this.nTo.pos, fracJourney));
 };
 
 Spider.prototype.update = function(){

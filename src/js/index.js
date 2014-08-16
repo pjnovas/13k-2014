@@ -10,12 +10,14 @@ window.Vector = require("./Vector");
 window.Physics = require("./Physics");
 window.Renderer = require("./Renderer");
 
+window.DEBUG = true;
+
 window.onload = function() {
   
   var cviewport = document.getElementById("game-viewport");
   var cworld = document.getElementById("game-world");
 
-  window.Utils = new Utils();  
+  window._ = new Utils();  
   window.Time = new GameTime();
 
   window.Controls = new Controls({
@@ -44,13 +46,6 @@ window.onload = function() {
     x: width - 50,
     y: height - 50
   };
-
-/*
-  window.config.size = {
-    x: 600,
-    y: 600
-  };
-*/
 
   window.game = new Game({
     viewport: cviewport,

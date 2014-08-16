@@ -3,19 +3,12 @@
 var Node = require("./Node")
   , Paths = require("./Paths");
 
-var Nodes = module.exports = function(/*opts*/){
+var Nodes = module.exports = function(){
 
-  /*
-  this.rows = opts.rows;
-  this.cols = opts.cols;
-  this.nodeSize = opts.nodeSize;
-  */
-
-  this.nodeSize = 3;
   this.nodes = [];
   this.paths = new Paths();
 
-  this.createWeb();
+  this.createWeb(config.size);
 
   this.applyPos = null;
   this.applyRatio = 0;
@@ -23,10 +16,9 @@ var Nodes = module.exports = function(/*opts*/){
 
 };
 
-Nodes.prototype.addControlNodes = function(min, max, rndRadius){
-  var sz = this.nodeSize
-    , rnd = rndRadius*5
-    , xMax = max.x
+Nodes.prototype.addControlNodes = function(min, max/*, rndRadius*/){
+  var /*rnd = rndRadius*5
+    , */xMax = max.x
     , yMax = max.y
     , xMin = min.x
     , yMin = min.y
@@ -36,8 +28,8 @@ Nodes.prototype.addControlNodes = function(min, max, rndRadius){
   var ctrlNodes = [];
   
   function add(p){
-    var newp = Vector.round(Vector.add(p, Mathf.rndInCircle(rnd)));
-    ctrlNodes.push(new Node({ pos: newp, size: sz }));  
+    var newp = Vector.round(p/*Vector.add(p, Mathf.rndInCircle(rnd))*/);
+    ctrlNodes.push(new Node(newp));  
   }
 
   // right-mid
@@ -67,15 +59,14 @@ Nodes.prototype.addControlNodes = function(min, max, rndRadius){
   return ctrlNodes;
 };
 
-Nodes.prototype.createWeb = function(){
-  var size = this.nodeSize
-    , ringsAm = 11
-    , ringsGap = 30
+Nodes.prototype.createWeb = function(bounds){
+
+  var ringsAm = Math.round(bounds.y / 100) + 2
+    , ringsGap = Math.round(ringsAm * 2.5)
     , rndRadius = ringsGap/5
     , nodesByRing = 16
-    , center = { x: config.size.x/2, y: config.size.y/2 }
+    , center = { x: bounds.x/2, y: bounds.y/2 }
     , rings = []
-    , node
     , bigRad = (ringsGap * (ringsAm-1)) + (ringsGap * 3);
 
   var ctrlNodes = this.addControlNodes({ 
@@ -89,11 +80,7 @@ Nodes.prototype.createWeb = function(){
   this.nodes = this.nodes.concat(this.nodes, ctrlNodes);
 
   /*
-  var cNode = new Node({
-    pos: center,
-    size: size
-  });
-
+  var cNode = new Node(center);
   this.nodes.push(cNode);
   */
 
@@ -105,10 +92,9 @@ Nodes.prototype.createWeb = function(){
 
     ps.forEach(function(p){
 
-      node = new Node({
-        pos: Vector.round(Vector.add(p, Mathf.rndInCircle(rndRadius))),
-        size: size
-      });
+      var node = new Node(
+        Vector.round(Vector.add(p, Mathf.rndInCircle(rndRadius)))
+      );
 
       this.nodes.push(node);
       cRing.push(node);  
@@ -128,7 +114,7 @@ Nodes.prototype.createWeb = function(){
   var j, k, l;
 
   // Paths connections between rings
-  for (j=0; j<ringsAm/*-1*/; j++){
+  for (j=0; j<ringsAm; j++){
     var currRing = rings[j];
     var max = currRing.length;
 
@@ -148,27 +134,13 @@ Nodes.prototype.createWeb = function(){
       this.paths.addOne(currNode, rings[j][k]);
     }
   }
-/*
-  // Circle paths for each ring
-  rings.forEach(function(rNodes){
-    var max = rNodes.length;
-    for (j=0; j<max;j++){
-      k = j+1;
-      if (k > max-1){
-        k = 0;
-      }
-
-      this.paths.addOne(rNodes[j], rNodes[k]);
-    }
-  }, this);
-*/
 
   // TODO: Refactor this crap code
   // last 3 rings paths to ControlNodes
   var lRing = rings[ringsAm-1]
     , plRing = rings[ringsAm-2]
     , pplRing = rings[ringsAm-3]
-    , m = 1; //0
+    , m = 1;
 
   function getPos(from, to, delta){
     var p = Vector.part(from.pos, to.pos, delta);
@@ -176,13 +148,13 @@ Nodes.prototype.createWeb = function(){
   }
   
   ctrlNodes.forEach(function(ctrlNode){
-    for(k=m; k<=m+2/*4*/; k++){
+    for(k=m; k<=m+2; k++){
 
       var pprend = pplRing[k]
         , prend = plRing[k]
         , lastnd = lRing[k];
 
-      if (k % 2 === 0) { //mid
+      if (k % 2 === 0) {
         lastnd.pos = getPos(ctrlNode, lastnd, 7);
         prend.pos = getPos(lastnd, prend, 5);
         pprend.pos = getPos(lastnd, pprend, 8);
@@ -198,6 +170,13 @@ Nodes.prototype.createWeb = function(){
     m+=4;
   }, this);
 
+  // clean memory
+  rings.length = 0;
+  ctrlNodes.length = 0;
+
+  lRing = null;
+  plRing = null;
+  pplRing = null;
 };
 
 Nodes.prototype.findNodeByCollider = function(){
@@ -232,7 +211,9 @@ Nodes.prototype.update = function(){
   this.paths.update();
 
   this.nodes.forEach(function (node) {
-    node.update();
+    if (!node.burned){
+      node.update();
+    }
   });
 
 };

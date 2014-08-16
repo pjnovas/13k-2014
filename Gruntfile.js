@@ -79,10 +79,11 @@ module.exports = function(grunt) {
             ,Mathf: true
             ,Renderer: true
             ,config: true
-            ,Utils: true
+            ,_: true
             ,Controls: true
             ,Physics: true
             ,Color: true
+            ,DEBUG: true
           }
         }
 
@@ -116,6 +117,11 @@ module.exports = function(grunt) {
     uglify: {
       all: {
         options: {
+          compress: {
+            global_defs: {
+              "DEBUG": false
+            }
+          },
           stripBanners: {
             line: true
           },

@@ -1,6 +1,6 @@
 
 var Cursor = module.exports = function(){
-  this.pos = Vector.zero;
+  this.pos = { x: 0, y: 0 };
   this.size = 20;
 
   this.coldColor = [0,0,255,0.5];

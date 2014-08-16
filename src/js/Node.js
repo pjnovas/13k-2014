@@ -1,29 +1,22 @@
 
-var Node = module.exports = function(opts){
-  this.id = Utils.guid("nodes");
+var Node = module.exports = function(pos){
+  
+  this.id = _.guid("nodes");
 
-  //this.row = opts.row;
-  //this.col = opts.col;
+  this.pos = pos;
+  this.size = config.nodes.size;
 
-  this.pos = opts.pos;
-  this.size = opts.size;
-
-  this.coldColor = [255,255,255,1];
-  this.burnColor = [255,0,0,1];
-
-  this.color = this.coldColor;
+  this.color = config.nodes.colors.cold;
+  this.dColor = Color.toRGBA(this.color);
 
   this.nears = [];
   this.selected = false;
 
-  this.increaseTempSize = 0.1;
+  this.incTempSize = 0.1;
 
   this.temp = 0;
-  this.increaseTemp = 0;
+  this.incTemp = 0;
   this.burnTemp = 1;
-
-  this.collider = 1;
-  this.colliderTemp = 40;
 
   this.burned = false;
 };
@@ -33,11 +26,11 @@ Node.prototype.addNear = function(node){
 };
 
 Node.prototype.burn = function(){
-  this.increaseTemp = 1;
+  this.incTemp = 1;
 };
 
 Node.prototype.cool = function(){
-  this.increaseTemp = -1;
+  this.incTemp = -1;
 };
 
 Node.prototype.getRandomNear = function(excludeId){
@@ -59,57 +52,41 @@ Node.prototype.getRandomNear = function(excludeId){
 
 Node.prototype.setBurned = function(){
   this.burned = true;
+  this.color = config.nodes.colors.burned;
+  this.dColor = Color.toRGBA(this.color);
 };
 
 Node.prototype.update = function(){
-
-  if (this.burned){
-    return;
-  }
-
   var isAlone = this.nears.every(function(n){
     return n.burned;
   });
 
   if (isAlone){
     this.setBurned();
+    return;
   }
 
-  this.temp += this.increaseTemp * this.increaseTempSize * Time.deltaTime;
+  this.temp += this.incTemp * this.incTempSize * Time.deltaTime;
 
   if (this.temp <= 0){
     this.temp = 0;
   }
 
-  this.color = Color.lerp(this.coldColor, this.burnColor, this.temp);
+  this.color = Color.lerp(config.nodes.colors.cold, config.nodes.colors.burn, this.temp);
+  this.dColor = Color.toRGBA(this.color);
 
   if (this.temp > 1){
     this.setBurned();
     return;
   }
 
-  this.collider = this.temp ? this.temp * this.colliderTemp : 1 ;
-
 };
 
 Node.prototype.draw = function(ctx){
-/*
-  if (this.burned){
-    return;
-  }
-
-  //debug collider
-  Renderer.drawCircle(ctx, {
-    pos: this.pos,
-    radius: this.collider,
-    color: "rgba(255,0,0,0.5)"
-  });
-*/
-
   Renderer.drawCircle(ctx, {
     pos: this.pos,
     radius: this.size,
-    color: Color.toRGBA(this.burned ? [0,0,0,0.2] : this.color)
+    color: this.dColor
   });
 
 };
