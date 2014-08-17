@@ -34,9 +34,18 @@ Spiders.prototype.update = function(){
   this.spiders.forEach(function (spider) {
 
     if (!spider.traveling){
-      nodes.forEach(function (node) {
+      nodes.some(function (node) {
 
         if (Vector.pointInCircle(spider.pos, node.pos, 5)) {
+
+          if (node.temp === 0 && Mathf.rnd01() > 0.7) {
+            var nearBurned = node.getNearBurned();
+            if (nearBurned){
+              spider.buildWeb(node, nearBurned);
+              return true;
+            }
+          }
+
           var fromId = (spider.nodeFrom && spider.nodeFrom.id) || -1;
           var nodeTo = node.getRandomNear(fromId);
           if (nodeTo){
@@ -54,7 +63,7 @@ Spiders.prototype.update = function(){
           }
         }
 
-      });
+      }, this);
     }
     spider.update();
   });

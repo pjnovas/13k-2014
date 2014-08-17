@@ -489,11 +489,9 @@ var Node = module.exports = function(pos){
   this.nears = [];
   this.selected = false;
 
-  this.incTempSize = 0.1;
-
   this.temp = 0;
   this.incTemp = 0;
-  this.burnTemp = 1;
+  this.incTempSize = 0;
 
   this.burned = false;
   this.shaked = false;
@@ -515,6 +513,19 @@ Node.prototype.randomBurn = function(){
   }
 };
 
+Node.prototype.getNearBurned = function(){
+  
+  var burned;
+  this.nears.some(function(node){
+    if (node.burned){
+      burned = node;
+      return true;
+    }
+  });
+
+  return burned;
+};
+
 Node.prototype.shake = function(){
   if (this.originalPos){
     this.pos = this.originalPos;
@@ -534,12 +545,17 @@ Node.prototype.endShake = function(){
   this.shaked = false;
 };
 
+Node.prototype.revivie = function(){
+  this.burned = false;
+};
+
 Node.prototype.burn = function(){
   this.incTemp = 1;
 };
 
 Node.prototype.cool = function(){
   this.incTemp = -1;
+  this.incTempSize = 0.2;
 };
 
 Node.prototype.applyEarth = function(){
@@ -563,6 +579,12 @@ Node.prototype.getRandomNear = function(excludeId){
   return null;
 };
 
+Node.prototype.resetTemp = function(){
+  this.temp = 0;
+  this.incTemp = 0;
+  this.incTempSize = 0;
+};
+
 Node.prototype.setBurned = function(){
   this.burned = true;
   this.color = config.nodes.colors.burned;
@@ -579,15 +601,17 @@ Node.prototype.update = function(){
     return;
   }
 
-  if (window.blowing) {
-    this.shake();
-
-    if (this.incTemp > 0){
+  if (this.incTemp > 0){ // is burning
+    if (window.blowing) {    
       this.incTempSize = 0.2; 
     }
-    else { 
+    else {
       this.incTempSize = 0.1; 
     }
+  }
+
+  if (window.blowing) {
+    this.shake();
   }
   else if (this.shaked){
     this.endShake();
@@ -596,7 +620,7 @@ Node.prototype.update = function(){
   this.temp += this.incTemp * this.incTempSize * Time.deltaTime;
 
   if (this.temp <= 0){
-    this.temp = 0;
+    this.resetTemp();
   }
 
   this.color = Color.lerp(config.nodes.colors.cold, config.nodes.colors.burn, this.temp);
@@ -604,6 +628,7 @@ Node.prototype.update = function(){
 
   if (this.temp > 1){
     this.setBurned();
+    this.resetTemp();
     return;
   }
 
@@ -879,9 +904,9 @@ Paths.prototype.addOne = function(nA, nB){
 
 Paths.prototype.update = function(){
   this.paths.forEach(function (path) {
-    if (!path.burned){
+    //if (!path.burned){
       path.update();
-    }
+    //}
   });
 };
 
@@ -1008,6 +1033,8 @@ var Spider = module.exports = function(pos){
   this.t_nextStay = 0;
 
   this.t_startMove = 0;
+
+  this.building = false;
 };
 
 Spider.prototype.setNode = function(nFrom, nTo){
@@ -1090,7 +1117,7 @@ Spider.prototype.updateState = function(){
 
 Spider.prototype.updateMove = function(){
 
-  if (this.nFrom.burned || this.nTo.burned){
+  if (!this.building && (this.nFrom.burned || this.nTo.burned)){
     this.setDead();
     return;
   }
@@ -1105,10 +1132,18 @@ Spider.prototype.updateMove = function(){
   if (fracJourney > 1) {
     this.pos = this.nTo.pos;
     this.traveling = false;
+    this.nTo.revivie();
+    this.building = false;
     return;
   }
 
   this.pos = Vector.round(Vector.lerp(this.nFrom.pos, this.nTo.pos, fracJourney));
+};
+
+Spider.prototype.buildWeb = function(from, to){
+  this.building = true;
+  this.traveling = true;
+  this.setNode(from, to);
 };
 
 Spider.prototype.update = function(){
@@ -1120,10 +1155,12 @@ Spider.prototype.update = function(){
     return;
   }
 
-  this.updateTemp();
-  this.updateState();
-  this.updateMove();
+  if (!this.building){
+    this.updateTemp();
+    this.updateState();
+  }
 
+  this.updateMove();
 };
 
 Spider.prototype.draw = function(ctx){
@@ -1145,6 +1182,15 @@ Spider.prototype.draw = function(ctx){
     radius: this.size,
     color: Color.toRGBA(this.color)
   });
+
+  if (this.building){
+    Renderer.drawLine(ctx, {
+      from: this.pos,
+      to: this.nFrom.pos,
+      size: config.paths.size,
+      color: Color.toRGBA(config.nodes.colors.cold)
+    });
+  }
 };
 
 },{}],16:[function(require,module,exports){
@@ -1184,9 +1230,18 @@ Spiders.prototype.update = function(){
   this.spiders.forEach(function (spider) {
 
     if (!spider.traveling){
-      nodes.forEach(function (node) {
+      nodes.some(function (node) {
 
         if (Vector.pointInCircle(spider.pos, node.pos, 5)) {
+
+          if (node.temp === 0 && Mathf.rnd01() > 0.7) {
+            var nearBurned = node.getNearBurned();
+            if (nearBurned){
+              spider.buildWeb(node, nearBurned);
+              return true;
+            }
+          }
+
           var fromId = (spider.nodeFrom && spider.nodeFrom.id) || -1;
           var nodeTo = node.getRandomNear(fromId);
           if (nodeTo){
@@ -1204,7 +1259,7 @@ Spiders.prototype.update = function(){
           }
         }
 
-      });
+      }, this);
     }
     spider.update();
   });

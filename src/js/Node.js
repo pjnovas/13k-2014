@@ -12,11 +12,9 @@ var Node = module.exports = function(pos){
   this.nears = [];
   this.selected = false;
 
-  this.incTempSize = 0.1;
-
   this.temp = 0;
   this.incTemp = 0;
-  this.burnTemp = 1;
+  this.incTempSize = 0;
 
   this.burned = false;
   this.shaked = false;
@@ -38,6 +36,19 @@ Node.prototype.randomBurn = function(){
   }
 };
 
+Node.prototype.getNearBurned = function(){
+  
+  var burned;
+  this.nears.some(function(node){
+    if (node.burned){
+      burned = node;
+      return true;
+    }
+  });
+
+  return burned;
+};
+
 Node.prototype.shake = function(){
   if (this.originalPos){
     this.pos = this.originalPos;
@@ -57,12 +68,17 @@ Node.prototype.endShake = function(){
   this.shaked = false;
 };
 
+Node.prototype.revivie = function(){
+  this.burned = false;
+};
+
 Node.prototype.burn = function(){
   this.incTemp = 1;
 };
 
 Node.prototype.cool = function(){
   this.incTemp = -1;
+  this.incTempSize = 0.2;
 };
 
 Node.prototype.applyEarth = function(){
@@ -86,6 +102,12 @@ Node.prototype.getRandomNear = function(excludeId){
   return null;
 };
 
+Node.prototype.resetTemp = function(){
+  this.temp = 0;
+  this.incTemp = 0;
+  this.incTempSize = 0;
+};
+
 Node.prototype.setBurned = function(){
   this.burned = true;
   this.color = config.nodes.colors.burned;
@@ -102,15 +124,17 @@ Node.prototype.update = function(){
     return;
   }
 
-  if (window.blowing) {
-    this.shake();
-
-    if (this.incTemp > 0){
+  if (this.incTemp > 0){ // is burning
+    if (window.blowing) {    
       this.incTempSize = 0.2; 
     }
-    else { 
+    else {
       this.incTempSize = 0.1; 
     }
+  }
+
+  if (window.blowing) {
+    this.shake();
   }
   else if (this.shaked){
     this.endShake();
@@ -119,7 +143,7 @@ Node.prototype.update = function(){
   this.temp += this.incTemp * this.incTempSize * Time.deltaTime;
 
   if (this.temp <= 0){
-    this.temp = 0;
+    this.resetTemp();
   }
 
   this.color = Color.lerp(config.nodes.colors.cold, config.nodes.colors.burn, this.temp);
@@ -127,6 +151,7 @@ Node.prototype.update = function(){
 
   if (this.temp > 1){
     this.setBurned();
+    this.resetTemp();
     return;
   }
 

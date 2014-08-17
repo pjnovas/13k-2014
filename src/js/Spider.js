@@ -24,6 +24,8 @@ var Spider = module.exports = function(pos){
   this.t_nextStay = 0;
 
   this.t_startMove = 0;
+
+  this.building = false;
 };
 
 Spider.prototype.setNode = function(nFrom, nTo){
@@ -106,7 +108,7 @@ Spider.prototype.updateState = function(){
 
 Spider.prototype.updateMove = function(){
 
-  if (this.nFrom.burned || this.nTo.burned){
+  if (!this.building && (this.nFrom.burned || this.nTo.burned)){
     this.setDead();
     return;
   }
@@ -121,10 +123,18 @@ Spider.prototype.updateMove = function(){
   if (fracJourney > 1) {
     this.pos = this.nTo.pos;
     this.traveling = false;
+    this.nTo.revivie();
+    this.building = false;
     return;
   }
 
   this.pos = Vector.round(Vector.lerp(this.nFrom.pos, this.nTo.pos, fracJourney));
+};
+
+Spider.prototype.buildWeb = function(from, to){
+  this.building = true;
+  this.traveling = true;
+  this.setNode(from, to);
 };
 
 Spider.prototype.update = function(){
@@ -136,10 +146,12 @@ Spider.prototype.update = function(){
     return;
   }
 
-  this.updateTemp();
-  this.updateState();
-  this.updateMove();
+  if (!this.building){
+    this.updateTemp();
+    this.updateState();
+  }
 
+  this.updateMove();
 };
 
 Spider.prototype.draw = function(ctx){
@@ -161,4 +173,13 @@ Spider.prototype.draw = function(ctx){
     radius: this.size,
     color: Color.toRGBA(this.color)
   });
+
+  if (this.building){
+    Renderer.drawLine(ctx, {
+      from: this.pos,
+      to: this.nFrom.pos,
+      size: config.paths.size,
+      color: Color.toRGBA(config.nodes.colors.cold)
+    });
+  }
 };
