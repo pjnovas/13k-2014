@@ -19,6 +19,8 @@ var Node = module.exports = function(pos){
   this.burnTemp = 1;
 
   this.burned = false;
+  this.shaked = false;
+  this.originalPos = null;
 };
 
 Node.prototype.addNear = function(node){
@@ -36,12 +38,35 @@ Node.prototype.randomBurn = function(){
   }
 };
 
+Node.prototype.shake = function(){
+  if (this.originalPos){
+    this.pos = this.originalPos;
+  }
+  else {
+    this.originalPos = this.pos;
+  }
+  
+  this.shaked = true;
+  this.pos = Vector.round(Vector.add(this.pos, Mathf.rndInCircle(0.2)));
+};
+
+Node.prototype.endShake = function(){
+  if (this.originalPos){
+    this.pos = this.originalPos;
+  }
+  this.shaked = false;
+};
+
 Node.prototype.burn = function(){
   this.incTemp = 1;
 };
 
 Node.prototype.cool = function(){
   this.incTemp = -1;
+};
+
+Node.prototype.applyEarth = function(){
+  console.warn("NOT IMPLEMENTED");
 };
 
 Node.prototype.getRandomNear = function(excludeId){
@@ -75,6 +100,20 @@ Node.prototype.update = function(){
   if (isAlone){
     this.setBurned();
     return;
+  }
+
+  if (window.blowing) {
+    this.shake();
+
+    if (this.incTemp > 0){
+      this.incTempSize = 0.2; 
+    }
+    else { 
+      this.incTempSize = 0.1; 
+    }
+  }
+  else if (this.shaked){
+    this.endShake();
   }
 
   this.temp += this.incTemp * this.incTempSize * Time.deltaTime;

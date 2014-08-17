@@ -9,8 +9,8 @@ var Nodes = module.exports = function(){
   this.paths = new Paths();
 
   //var radius = { x: 400, y: 300 };
-  //var radius = Vector.multiply(Vector.one, config.size.y/2 - 10);
-  var radius = Vector.divide(config.size, 2);
+  var radius = Vector.multiply(Vector.one, config.size.y/2 - 10);
+  //var radius = Vector.divide(config.size, 2);
   var center = Vector.center(Vector.zero, config.size);
 
   this.createWeb(center, radius);
@@ -132,7 +132,7 @@ Nodes.prototype.createWeb = function(center, rad){
 Nodes.prototype.findNodeByCollider = function(){
   
   this.nodes.forEach(function (node) {
-    if (Vector.pointInCircle(this.applyPos, node.pos, this.applyRatio)) {
+    if (this.applyPos && Vector.pointInCircle(this.applyPos, node.pos, this.applyRatio)) {
       //TODO: break each when found one and 
       // add a timer so it won't get busy appling the same several times
       switch(this.element){
@@ -141,6 +141,9 @@ Nodes.prototype.findNodeByCollider = function(){
           break;
         case "water":
           node.cool();
+          break;
+        case "earth":
+          node.applyEarth();
           break;
       }
     }

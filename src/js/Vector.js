@@ -69,9 +69,8 @@ Vector.isOut = function(p, min, max){
   return (p.x < min.x || p.x > max.x || p.y < min.y || p.y > max.y);
 };
 
-/*
 Vector.debug = function(vec){
   console.log(vec.x + " : " + vec.y);
 };
-*/
+
 module.exports = Vector;

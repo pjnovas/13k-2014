@@ -15,10 +15,15 @@ Manager.prototype.update = function(){
   
   this.cursor.update();
 
+  window.blowing = this.cursor.blowing;
+
   if (this.cursor.active){
     this.nodes.applyPos = this.cursor.pos;
     this.nodes.applyRatio = this.cursor.size;
     this.nodes.element = this.cursor.element;
+  }
+  else {
+    this.nodes.applyPos = null;
   }
 
   this.nodes.update();
