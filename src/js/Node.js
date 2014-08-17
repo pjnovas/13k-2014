@@ -19,6 +19,9 @@ var Node = module.exports = function(pos){
   this.burned = false;
   this.shaked = false;
   this.originalPos = null;
+  this.hasEarth = false;
+
+  this.target = false;
 };
 
 Node.prototype.addNear = function(node){
@@ -68,21 +71,30 @@ Node.prototype.endShake = function(){
   this.shaked = false;
 };
 
-Node.prototype.revivie = function(){
-  this.burned = false;
+Node.prototype.revive = function(){
+  if (this.burned){
+    this.resetTemp();
+    this.burned = false;
+  }
 };
 
 Node.prototype.burn = function(){
-  this.incTemp = 1;
+  if (!this.burned){
+    this.incTemp = 1;
+  }
 };
 
 Node.prototype.cool = function(){
-  this.incTemp = -1;
-  this.incTempSize = 0.2;
+  if (!this.burned){
+    this.incTemp = -1;
+    this.incTempSize = 0.5;
+  }
 };
 
 Node.prototype.applyEarth = function(){
-  console.warn("NOT IMPLEMENTED");
+  if (!this.burned && !this.target){
+    this.hasEarth = true;
+  }
 };
 
 Node.prototype.getRandomNear = function(excludeId){
@@ -109,12 +121,29 @@ Node.prototype.resetTemp = function(){
 };
 
 Node.prototype.setBurned = function(){
+  if (this.target){
+    return;
+  }
+
   this.burned = true;
   this.color = config.nodes.colors.burned;
   this.dColor = Color.toRGBA(this.color);
 };
 
 Node.prototype.update = function(){
+
+  if (this.target){
+    this.size = config.nodes.targetSize;
+    this.dColor = Color.toRGBA(config.nodes.colors.target);
+    return;
+  }
+
+  if (this.hasEarth){
+    this.dColor = Color.toRGBA(config.nodes.colors.earth);
+    this.resetTemp();
+    return;
+  }
+
   var isAlone = this.nears.every(function(n){
     return n.burned;
   });

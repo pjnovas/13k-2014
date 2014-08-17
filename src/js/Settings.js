@@ -3,10 +3,13 @@ module.exports = {
 
   nodes: {
       size: 3
+    , targetSize: 6
     , colors: {
         cold: [255,255,255,1]
       , burn: [255,0,0,1]
       , burned: [0,0,0,0.2]
+      , earth: [190,160,40,1]
+      , target: [0,0,255,1]
     }
   },
 

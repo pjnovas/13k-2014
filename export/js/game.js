@@ -392,7 +392,19 @@ var Manager = module.exports = function(){
   this.cursor = new Cursor();
   this.nodes = new Nodes();
   this.paths = new Paths();
-  this.spiders = new Spiders(this.nodes);
+
+  function set(id, value){
+    var ele = document.getElementById(id);
+    if (ele) { ele.innerText = value; }
+  }
+
+  this.spiders = new Spiders(this.nodes, function(stats){
+    for (var p in stats){
+      if (stats.hasOwnProperty(p)){
+        set(p, stats[p]);
+      }
+    }
+  });
 };
 
 Manager.prototype.update = function(){
@@ -496,6 +508,9 @@ var Node = module.exports = function(pos){
   this.burned = false;
   this.shaked = false;
   this.originalPos = null;
+  this.hasEarth = false;
+
+  this.target = false;
 };
 
 Node.prototype.addNear = function(node){
@@ -545,21 +560,30 @@ Node.prototype.endShake = function(){
   this.shaked = false;
 };
 
-Node.prototype.revivie = function(){
-  this.burned = false;
+Node.prototype.revive = function(){
+  if (this.burned){
+    this.resetTemp();
+    this.burned = false;
+  }
 };
 
 Node.prototype.burn = function(){
-  this.incTemp = 1;
+  if (!this.burned){
+    this.incTemp = 1;
+  }
 };
 
 Node.prototype.cool = function(){
-  this.incTemp = -1;
-  this.incTempSize = 0.2;
+  if (!this.burned){
+    this.incTemp = -1;
+    this.incTempSize = 0.5;
+  }
 };
 
 Node.prototype.applyEarth = function(){
-  console.warn("NOT IMPLEMENTED");
+  if (!this.burned && !this.target){
+    this.hasEarth = true;
+  }
 };
 
 Node.prototype.getRandomNear = function(excludeId){
@@ -586,12 +610,29 @@ Node.prototype.resetTemp = function(){
 };
 
 Node.prototype.setBurned = function(){
+  if (this.target){
+    return;
+  }
+
   this.burned = true;
   this.color = config.nodes.colors.burned;
   this.dColor = Color.toRGBA(this.color);
 };
 
 Node.prototype.update = function(){
+
+  if (this.target){
+    this.size = config.nodes.targetSize;
+    this.dColor = Color.toRGBA(config.nodes.colors.target);
+    return;
+  }
+
+  if (this.hasEarth){
+    this.dColor = Color.toRGBA(config.nodes.colors.earth);
+    this.resetTemp();
+    return;
+  }
+
   var isAlone = this.nears.every(function(n){
     return n.burned;
   });
@@ -653,7 +694,6 @@ var Nodes = module.exports = function(){
   this.nodes = [];
   this.paths = new Paths();
 
-  //var radius = { x: 400, y: 300 };
   var radius = Vector.multiply(Vector.one, config.size.y/2 - 10);
   //var radius = Vector.divide(config.size, 2);
   var center = Vector.center(Vector.zero, config.size);
@@ -675,14 +715,7 @@ Nodes.prototype.createWeb = function(center, rad){
     , boundMin = Vector.add(center, Vector.multiply(rad, -1))
     , boundMax = Vector.add(center, rad)
     , rings = [];
-  /*
-  if (DEBUG){
-    this.debugRect = {
-      pos: boundMin,
-      size: Vector.multiply(rad, 2)
-    };
-  }
-*/
+ 
   //var cNode = new Node(center);
   //this.nodes.push(cNode);
 
@@ -772,6 +805,20 @@ Nodes.prototype.createWeb = function(center, rad){
     node.randomBurn();
   });
 
+  // sort a target node
+  var sorted = false;
+  var len = this.nodes.length-1;
+  while(!sorted) {
+
+    var idx = Mathf.rnd(0, len);
+    var node = this.nodes[idx];
+
+    if (!node.burned){
+      node.target = true;
+      sorted = true;
+    }
+  }
+
 };
 
 Nodes.prototype.findNodeByCollider = function(){
@@ -817,11 +864,7 @@ Nodes.prototype.update = function(){
 };
 
 Nodes.prototype.draw = function(ctx){
-/*
-  if (DEBUG){
-    Renderer.drawRect(ctx, this.debugRect);
-  }
-*/
+
   this.paths.draw(ctx);
 
   this.nodes.forEach(function (node) {
@@ -976,10 +1019,13 @@ module.exports = {
 
   nodes: {
       size: 3
+    , targetSize: 6
     , colors: {
         cold: [255,255,255,1]
       , burn: [255,0,0,1]
       , burned: [0,0,0,0.2]
+      , earth: [190,160,40,1]
+      , target: [0,0,255,1]
     }
   },
 
@@ -1008,10 +1054,13 @@ module.exports = {
 
 },{}],15:[function(require,module,exports){
 
-var Spider = module.exports = function(pos){
+var Spider = module.exports = function(pos, onDead){
+  this.id = _.guid("spiders");
+
   var cfg = config.spiders;
 
   this.pos = Vector.round(pos);
+  this.onDead = onDead;
 
   this.size = cfg.size;
   this.color = cfg.color;
@@ -1022,7 +1071,6 @@ var Spider = module.exports = function(pos){
   this.journeyLength = null;
 
   this.traveling = false;
-  this.collider = this.size * 3;
   this.isDead = false;
 
   this.temp = 0;
@@ -1045,17 +1093,12 @@ Spider.prototype.setNode = function(nFrom, nTo){
   this.journeyLength = Vector.length(nFrom.pos, nTo.pos);
   this.traveling = true;
 };
-/*
-Spider.prototype.switchTravel = function(){
-  var aux = this.nFrom;
-  this.nFrom = this.nTo;
-  this.nTo = aux;
 
-  this.t_startMove = Time.time;
-};
-*/
 Spider.prototype.setDead = function(){
-  this.isDead = true;
+  if (!this.isDead){
+    this.isDead = true;
+    this.onDead();
+  }
 };
 
 Spider.prototype.updateTemp = function(){
@@ -1074,7 +1117,6 @@ Spider.prototype.updateTemp = function(){
 
   if (ntoT > nfromT){
     this.temp = ntoT;
-    //this.switchTravel();
   }
 };
 
@@ -1132,7 +1174,7 @@ Spider.prototype.updateMove = function(){
   if (fracJourney > 1) {
     this.pos = this.nTo.pos;
     this.traveling = false;
-    this.nTo.revivie();
+    this.nTo.revive();
     this.building = false;
     return;
   }
@@ -1168,15 +1210,6 @@ Spider.prototype.draw = function(ctx){
     return;
   }
 
-/*
-  //debug collider
-  Renderer.drawCircle(ctx, {
-    pos: this.pos,
-    radius: this.collider,
-    color: "rgba(0,255,0,0.2)"
-  });
-*/
-
   Renderer.drawCircle(ctx, {
     pos: this.pos,
     radius: this.size,
@@ -1197,30 +1230,60 @@ Spider.prototype.draw = function(ctx){
 
 var Spider = require("./Spider");
 
-var Spiders = module.exports = function(nodes){
+var Spiders = module.exports = function(nodes, onExitSpider){
   this.nodes = nodes;
+  this.onExitSpider = onExitSpider;
+
   this.amount = config.spiders.quantity;
 
   this.spiders = [];
 
+  this.spidersExit = 0;
+  this.spidersKilled = 0;
+
   this.generateSpiders();
+
+  this.updateGUI();
+};
+
+Spiders.prototype.updateGUI = function(){
+  this.onExitSpider({
+    saved: this.spidersExit,
+    killed: this.spidersKilled,
+    alives: this.spiders.length - (this.spidersKilled + this.spidersExit),
+    total: this.spiders.length
+  });
+};
+
+Spiders.prototype.onSpiderDead = function(){
+  this.spidersKilled++;
+  this.updateGUI();
 };
 
 Spiders.prototype.generateSpiders = function(){
-  var nodes = this.nodes.GetNodes();
-  var len = nodes.length;
+  var nodes = this.nodes.GetNodes()
+    , len = nodes.length
+    , nodesIds = []
+    , node
+    , idx;
 
-  var nodesIds = [];
+  do {
+    idx = Mathf.rnd(0, len-1);
+    node = nodes[idx];
 
-  for (var i=0; i<this.amount; i++){
-    var index = Mathf.rnd(0, len-1);
-    var node = nodes[index];
-
-    if (nodesIds.indexOf(node.id) === -1){
+    if (!node.target && !node.burned && nodesIds.indexOf(node.id) === -1){
       nodesIds.push(node.id);
-      this.spiders.push(new Spider(node.pos));
+      this.spiders.push(new Spider(node.pos, this.onSpiderDead.bind(this)));
+      this.amount--;
     }
-  }
+  } while(this.amount);
+
+};
+
+Spiders.prototype.exitSpider = function(spider){
+  spider.exited = true;
+  this.spidersExit++;
+  this.updateGUI();
 };
 
 Spiders.prototype.update = function(){
@@ -1229,52 +1292,60 @@ Spiders.prototype.update = function(){
 
   this.spiders.forEach(function (spider) {
 
-    if (!spider.traveling){
-      nodes.some(function (node) {
+    if (!spider.exited){
 
-        if (Vector.pointInCircle(spider.pos, node.pos, 5)) {
+      if (!spider.traveling){
+        nodes.some(function (node) {
 
-          if (node.temp === 0 && Mathf.rnd01() > 0.7) {
-            var nearBurned = node.getNearBurned();
-            if (nearBurned){
-              spider.buildWeb(node, nearBurned);
+          if (Vector.pointInCircle(spider.pos, node.pos, 5)) {
+
+            if (node.target){
+              this.exitSpider(spider);
               return true;
             }
-          }
 
-          var fromId = (spider.nodeFrom && spider.nodeFrom.id) || -1;
-          var nodeTo = node.getRandomNear(fromId);
-          if (nodeTo){
-            spider.setNode(node, nodeTo);
-          }
-          else {
-            if(node.burned){
-              spider.setDead();
+            if (!node.hasEarth && node.temp === 0 && Mathf.rnd01() > 0.7) {
+              var nearBurned = node.getNearBurned();
+              if (nearBurned){
+                spider.buildWeb(node, nearBurned);
+                return true;
+              }
             }
-            /*
+
+            var fromId = (spider.nodeFrom && spider.nodeFrom.id) || -1;
+            var nodeTo = node.getRandomNear(fromId);
+            if (nodeTo){
+              spider.setNode(node, nodeTo);
+            }
             else {
-              spider.setNode(node, spider.nodeFrom);
+              if(node.burned){
+                spider.setDead();
+              }
             }
-            */
           }
-        }
 
-      }, this);
+        }, this);
+      }
+    
+      spider.update();
     }
-    spider.update();
-  });
+
+  }, this);
 };
 
 Spiders.prototype.draw = function(ctx){
   this.spiders.forEach(function (spider) {
-    spider.draw(ctx);
+    if (!spider.exited){
+      spider.draw(ctx);
+    }
   });
 };
 },{"./Spider":15}],17:[function(require,module,exports){
 
 var Utils = module.exports = function(){
   this.lastIds = {
-    nodes: 0
+    nodes: 0,
+    spiders: 0
   };
 };
 

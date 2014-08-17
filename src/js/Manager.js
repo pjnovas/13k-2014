@@ -8,7 +8,19 @@ var Manager = module.exports = function(){
   this.cursor = new Cursor();
   this.nodes = new Nodes();
   this.paths = new Paths();
-  this.spiders = new Spiders(this.nodes);
+
+  function set(id, value){
+    var ele = document.getElementById(id);
+    if (ele) { ele.innerText = value; }
+  }
+
+  this.spiders = new Spiders(this.nodes, function(stats){
+    for (var p in stats){
+      if (stats.hasOwnProperty(p)){
+        set(p, stats[p]);
+      }
+    }
+  });
 };
 
 Manager.prototype.update = function(){

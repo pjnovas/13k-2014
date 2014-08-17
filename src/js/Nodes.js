@@ -8,7 +8,6 @@ var Nodes = module.exports = function(){
   this.nodes = [];
   this.paths = new Paths();
 
-  //var radius = { x: 400, y: 300 };
   var radius = Vector.multiply(Vector.one, config.size.y/2 - 10);
   //var radius = Vector.divide(config.size, 2);
   var center = Vector.center(Vector.zero, config.size);
@@ -30,14 +29,7 @@ Nodes.prototype.createWeb = function(center, rad){
     , boundMin = Vector.add(center, Vector.multiply(rad, -1))
     , boundMax = Vector.add(center, rad)
     , rings = [];
-  /*
-  if (DEBUG){
-    this.debugRect = {
-      pos: boundMin,
-      size: Vector.multiply(rad, 2)
-    };
-  }
-*/
+ 
   //var cNode = new Node(center);
   //this.nodes.push(cNode);
 
@@ -127,6 +119,20 @@ Nodes.prototype.createWeb = function(center, rad){
     node.randomBurn();
   });
 
+  // sort a target node
+  var sorted = false;
+  var len = this.nodes.length-1;
+  while(!sorted) {
+
+    var idx = Mathf.rnd(0, len);
+    var node = this.nodes[idx];
+
+    if (!node.burned){
+      node.target = true;
+      sorted = true;
+    }
+  }
+
 };
 
 Nodes.prototype.findNodeByCollider = function(){
@@ -172,11 +178,7 @@ Nodes.prototype.update = function(){
 };
 
 Nodes.prototype.draw = function(ctx){
-/*
-  if (DEBUG){
-    Renderer.drawRect(ctx, this.debugRect);
-  }
-*/
+
   this.paths.draw(ctx);
 
   this.nodes.forEach(function (node) {

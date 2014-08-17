@@ -1,8 +1,11 @@
 
-var Spider = module.exports = function(pos){
+var Spider = module.exports = function(pos, onDead){
+  this.id = _.guid("spiders");
+
   var cfg = config.spiders;
 
   this.pos = Vector.round(pos);
+  this.onDead = onDead;
 
   this.size = cfg.size;
   this.color = cfg.color;
@@ -13,7 +16,6 @@ var Spider = module.exports = function(pos){
   this.journeyLength = null;
 
   this.traveling = false;
-  this.collider = this.size * 3;
   this.isDead = false;
 
   this.temp = 0;
@@ -36,17 +38,12 @@ Spider.prototype.setNode = function(nFrom, nTo){
   this.journeyLength = Vector.length(nFrom.pos, nTo.pos);
   this.traveling = true;
 };
-/*
-Spider.prototype.switchTravel = function(){
-  var aux = this.nFrom;
-  this.nFrom = this.nTo;
-  this.nTo = aux;
 
-  this.t_startMove = Time.time;
-};
-*/
 Spider.prototype.setDead = function(){
-  this.isDead = true;
+  if (!this.isDead){
+    this.isDead = true;
+    this.onDead();
+  }
 };
 
 Spider.prototype.updateTemp = function(){
@@ -65,7 +62,6 @@ Spider.prototype.updateTemp = function(){
 
   if (ntoT > nfromT){
     this.temp = ntoT;
-    //this.switchTravel();
   }
 };
 
@@ -123,7 +119,7 @@ Spider.prototype.updateMove = function(){
   if (fracJourney > 1) {
     this.pos = this.nTo.pos;
     this.traveling = false;
-    this.nTo.revivie();
+    this.nTo.revive();
     this.building = false;
     return;
   }
@@ -158,15 +154,6 @@ Spider.prototype.draw = function(ctx){
   if (this.isDead){
     return;
   }
-
-/*
-  //debug collider
-  Renderer.drawCircle(ctx, {
-    pos: this.pos,
-    radius: this.collider,
-    color: "rgba(0,255,0,0.2)"
-  });
-*/
 
   Renderer.drawCircle(ctx, {
     pos: this.pos,
