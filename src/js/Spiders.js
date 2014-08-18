@@ -36,7 +36,8 @@ Spiders.prototype.generateSpiders = function(){
     , len = nodes.length
     , nodesIds = []
     , node
-    , idx;
+    , idx
+    , amount = (len < this.amount ? len-2: this.amount);
 
   do {
     idx = Mathf.rnd(0, len-1);
@@ -45,10 +46,9 @@ Spiders.prototype.generateSpiders = function(){
     if (!node.target && !node.burned && nodesIds.indexOf(node.id) === -1){
       nodesIds.push(node.id);
       this.spiders.push(new Spider(node.pos, this.onSpiderDead.bind(this)));
-      this.amount--;
+      amount--;
     }
-  } while(this.amount);
-
+  } while(amount);
 };
 
 Spiders.prototype.exitSpider = function(spider){
