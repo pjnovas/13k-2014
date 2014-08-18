@@ -32,6 +32,10 @@ module.exports = {
       , tStayA: 3000
       , tStayB: 10000
     }
+  },
+
+  images: {  
+      "spider": "images/spider.gif"
   }
 
 };

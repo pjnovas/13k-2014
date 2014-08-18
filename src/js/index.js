@@ -1,58 +1,60 @@
+var w = window;
+var doc = w.document;
+
+w.DEBUG = true;
 
 require("./reqAnimFrame");
+
+var Game = require("./Game");
 var GameTime = require("./GameTime");
 var Utils = require("./Utils");
 var Controls = require("./Controls");
 
-window.Mathf = require("./Mathf");
-window.Color = require("./Color");
-window.Vector = require("./Vector");
-window.Physics = require("./Physics");
-window.Renderer = require("./Renderer");
+w.Mathf = require("./Mathf");
+w.Color = require("./Color");
+w.Vector = require("./Vector");
+w.Physics = require("./Physics");
+w.Renderer = require("./Renderer");
+w.Repo = require("./Repo");
 
-window.DEBUG = true;
-
-window.onload = function() {
-  
-  var cviewport = document.getElementById("game-viewport");
-  var cworld = document.getElementById("game-world");
-
-  window._ = new Utils();  
-  window.Time = new GameTime();
-
-  window.Controls = new Controls({
-    container: cviewport
-  });
-
-  var Game = require("./Game");
-
-  window.config = require("./Settings");
+function configGame(){
+  var cfg = require("./Settings")
+    , ele = doc.documentElement
+    , body = doc.body;
 
   function getSize(which){
     return Math.max(
-      document.documentElement["client" + which], 
-      document.body["scroll" + which], 
-      document.documentElement["scroll" + which], 
-      document.body["offset" + which], 
-      document.documentElement["offset" + which]
+      ele["client" + which], 
+      body["scroll" + which], 
+      ele["scroll" + which], 
+      body["offset" + which], 
+      ele["offset" + which]
     );
   }
 
-  var width = getSize("Width");
-  var height = getSize("Height");
-
-
-  window.config.size = {
-    x: width - 50,
-    y: height - 50
+  cfg.size = {
+    x: getSize("Width") - 50,
+    y: getSize("Height") - 50
   };
 
-  window.game = new Game({
+  w.config = cfg;
+}
+
+function initGame(){
+  var cviewport = doc.getElementById("game-viewport");
+  var cworld = doc.getElementById("game-world");
+
+  w._ = new Utils();  
+  w.Time = new GameTime();
+
+  w.Controls = new Controls({
+    container: cviewport
+  });
+
+  w.game = new Game({
     viewport: cviewport,
     world: cworld
   });
-
-  window.game.start();
 
   function pauseGame(){
     if (game.paused){
@@ -63,5 +65,22 @@ window.onload = function() {
     }
   }
 
-  window.Controls.on('pause', pauseGame);
-};
+  w.Controls.on('pause', pauseGame);
+}
+
+function onDocLoad(){
+  configGame();
+
+  w.Repo.addResources(w.config.images)
+    //.on('error', events.error)
+    .on('report', function(prg){
+      console.log("Images loaded: " + prg);
+    })
+    .on('complete', function(){
+      initGame();
+      w.game.start();
+    })
+    .load();
+}
+
+w.onload = onDocLoad;

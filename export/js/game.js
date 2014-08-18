@@ -436,7 +436,7 @@ Manager.prototype.draw = function(viewCtx, worldCtx){
   this.nodes.draw(worldCtx);
   this.spiders.draw(worldCtx);
 };
-},{"./Cursor":3,"./Nodes":9,"./Paths":11,"./Spiders":16}],7:[function(require,module,exports){
+},{"./Cursor":3,"./Nodes":9,"./Paths":11,"./Spiders":17}],7:[function(require,module,exports){
 
 var Mathf = {};
 
@@ -861,121 +861,6 @@ Nodes.prototype.createWeb = function(center, rad){
 
 };
 
-/*
-Nodes.prototype.createWeb = function(center, rad){
-
-  var ringsAm = 0
-    , ringsGap = 25
-    , rndRadius = ringsGap/5
-    , nodesByRing = 40
-    , boundMin = Vector.add(center, Vector.multiply(rad, -1))
-    , boundMax = Vector.add(center, rad)
-    , rings = [];
- 
-  //var cNode = new Node(center);
-  //this.nodes.push(cNode);
-
-  var start = 40;
-  var i = 1;
-  var aNodeInside;
-
-  var countNodes = 0;
-
-  do {
-    aNodeInside = false;
-
-    var ps = Mathf.polygonPoints(center, (i*ringsGap) + start, nodesByRing);
-    countNodes += ps.length;
-    var cRing = [];
-
-    if (i === 10 || i === 20){
-      rndRadius += 0.1;
-    }
-
-    ps.forEach(function(p){
-
-      var np = Vector.round(Vector.add(p, Mathf.rndInCircle(rndRadius)));
-      var node = new Node(np);
-      
-      if (Vector.isOut(np, boundMin, boundMax)) {
-        node.out = true;
-      }
-      else {
-        aNodeInside = true;
-        this.nodes.push(node);
-      }
-      
-      cRing.push(node);
-
-    }, this);
-
-    rings[i-1] = cRing;
-    i++;
-
-  } while(aNodeInside);
-
-  ringsAm = i-2;
-
-  
-  // path from center to first ring
-//   rings[0].forEach(function(rNode){
-//     if (Mathf.rnd01() < 0.4){
-//       this.paths.addOne(cNode, rNode);
-//     }
-//   }, this);
-
-  var j, k, l;
-
-  // Paths connections between rings
-  for (j=0; j<ringsAm; j++){
-    var currRing = rings[j];
-    var max = currRing.length;
-
-    for (k=0; k<max; k++){
-
-      l = k+1;
-      if (l > max-1){
-        l = 0;
-      }
-
-      var currNode = rings[j][l];
-      if (currNode.out){
-        continue;
-      }
-
-      var rSibling = rings[j+1][l];
-      if (j < ringsAm-1 && !rSibling.out){
-        this.paths.addOne(currNode, rSibling);
-      }
-
-      var sibling = rings[j][k];
-      if (!sibling.out){
-        this.paths.addOne(currNode, sibling);
-      }
-    }
-  }
-
-  // burn some nodes randomly
-  this.nodes.forEach(function(node){
-    node.randomBurn();
-  });
-
-  // sort a target node
-  var sorted = false;
-  var len = this.nodes.length-1;
-  while(!sorted) {
-
-    var idx = Mathf.rnd(0, len);
-    var node = this.nodes[idx];
-
-    if (!node.burned){
-      node.target = true;
-      sorted = true;
-    }
-  }
-
-};
-*/
 Nodes.prototype.findNodeByCollider = function(){
   
   this.nodes.forEach(function (node) {
@@ -1170,6 +1055,74 @@ module.exports = Renderer;
 
 },{}],14:[function(require,module,exports){
 
+module.exports = (function(){
+  var resources = {}
+    , loaded = 0
+    , getCount = function(){
+        return Object.keys(resources).length;
+      };
+  
+  var events = {
+      complete: function(){}
+    , report: function(){}
+    , error: function(){}
+  };
+
+  var imageLoaded = function() {
+    var current = getCount();
+    var prg = (++loaded * 100) / current;
+
+    if (loaded <= current){
+      events.report(prg);
+
+      if (prg >= 100) { 
+        events.complete();
+      }
+    }
+  };
+  
+  var imageFailed = function(evt, etc){
+    events.error(evt, etc);       
+  };
+
+  return {
+    on: function(eventName, callback){
+      if (events[eventName]) {
+        events[eventName] = callback;
+      }
+      return this;
+    },
+    
+    load: function(){
+      loaded = 0;
+      for (var img in resources) {
+        if (resources.hasOwnProperty(img)){
+          this[img] = new window.Image();
+          this[img].onload = imageLoaded;
+          this[img].onerror = imageFailed;
+          this[img].src = resources[img];
+        }
+      }
+      return this;
+    },
+    
+    addResources: function(newResources){
+      for(var r in newResources){
+        if (newResources.hasOwnProperty(r)){
+          if (resources.hasOwnProperty(r)) {
+            throw 'The resource ' + r + ' already exists.';
+          }
+          resources[r] = newResources[r];
+        }
+      }
+      return this;
+    }
+    
+  };
+  
+})();
+},{}],15:[function(require,module,exports){
+
 module.exports = {
 
   nodes: {
@@ -1203,11 +1156,15 @@ module.exports = {
       , tStayA: 3000
       , tStayB: 10000
     }
+  },
+
+  images: {  
+      "spider": "images/spider.gif"
   }
 
 };
 
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 
 var Spider = module.exports = function(pos, onDead){
   this.id = _.guid("spiders");
@@ -1381,7 +1338,7 @@ Spider.prototype.draw = function(ctx){
   }
 };
 
-},{}],16:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 
 var Spider = require("./Spider");
 
@@ -1495,7 +1452,7 @@ Spiders.prototype.draw = function(ctx){
     }
   });
 };
-},{"./Spider":15}],17:[function(require,module,exports){
+},{"./Spider":16}],18:[function(require,module,exports){
 
 var Utils = module.exports = function(){
   this.lastIds = {
@@ -1508,7 +1465,7 @@ Utils.prototype.guid = function(type){
   return ++this.lastIds[type];
 };
 
-},{}],18:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 
 var Vector = {};
 
@@ -1586,62 +1543,64 @@ Vector.debug = function(vec){
 
 module.exports = Vector;
 
-},{}],19:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
+var w = window;
+var doc = w.document;
+
+w.DEBUG = true;
 
 require("./reqAnimFrame");
+
+var Game = require("./Game");
 var GameTime = require("./GameTime");
 var Utils = require("./Utils");
 var Controls = require("./Controls");
 
-window.Mathf = require("./Mathf");
-window.Color = require("./Color");
-window.Vector = require("./Vector");
-window.Physics = require("./Physics");
-window.Renderer = require("./Renderer");
+w.Mathf = require("./Mathf");
+w.Color = require("./Color");
+w.Vector = require("./Vector");
+w.Physics = require("./Physics");
+w.Renderer = require("./Renderer");
+w.Repo = require("./Repo");
 
-window.DEBUG = true;
-
-window.onload = function() {
-  
-  var cviewport = document.getElementById("game-viewport");
-  var cworld = document.getElementById("game-world");
-
-  window._ = new Utils();  
-  window.Time = new GameTime();
-
-  window.Controls = new Controls({
-    container: cviewport
-  });
-
-  var Game = require("./Game");
-
-  window.config = require("./Settings");
+function configGame(){
+  var cfg = require("./Settings")
+    , ele = doc.documentElement
+    , body = doc.body;
 
   function getSize(which){
     return Math.max(
-      document.documentElement["client" + which], 
-      document.body["scroll" + which], 
-      document.documentElement["scroll" + which], 
-      document.body["offset" + which], 
-      document.documentElement["offset" + which]
+      ele["client" + which], 
+      body["scroll" + which], 
+      ele["scroll" + which], 
+      body["offset" + which], 
+      ele["offset" + which]
     );
   }
 
-  var width = getSize("Width");
-  var height = getSize("Height");
-
-
-  window.config.size = {
-    x: width - 50,
-    y: height - 50
+  cfg.size = {
+    x: getSize("Width") - 50,
+    y: getSize("Height") - 50
   };
 
-  window.game = new Game({
+  w.config = cfg;
+}
+
+function initGame(){
+  var cviewport = doc.getElementById("game-viewport");
+  var cworld = doc.getElementById("game-world");
+
+  w._ = new Utils();  
+  w.Time = new GameTime();
+
+  w.Controls = new Controls({
+    container: cviewport
+  });
+
+  w.game = new Game({
     viewport: cviewport,
     world: cworld
   });
-
-  window.game.start();
 
   function pauseGame(){
     if (game.paused){
@@ -1652,9 +1611,27 @@ window.onload = function() {
     }
   }
 
-  window.Controls.on('pause', pauseGame);
-};
-},{"./Color":1,"./Controls":2,"./Game":4,"./GameTime":5,"./Mathf":7,"./Physics":12,"./Renderer":13,"./Settings":14,"./Utils":17,"./Vector":18,"./reqAnimFrame":20}],20:[function(require,module,exports){
+  w.Controls.on('pause', pauseGame);
+}
+
+function onDocLoad(){
+  configGame();
+
+  w.Repo.addResources(w.config.images)
+    //.on('error', events.error)
+    .on('report', function(prg){
+      console.log("Images loaded: " + prg);
+    })
+    .on('complete', function(){
+      initGame();
+      w.game.start();
+    })
+    .load();
+}
+
+w.onload = onDocLoad;
+
+},{"./Color":1,"./Controls":2,"./Game":4,"./GameTime":5,"./Mathf":7,"./Physics":12,"./Renderer":13,"./Repo":14,"./Settings":15,"./Utils":18,"./Vector":19,"./reqAnimFrame":21}],21:[function(require,module,exports){
 // http://paulirish.com/2011/requestanimationframe-for-smart-animating/
 // http://my.opera.com/emoller/blog/2011/12/20/requestanimationframe-for-smart-er-animating
 
@@ -1684,4 +1661,4 @@ window.onload = function() {
     window.cancelAnimationFrame = function(id) { window.clearTimeout(id); };
   }
 }());
-},{}]},{},[19]);
+},{}]},{},[20]);

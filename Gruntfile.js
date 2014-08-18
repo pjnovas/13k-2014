@@ -8,13 +8,15 @@ module.exports = function(grunt) {
       game: {
         root: "src/",
         js: "src/js/",
-        css: "src/css/game.css"
+        css: "src/css/game.css",
+        images: "src/images/"
       },
       dist: {
         gameJS: "game.js",
         gameCSS: "game.css",
         exportJS: "export/js/",
-        exportCSS: "export/css/"
+        exportCSS: "export/css/",
+        exportImages: "export/images/"
       }
     },
 
@@ -22,7 +24,8 @@ module.exports = function(grunt) {
       before: {
         src: [
           "<%= paths.dist.exportJS %>*",
-          "<%= paths.dist.exportCSS %>*"
+          "<%= paths.dist.exportCSS %>*",
+          "<%= paths.dist.exportImages %>*"
         ],
       } 
     },
@@ -38,11 +41,17 @@ module.exports = function(grunt) {
     },
 
     copy: {
-      dist: {
+      css: {
         cwd: "./", 
         files: {
-          "<%= paths.dist.exportCSS %><%= paths.dist.gameCSS %>": "<%= paths.game.css %>"
+          "<%= paths.dist.exportCSS %><%= paths.dist.gameCSS %>": "<%= paths.game.css %>",
         }
+      },
+      images: {
+        expand: true,
+        cwd: "<%= paths.game.images %>",
+        src: "*.gif",
+        dest: "<%= paths.dist.exportImages %>"
       }
     },
 
@@ -83,6 +92,7 @@ module.exports = function(grunt) {
             ,Controls: true
             ,Physics: true
             ,Color: true
+            ,Repo: true
             ,DEBUG: true
           }
         }
@@ -113,6 +123,8 @@ module.exports = function(grunt) {
         tasks: ['default']
       }
     },
+
+    // EXPORT TASKS
 
     uglify: {
       all: {
