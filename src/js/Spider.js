@@ -28,6 +28,11 @@ var Spider = module.exports = function(pos, onDead){
   this.t_startMove = 0;
 
   this.building = false;
+
+  this.spSize = Vector.multiply(Vector.one, this.size);
+  this.spPos = Vector.origin(this.pos, this.spSize);
+
+  this.angle = 0;
 };
 
 Spider.prototype.setNode = function(nFrom, nTo){
@@ -37,6 +42,8 @@ Spider.prototype.setNode = function(nFrom, nTo){
   this.t_startMove = Time.time;
   this.journeyLength = Vector.length(nFrom.pos, nTo.pos);
   this.traveling = true;
+
+  this.angle = Vector.angleTo(this.pos, this.nTo.pos);
 };
 
 Spider.prototype.setDead = function(){
@@ -138,6 +145,8 @@ Spider.prototype.update = function(){
     return;
   }
 
+  this.spPos = Vector.origin(this.pos, this.spSize);
+
   if (!this.journeyLength){
     return;
   }
@@ -154,13 +163,7 @@ Spider.prototype.draw = function(ctx){
   if (this.isDead){
     return;
   }
-
-  Renderer.drawCircle(ctx, {
-    pos: this.pos,
-    radius: this.size,
-    color: Color.toRGBA(this.color)
-  });
-
+  
   if (this.building){
     Renderer.drawLine(ctx, {
       from: this.pos,
@@ -169,4 +172,25 @@ Spider.prototype.draw = function(ctx){
       color: Color.toRGBA(config.nodes.colors.cold)
     });
   }
+
+/*
+  Renderer.drawCircle(ctx, {
+    pos: this.pos,
+    radius: this.size,
+    color: Color.toRGBA(this.color)
+  });
+*/
+
+  Renderer.drawSprite(ctx, {
+    resource: "spider",
+    pos: this.spPos,
+    size: this.spSize,
+    angle: this.angle,
+    sp: {
+      x: 0,
+      y: 0,
+      w: 32,
+      h: 32
+    }
+  });  
 };

@@ -53,9 +53,6 @@ module.exports = (function(){
     addResources: function(newResources){
       for(var r in newResources){
         if (newResources.hasOwnProperty(r)){
-          if (resources.hasOwnProperty(r)) {
-            throw 'The resource ' + r + ' already exists.';
-          }
           resources[r] = newResources[r];
         }
       }

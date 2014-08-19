@@ -28,6 +28,40 @@ Renderer.drawLine = function(ctx, ps){
   ctx.stroke();
 };
 
+Renderer.drawSprite = function(ctx, ps){
+  var img = Repo[ps.resource]
+    , x = ps.pos.x
+    , y = ps.pos.y
+    , w = ps.size.x
+    , h = ps.size.y
+    , sp = ps.sp;
+
+  function draw(){
+    if (sp){
+      ctx.drawImage(img, sp.x, sp.y, sp.w, sp.h, x, y, w, h);
+    }
+    else {
+      ctx.drawImage(img, x, y, w, h);
+    }
+  }
+
+  if (ps.angle){
+    ctx.save();
+
+    ctx.translate(x + w/2, y + h/2);
+    x = -w/2;
+    y = -h/2;
+    ctx.rotate(ps.angle);
+
+    draw();
+
+    ctx.restore();
+  }
+
+  draw();
+};
+
+/*
 Renderer.drawRect = function(ctx, ps){
   ctx.beginPath();
   
@@ -39,5 +73,5 @@ Renderer.drawRect = function(ctx, ps){
   ctx.strokeStyle = 'red';
   ctx.stroke();
 };
-
+*/
 module.exports = Renderer;

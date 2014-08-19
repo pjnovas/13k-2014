@@ -1039,6 +1039,40 @@ Renderer.drawLine = function(ctx, ps){
   ctx.stroke();
 };
 
+Renderer.drawSprite = function(ctx, ps){
+  var img = Repo[ps.resource]
+    , x = ps.pos.x
+    , y = ps.pos.y
+    , w = ps.size.x
+    , h = ps.size.y
+    , sp = ps.sp;
+
+  function draw(){
+    if (sp){
+      ctx.drawImage(img, sp.x, sp.y, sp.w, sp.h, x, y, w, h);
+    }
+    else {
+      ctx.drawImage(img, x, y, w, h);
+    }
+  }
+
+  if (ps.angle){
+    ctx.save();
+
+    ctx.translate(x + w/2, y + h/2);
+    x = -w/2;
+    y = -h/2;
+    ctx.rotate(ps.angle);
+
+    draw();
+
+    ctx.restore();
+  }
+
+  draw();
+};
+
+/*
 Renderer.drawRect = function(ctx, ps){
   ctx.beginPath();
   
@@ -1050,7 +1084,7 @@ Renderer.drawRect = function(ctx, ps){
   ctx.strokeStyle = 'red';
   ctx.stroke();
 };
-
+*/
 module.exports = Renderer;
 
 },{}],14:[function(require,module,exports){
@@ -1109,9 +1143,6 @@ module.exports = (function(){
     addResources: function(newResources){
       for(var r in newResources){
         if (newResources.hasOwnProperty(r)){
-          if (resources.hasOwnProperty(r)) {
-            throw 'The resource ' + r + ' already exists.';
-          }
           resources[r] = newResources[r];
         }
       }
@@ -1146,7 +1177,7 @@ module.exports = {
   },
 
   spiders: {
-      size: 5
+      size: 20
     , quantity: 50
     , color: [115,255,0]
     , speed: 0.05
@@ -1195,6 +1226,11 @@ var Spider = module.exports = function(pos, onDead){
   this.t_startMove = 0;
 
   this.building = false;
+
+  this.spSize = Vector.multiply(Vector.one, this.size);
+  this.spPos = Vector.origin(this.pos, this.spSize);
+
+  this.angle = 0;
 };
 
 Spider.prototype.setNode = function(nFrom, nTo){
@@ -1204,6 +1240,8 @@ Spider.prototype.setNode = function(nFrom, nTo){
   this.t_startMove = Time.time;
   this.journeyLength = Vector.length(nFrom.pos, nTo.pos);
   this.traveling = true;
+
+  this.angle = Vector.angleTo(this.pos, this.nTo.pos);
 };
 
 Spider.prototype.setDead = function(){
@@ -1305,6 +1343,8 @@ Spider.prototype.update = function(){
     return;
   }
 
+  this.spPos = Vector.origin(this.pos, this.spSize);
+
   if (!this.journeyLength){
     return;
   }
@@ -1321,13 +1361,7 @@ Spider.prototype.draw = function(ctx){
   if (this.isDead){
     return;
   }
-
-  Renderer.drawCircle(ctx, {
-    pos: this.pos,
-    radius: this.size,
-    color: Color.toRGBA(this.color)
-  });
-
+  
   if (this.building){
     Renderer.drawLine(ctx, {
       from: this.pos,
@@ -1336,6 +1370,27 @@ Spider.prototype.draw = function(ctx){
       color: Color.toRGBA(config.nodes.colors.cold)
     });
   }
+
+/*
+  Renderer.drawCircle(ctx, {
+    pos: this.pos,
+    radius: this.size,
+    color: Color.toRGBA(this.color)
+  });
+*/
+
+  Renderer.drawSprite(ctx, {
+    resource: "spider",
+    pos: this.spPos,
+    size: this.spSize,
+    angle: this.angle,
+    sp: {
+      x: 0,
+      y: 0,
+      w: 32,
+      h: 32
+    }
+  });  
 };
 
 },{}],17:[function(require,module,exports){
@@ -1493,6 +1548,11 @@ Vector.part = function(from, to, which){
   return Vector.lerp(from, to, which/10);
 };
 
+Vector.angleTo = function(from, to){
+  var p = Vector.dif(from, to);
+  return Math.atan2(p.y, p.x);
+};
+
 // get mid point between 2
 Vector.mid = function(from, to){
   return Vector.divide(Vector.add(from, to), 2);
@@ -1500,6 +1560,13 @@ Vector.mid = function(from, to){
 
 Vector.eql = function(a, b){
   return (a.x === b.x && a.y === b.y);
+};
+
+Vector.origin = function(pos, size){
+  return {
+      x: pos.x - size.x/2,
+      y: pos.y - size.y/2,
+  };
 };
 
 Vector.center = function(pos, size){
@@ -1618,7 +1685,9 @@ function onDocLoad(){
   configGame();
 
   w.Repo.addResources(w.config.images)
-    //.on('error', events.error)
+    .on('error', function(err){
+      console.log(err);
+    })
     .on('report', function(prg){
       console.log("Images loaded: " + prg);
     })

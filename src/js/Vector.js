@@ -25,6 +25,11 @@ Vector.part = function(from, to, which){
   return Vector.lerp(from, to, which/10);
 };
 
+Vector.angleTo = function(from, to){
+  var p = Vector.dif(from, to);
+  return Math.atan2(p.y, p.x);
+};
+
 // get mid point between 2
 Vector.mid = function(from, to){
   return Vector.divide(Vector.add(from, to), 2);
@@ -32,6 +37,13 @@ Vector.mid = function(from, to){
 
 Vector.eql = function(a, b){
   return (a.x === b.x && a.y === b.y);
+};
+
+Vector.origin = function(pos, size){
+  return {
+      x: pos.x - size.x/2,
+      y: pos.y - size.y/2,
+  };
 };
 
 Vector.center = function(pos, size){

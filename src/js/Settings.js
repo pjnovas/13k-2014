@@ -22,7 +22,7 @@ module.exports = {
   },
 
   spiders: {
-      size: 5
+      size: 20
     , quantity: 50
     , color: [115,255,0]
     , speed: 0.05
