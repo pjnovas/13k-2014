@@ -35,7 +35,7 @@ var Spider = module.exports = function(pos, onDead){
   this.angle = 0;
   this.spriteIndex = 0;
 
-  this.animTime = 5;
+  this.animTime = 3;
   this.lastFrameTime = 0;
   this.exited = false;
 };
