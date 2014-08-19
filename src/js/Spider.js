@@ -33,6 +33,10 @@ var Spider = module.exports = function(pos, onDead){
   this.spPos = Vector.origin(this.pos, this.spSize);
 
   this.angle = 0;
+  this.spriteIndex = 0;
+
+  this.animTime = 1500;
+  this.lastFrameTime = 0;
 };
 
 Spider.prototype.setNode = function(nFrom, nTo){
@@ -51,6 +55,23 @@ Spider.prototype.setDead = function(){
     this.isDead = true;
     this.onDead();
   }
+};
+
+Spider.prototype.animate = function(){
+
+  if (!this.staying){
+    this.lastFrameTime -= Time.frameTime;
+
+    if (this.lastFrameTime <= 0){
+      this.spriteIndex++;
+      if (this.spriteIndex > 1){
+        this.spriteIndex = 0;
+      }
+
+      this.lastFrameTime = this.animTime * this.speed;
+    }
+  }
+
 };
 
 Spider.prototype.updateTemp = function(){
@@ -145,6 +166,7 @@ Spider.prototype.update = function(){
     return;
   }
 
+  this.animate();
   this.spPos = Vector.origin(this.pos, this.spSize);
 
   if (!this.journeyLength){
@@ -186,11 +208,6 @@ Spider.prototype.draw = function(ctx){
     pos: this.spPos,
     size: this.spSize,
     angle: this.angle,
-    sp: {
-      x: 0,
-      y: 0,
-      w: 32,
-      h: 32
-    }
+    sp: config.spiders.sprites.move[this.spriteIndex]
   });  
 };

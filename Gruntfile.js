@@ -50,7 +50,7 @@ module.exports = function(grunt) {
       images: {
         expand: true,
         cwd: "<%= paths.game.images %>",
-        src: "*.gif",
+        src: "*.png",
         dest: "<%= paths.dist.exportImages %>"
       }
     },

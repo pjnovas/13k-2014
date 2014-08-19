@@ -22,7 +22,7 @@ module.exports = {
   },
 
   spiders: {
-      size: 20
+      size: 32
     , quantity: 50
     , color: [115,255,0]
     , speed: 0.05
@@ -32,10 +32,23 @@ module.exports = {
       , tStayA: 3000
       , tStayB: 10000
     }
+    , sprites: {
+        move: [{
+          x: 0,
+          y: 0,
+          w: 32,
+          h: 32
+        }, {
+          x: 32,
+          y: 0,
+          w: 32,
+          h: 32
+        }]
+    }
   },
 
   images: {  
-      "spider": "images/spider.gif"
+      "spider": "images/spider.png"
   }
 
 };
