@@ -93,6 +93,10 @@ Spider.prototype.updateTemp = function(){
   }
 };
 
+Spider.prototype.canMove = function(){
+  return !this.staying && !this.traveling && !this.building;
+};
+
 Spider.prototype.updateState = function(){
   var cfg = config.spiders
     , tm = Time.time
@@ -101,13 +105,7 @@ Spider.prototype.updateState = function(){
     , tstay = this.t_stay;
 
   if (this.temp > cfgTm.alertTemp){ //alert behaviour!
-
     this.speed = cfg.speedAlert;
-
-    if (this.staying){
-      this.t_startMove += tm - tstart;
-    }
-
     this.staying = false;
     return;
   }
@@ -118,11 +116,10 @@ Spider.prototype.updateState = function(){
   if (this.staying){
     if(tm > tstart + tstay) {
       this.staying = false;
-      this.t_startMove += tstay;
       this.t_nextStay = tm + tstay / Mathf.rnd(2, 5);
     }
   }
-  else if (tm > this.t_nextStay && Mathf.rnd(0, 1000) > 900){
+  else if (tm > this.t_nextStay && Mathf.rnd01() < 0.8){
     this.staying = true;
     this.t_startStay = tm;
     this.t_stay = Mathf.rnd(cfgTm.tStayA, cfgTm.tStayB);
@@ -130,14 +127,11 @@ Spider.prototype.updateState = function(){
 
 };
 
+// returns true if the travel is ended
 Spider.prototype.updateMove = function(){
 
   if (!this.building && (this.nFrom.burned || this.nTo.burned)){
     this.setDead();
-    return;
-  }
-
-  if (this.staying) {
     return;
   }
 
@@ -146,13 +140,18 @@ Spider.prototype.updateMove = function(){
   
   if (fracJourney > 1) {
     this.pos = this.nTo.pos;
-    this.traveling = false;
     this.nTo.revive();
+
+    this.traveling = false;
     this.building = false;
-    return;
+
+    return true;
   }
 
   this.pos = Vector.round(Vector.lerp(this.nFrom.pos, this.nTo.pos, fracJourney));
+
+  this.animate();
+  this.spPos = Vector.origin(this.pos, this.spSize);
 };
 
 Spider.prototype.buildWeb = function(from, to){
@@ -165,20 +164,17 @@ Spider.prototype.update = function(){
   if (this.isDead){
     return;
   }
+  
+  this.updateTemp();
 
-  this.animate();
-  this.spPos = Vector.origin(this.pos, this.spSize);
-
-  if (!this.journeyLength){
-    return;
+  if (this.building || this.traveling){
+    var ended = this.updateMove();
+    if (!ended){
+      return;
+    }
   }
 
-  if (!this.building){
-    this.updateTemp();
-    this.updateState();
-  }
-
-  this.updateMove();
+  this.updateState();
 };
 
 Spider.prototype.draw = function(ctx){

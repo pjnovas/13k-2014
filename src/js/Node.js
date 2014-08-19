@@ -187,6 +187,7 @@ Node.prototype.update = function(){
 };
 
 Node.prototype.draw = function(ctx){
+  
   Renderer.drawCircle(ctx, {
     pos: this.pos,
     radius: this.size,

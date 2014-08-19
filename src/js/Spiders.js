@@ -58,6 +58,47 @@ Spiders.prototype.exitSpider = function(spider){
 };
 
 Spiders.prototype.update = function(){
+  var self = this;
+
+  function gonnaBuildWeb(node, spider){
+    if (!node.hasEarth && node.temp === 0 && Mathf.rnd01() > 0.7) {
+      var nearBurned = node.getNearBurned();
+      if (nearBurned){
+        spider.buildWeb(node, nearBurned);
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  function gotNearNodeToGo(node, spider){
+    var fromId = (spider.nodeFrom && spider.nodeFrom.id) || -1;
+    var nodeTo = node.getRandomNear(fromId);
+    if (nodeTo){
+      spider.setNode(node, nodeTo);
+      return true;
+    }
+
+    return false;
+  }
+
+  function spiderNodeCollide(spider, node){
+    if (Vector.pointInCircle(spider.pos, node.pos, 5)) {
+
+      // move this logic to target
+      if (node.target){
+        self.exitSpider(spider);
+        return;
+      }
+
+      if (!gonnaBuildWeb(node, spider) && !gotNearNodeToGo(node, spider)){
+        if (node.burned){
+          spider.setDead();
+        }
+      }
+    }
+  }
 
   var nodes = this.nodes.GetNodes();
 
@@ -65,37 +106,12 @@ Spiders.prototype.update = function(){
 
     if (!spider.exited){
 
-      if (!spider.traveling){
+      if (spider.canMove()){
+
         nodes.some(function (node) {
-
-          if (Vector.pointInCircle(spider.pos, node.pos, 5)) {
-
-            if (node.target){
-              this.exitSpider(spider);
-              return true;
-            }
-
-            if (!node.hasEarth && node.temp === 0 && Mathf.rnd01() > 0.7) {
-              var nearBurned = node.getNearBurned();
-              if (nearBurned){
-                spider.buildWeb(node, nearBurned);
-                return true;
-              }
-            }
-
-            var fromId = (spider.nodeFrom && spider.nodeFrom.id) || -1;
-            var nodeTo = node.getRandomNear(fromId);
-            if (nodeTo){
-              spider.setNode(node, nodeTo);
-            }
-            else {
-              if(node.burned){
-                spider.setDead();
-              }
-            }
-          }
-
+          spiderNodeCollide(spider, node);
         }, this);
+
       }
     
       spider.update();

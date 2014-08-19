@@ -9,7 +9,7 @@ module.exports = {
       , burn: [255,0,0,1]
       , burned: [0,0,0,0.2]
       , earth: [190,160,40,1]
-      , target: [0,0,255,1]
+      , target: [75,245,50,1]
     }
   },
 
