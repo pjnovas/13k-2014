@@ -1177,6 +1177,16 @@ module.exports = {
           y: 0,
           w: 32,
           h: 32
+        }, {
+          x: 64,
+          y: 0,
+          w: 32,
+          h: 32
+        }, {
+          x: 96,
+          y: 0,
+          w: 32,
+          h: 32
         }]
     }
   },
@@ -1232,7 +1242,7 @@ var Spider = module.exports = function(pos, onDead){
   this.angle = 0;
   this.spriteIndex = 0;
 
-  this.animTime = 1500;
+  this.animTime = 5;
   this.lastFrameTime = 0;
   this.exited = false;
 };
@@ -1262,11 +1272,11 @@ Spider.prototype.animate = function(){
 
     if (this.lastFrameTime <= 0){
       this.spriteIndex++;
-      if (this.spriteIndex > 1){
+      if (this.spriteIndex > 3){
         this.spriteIndex = 0;
       }
 
-      this.lastFrameTime = this.animTime * this.speed;
+      this.lastFrameTime = this.animTime / this.speed;
     }
   }
 
