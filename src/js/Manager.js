@@ -3,11 +3,13 @@ var Nodes = require("./Nodes");
 var Paths = require("./Paths");
 var Cursor = require("./Cursor");
 var Spiders = require("./Spiders");
+var Target = require("./Target");
 
 var Manager = module.exports = function(){
   this.cursor = new Cursor();
   this.nodes = new Nodes();
   this.paths = new Paths();
+  this.target = new Target();
 
   function set(id, value){
     var ele = document.getElementById(id);
@@ -40,6 +42,7 @@ Manager.prototype.update = function(){
 
   this.nodes.update();
   this.spiders.update();
+  this.target.update(this.spiders.spiders);
 };
 
 Manager.prototype.draw = function(viewCtx, worldCtx){
@@ -51,4 +54,5 @@ Manager.prototype.draw = function(viewCtx, worldCtx){
   this.cursor.draw(viewCtx);
   this.nodes.draw(worldCtx);
   this.spiders.draw(worldCtx);
+  this.target.draw(viewCtx);
 };

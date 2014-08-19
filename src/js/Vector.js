@@ -4,6 +4,10 @@ var Vector = {};
 Vector.zero = { x: 0, y: 0 };
 Vector.one = { x: 1, y: 1 };
 
+Vector.prod = function(a, b){
+  return { x: a.x * b.x, y: a.y * b.y };
+};
+
 Vector.multiply = function(vector, delta){
   return { x: vector.x * delta, y: vector.y * delta };
 };
@@ -39,6 +43,16 @@ Vector.eql = function(a, b){
   return (a.x === b.x && a.y === b.y);
 };
 
+Vector.normal = function(from, to){
+  var d = Vector.dif(from, to);
+  var l = Vector.length(from, to);
+
+  return {
+      x: d.x / l || 0
+    , y: d.y / l || 0
+  };
+};
+
 Vector.origin = function(pos, size){
   return {
       x: pos.x - size.x/2,
@@ -61,7 +75,15 @@ Vector.length = function(a, b){
 Vector.pointInCircle = function(p, pos, radius){
   return Vector.length(p, pos) < radius;
 };
-
+/*
+Vector.circleCollide = function(c1, c2){
+  var dx = c1.x - c2.x
+    , dy = c1.y - c2.y
+    , dist = c1.r + c2.r;
+ 
+  return (dx * dx + dy * dy <= dist * dist);
+};
+*/
 Vector.lerp = function(from, to, t){
 
   return {

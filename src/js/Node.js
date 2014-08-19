@@ -20,8 +20,6 @@ var Node = module.exports = function(pos){
   this.shaked = false;
   this.originalPos = null;
   this.hasEarth = false;
-
-  this.target = false;
 };
 
 Node.prototype.addNear = function(node){
@@ -92,7 +90,7 @@ Node.prototype.cool = function(){
 };
 
 Node.prototype.applyEarth = function(){
-  if (!this.burned && !this.target){
+  if (!this.burned /*&& !this.target*/){
     this.hasEarth = true;
   }
 };
@@ -121,22 +119,12 @@ Node.prototype.resetTemp = function(){
 };
 
 Node.prototype.setBurned = function(){
-  if (this.target){
-    return;
-  }
-
   this.burned = true;
   this.color = config.nodes.colors.burned;
   this.dColor = Color.toRGBA(this.color);
 };
 
 Node.prototype.update = function(){
-
-  if (this.target){
-    this.size = config.nodes.targetSize;
-    this.dColor = Color.toRGBA(config.nodes.colors.target);
-    return;
-  }
 
   if (this.hasEarth){
     this.dColor = Color.toRGBA(config.nodes.colors.earth);

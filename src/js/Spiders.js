@@ -43,7 +43,7 @@ Spiders.prototype.generateSpiders = function(){
     idx = Mathf.rnd(0, len-1);
     node = nodes[idx];
 
-    if (!node.target && !node.burned && nodesIds.indexOf(node.id) === -1){
+    if (!node.burned && nodesIds.indexOf(node.id) === -1){
       nodesIds.push(node.id);
       this.spiders.push(new Spider(node.pos, this.onSpiderDead.bind(this)));
       amount--;
@@ -58,7 +58,6 @@ Spiders.prototype.exitSpider = function(spider){
 };
 
 Spiders.prototype.update = function(){
-  var self = this;
 
   function gonnaBuildWeb(node, spider){
     if (!node.hasEarth && node.temp === 0 && Mathf.rnd01() > 0.7) {
@@ -85,13 +84,7 @@ Spiders.prototype.update = function(){
 
   function spiderNodeCollide(spider, node){
     if (Vector.pointInCircle(spider.pos, node.pos, 5)) {
-
-      // move this logic to target
-      if (node.target){
-        self.exitSpider(spider);
-        return;
-      }
-
+     
       if (!gonnaBuildWeb(node, spider) && !gotNearNodeToGo(node, spider)){
         if (node.burned){
           spider.setDead();
@@ -104,9 +97,7 @@ Spiders.prototype.update = function(){
 
   this.spiders.forEach(function (spider) {
 
-    if (!spider.exited){
-
-      if (spider.canMove()){
+      if (!spider.exited && spider.canMove()){
 
         nodes.some(function (node) {
           spiderNodeCollide(spider, node);
@@ -115,15 +106,12 @@ Spiders.prototype.update = function(){
       }
     
       spider.update();
-    }
 
   }, this);
 };
 
 Spiders.prototype.draw = function(ctx){
   this.spiders.forEach(function (spider) {
-    if (!spider.exited){
-      spider.draw(ctx);
-    }
+    spider.draw(ctx);
   });
 };

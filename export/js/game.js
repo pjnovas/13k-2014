@@ -387,11 +387,13 @@ var Nodes = require("./Nodes");
 var Paths = require("./Paths");
 var Cursor = require("./Cursor");
 var Spiders = require("./Spiders");
+var Target = require("./Target");
 
 var Manager = module.exports = function(){
   this.cursor = new Cursor();
   this.nodes = new Nodes();
   this.paths = new Paths();
+  this.target = new Target();
 
   function set(id, value){
     var ele = document.getElementById(id);
@@ -424,6 +426,7 @@ Manager.prototype.update = function(){
 
   this.nodes.update();
   this.spiders.update();
+  this.target.update(this.spiders.spiders);
 };
 
 Manager.prototype.draw = function(viewCtx, worldCtx){
@@ -435,8 +438,9 @@ Manager.prototype.draw = function(viewCtx, worldCtx){
   this.cursor.draw(viewCtx);
   this.nodes.draw(worldCtx);
   this.spiders.draw(worldCtx);
+  this.target.draw(viewCtx);
 };
-},{"./Cursor":3,"./Nodes":9,"./Paths":11,"./Spiders":17}],7:[function(require,module,exports){
+},{"./Cursor":3,"./Nodes":9,"./Paths":11,"./Spiders":17,"./Target":18}],7:[function(require,module,exports){
 
 var Mathf = {};
 
@@ -509,8 +513,6 @@ var Node = module.exports = function(pos){
   this.shaked = false;
   this.originalPos = null;
   this.hasEarth = false;
-
-  this.target = false;
 };
 
 Node.prototype.addNear = function(node){
@@ -581,7 +583,7 @@ Node.prototype.cool = function(){
 };
 
 Node.prototype.applyEarth = function(){
-  if (!this.burned && !this.target){
+  if (!this.burned /*&& !this.target*/){
     this.hasEarth = true;
   }
 };
@@ -610,22 +612,12 @@ Node.prototype.resetTemp = function(){
 };
 
 Node.prototype.setBurned = function(){
-  if (this.target){
-    return;
-  }
-
   this.burned = true;
   this.color = config.nodes.colors.burned;
   this.dColor = Color.toRGBA(this.color);
 };
 
 Node.prototype.update = function(){
-
-  if (this.target){
-    this.size = config.nodes.targetSize;
-    this.dColor = Color.toRGBA(config.nodes.colors.target);
-    return;
-  }
 
   if (this.hasEarth){
     this.dColor = Color.toRGBA(config.nodes.colors.earth);
@@ -695,11 +687,8 @@ var Nodes = module.exports = function(){
   this.nodes = [];
   this.paths = new Paths();
 
-  //var marginW = 200;
-  //var marginH = 10;
-
-  var marginW = 200;
-  var marginH = 50;
+  var marginW = config.world.margin.x;
+  var marginH = config.world.margin.y;
   
   // Full-screen
   var radius = Vector.divide(config.size, 2);
@@ -845,20 +834,6 @@ Nodes.prototype.createWeb = function(center, rad){
   this.nodes.forEach(function(node){
     node.randomBurn();
   });
-
-  // sort a target node
-  var sorted = false;
-  var len = this.nodes.length-1;
-  while(!sorted) {
-
-    var idx = Mathf.rnd(0, len);
-    var node = this.nodes[idx];
-
-    if (!node.burned){
-      node.target = true;
-      sorted = true;
-    }
-  }
 
 };
 
@@ -1157,6 +1132,10 @@ module.exports = (function(){
 
 module.exports = {
 
+  world: {
+    margin: { x: 200, y: 80 }
+  },
+
   nodes: {
       size: 3
     , targetSize: 6
@@ -1165,7 +1144,6 @@ module.exports = {
       , burn: [255,0,0,1]
       , burned: [0,0,0,0.2]
       , earth: [190,160,40,1]
-      , target: [75,245,50,1]
     }
   },
 
@@ -1201,6 +1179,13 @@ module.exports = {
           h: 32
         }]
     }
+  },
+
+  target: {
+      pos: { x: 1, y: 1 }
+    , size: 150
+    , color: [255,255,255,0.2]
+    , suckForce: 3
   },
 
   images: {  
@@ -1249,6 +1234,7 @@ var Spider = module.exports = function(pos, onDead){
 
   this.animTime = 1500;
   this.lastFrameTime = 0;
+  this.exited = false;
 };
 
 Spider.prototype.setNode = function(nFrom, nTo){
@@ -1373,7 +1359,9 @@ Spider.prototype.buildWeb = function(from, to){
 };
 
 Spider.prototype.update = function(){
-  if (this.isDead){
+  this.spPos = Vector.origin(this.pos, this.spSize);
+
+  if (this.isDead || this.exited){
     return;
   }
   
@@ -1402,14 +1390,6 @@ Spider.prototype.draw = function(ctx){
       color: Color.toRGBA(config.nodes.colors.cold)
     });
   }
-
-/*
-  Renderer.drawCircle(ctx, {
-    pos: this.pos,
-    radius: this.size,
-    color: Color.toRGBA(this.color)
-  });
-*/
 
   Renderer.drawSprite(ctx, {
     resource: "spider",
@@ -1466,7 +1446,7 @@ Spiders.prototype.generateSpiders = function(){
     idx = Mathf.rnd(0, len-1);
     node = nodes[idx];
 
-    if (!node.target && !node.burned && nodesIds.indexOf(node.id) === -1){
+    if (!node.burned && nodesIds.indexOf(node.id) === -1){
       nodesIds.push(node.id);
       this.spiders.push(new Spider(node.pos, this.onSpiderDead.bind(this)));
       amount--;
@@ -1481,7 +1461,6 @@ Spiders.prototype.exitSpider = function(spider){
 };
 
 Spiders.prototype.update = function(){
-  var self = this;
 
   function gonnaBuildWeb(node, spider){
     if (!node.hasEarth && node.temp === 0 && Mathf.rnd01() > 0.7) {
@@ -1508,13 +1487,7 @@ Spiders.prototype.update = function(){
 
   function spiderNodeCollide(spider, node){
     if (Vector.pointInCircle(spider.pos, node.pos, 5)) {
-
-      // move this logic to target
-      if (node.target){
-        self.exitSpider(spider);
-        return;
-      }
-
+     
       if (!gonnaBuildWeb(node, spider) && !gotNearNodeToGo(node, spider)){
         if (node.burned){
           spider.setDead();
@@ -1527,9 +1500,7 @@ Spiders.prototype.update = function(){
 
   this.spiders.forEach(function (spider) {
 
-    if (!spider.exited){
-
-      if (spider.canMove()){
+      if (!spider.exited && spider.canMove()){
 
         nodes.some(function (node) {
           spiderNodeCollide(spider, node);
@@ -1538,19 +1509,87 @@ Spiders.prototype.update = function(){
       }
     
       spider.update();
-    }
 
   }, this);
 };
 
 Spiders.prototype.draw = function(ctx){
   this.spiders.forEach(function (spider) {
-    if (!spider.exited){
-      spider.draw(ctx);
-    }
+    spider.draw(ctx);
   });
 };
 },{"./Spider":16}],18:[function(require,module,exports){
+
+var Target = module.exports = function(){
+  
+  this.size = config.target.size;
+  this.suckForce = config.target.suckForce;
+
+  var marginW = config.world.margin.x;
+  var marginH = config.world.margin.y;
+
+  this.pos = Vector.prod(config.target.pos, config.size);
+  this.pos.x -= marginW + this.size/2;
+  this.pos.y -= marginH + this.size/2;
+  
+  this.color = config.target.color;
+  this.dColor = Color.toRGBA(this.color);
+
+  this.saved = [];
+  this.saving = [];
+};
+
+Target.prototype.update = function(spiders){
+
+  spiders.forEach(function(spider){
+    if (!spider.dead && !spider.exited){
+
+      if (Vector.pointInCircle(spider.pos, this.pos, this.size)){
+        spider.building = false;
+        spider.exited = true;
+        spider.vel = { x: 0, y: 0 };
+        this.saving.push(spider);
+      }
+    }
+  }, this);
+
+  var dt = Time.deltaTime
+    , force = dt * this.suckForce
+    , p = this.pos;
+
+  this.saving.forEach(function(spider){
+
+    if (!spider.catched){
+      var sp = spider.pos;
+      var imp = Vector.normal(sp, p);
+      spider.vel = Vector.add(spider.vel, Vector.multiply(imp, force)); 
+      spider.pos = Vector.add(sp, spider.vel);
+      
+      if (Vector.pointInCircle(spider.pos, p, 5)){
+        spider.catched = true;
+      }
+    }
+
+  }, this); 
+
+};
+
+Target.prototype.draw = function(ctx){
+  
+  Renderer.drawCircle(ctx, {
+    pos: this.pos,
+    radius: this.size,
+    color: this.dColor
+  });
+
+  Renderer.drawCircle(ctx, {
+    pos: this.pos,
+    radius: 5,
+    color: "rgba(255,0,0,1)"
+  });
+
+};
+},{}],19:[function(require,module,exports){
 
 var Utils = module.exports = function(){
   this.lastIds = {
@@ -1563,12 +1602,16 @@ Utils.prototype.guid = function(type){
   return ++this.lastIds[type];
 };
 
-},{}],19:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 
 var Vector = {};
 
 Vector.zero = { x: 0, y: 0 };
 Vector.one = { x: 1, y: 1 };
+
+Vector.prod = function(a, b){
+  return { x: a.x * b.x, y: a.y * b.y };
+};
 
 Vector.multiply = function(vector, delta){
   return { x: vector.x * delta, y: vector.y * delta };
@@ -1605,6 +1648,16 @@ Vector.eql = function(a, b){
   return (a.x === b.x && a.y === b.y);
 };
 
+Vector.normal = function(from, to){
+  var d = Vector.dif(from, to);
+  var l = Vector.length(from, to);
+
+  return {
+      x: d.x / l || 0
+    , y: d.y / l || 0
+  };
+};
+
 Vector.origin = function(pos, size){
   return {
       x: pos.x - size.x/2,
@@ -1627,7 +1680,15 @@ Vector.length = function(a, b){
 Vector.pointInCircle = function(p, pos, radius){
   return Vector.length(p, pos) < radius;
 };
-
+/*
+Vector.circleCollide = function(c1, c2){
+  var dx = c1.x - c2.x
+    , dy = c1.y - c2.y
+    , dist = c1.r + c2.r;
+ 
+  return (dx * dx + dy * dy <= dist * dist);
+};
+*/
 Vector.lerp = function(from, to, t){
 
   return {
@@ -1653,7 +1714,7 @@ Vector.debug = function(vec){
 
 module.exports = Vector;
 
-},{}],20:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 var w = window;
 var doc = w.document;
 
@@ -1743,7 +1804,7 @@ function onDocLoad(){
 
 w.onload = onDocLoad;
 
-},{"./Color":1,"./Controls":2,"./Game":4,"./GameTime":5,"./Mathf":7,"./Physics":12,"./Renderer":13,"./Repo":14,"./Settings":15,"./Utils":18,"./Vector":19,"./reqAnimFrame":21}],21:[function(require,module,exports){
+},{"./Color":1,"./Controls":2,"./Game":4,"./GameTime":5,"./Mathf":7,"./Physics":12,"./Renderer":13,"./Repo":14,"./Settings":15,"./Utils":19,"./Vector":20,"./reqAnimFrame":22}],22:[function(require,module,exports){
 // http://paulirish.com/2011/requestanimationframe-for-smart-animating/
 // http://my.opera.com/emoller/blog/2011/12/20/requestanimationframe-for-smart-er-animating
 
@@ -1773,4 +1834,4 @@ w.onload = onDocLoad;
     window.cancelAnimationFrame = function(id) { window.clearTimeout(id); };
   }
 }());
-},{}]},{},[20]);
+},{}]},{},[21]);

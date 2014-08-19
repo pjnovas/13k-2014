@@ -37,6 +37,7 @@ var Spider = module.exports = function(pos, onDead){
 
   this.animTime = 1500;
   this.lastFrameTime = 0;
+  this.exited = false;
 };
 
 Spider.prototype.setNode = function(nFrom, nTo){
@@ -161,7 +162,9 @@ Spider.prototype.buildWeb = function(from, to){
 };
 
 Spider.prototype.update = function(){
-  if (this.isDead){
+  this.spPos = Vector.origin(this.pos, this.spSize);
+
+  if (this.isDead || this.exited){
     return;
   }
   
@@ -190,14 +193,6 @@ Spider.prototype.draw = function(ctx){
       color: Color.toRGBA(config.nodes.colors.cold)
     });
   }
-
-/*
-  Renderer.drawCircle(ctx, {
-    pos: this.pos,
-    radius: this.size,
-    color: Color.toRGBA(this.color)
-  });
-*/
 
   Renderer.drawSprite(ctx, {
     resource: "spider",

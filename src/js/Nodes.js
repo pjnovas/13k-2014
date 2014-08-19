@@ -8,11 +8,8 @@ var Nodes = module.exports = function(){
   this.nodes = [];
   this.paths = new Paths();
 
-  //var marginW = 200;
-  //var marginH = 10;
-
-  var marginW = 200;
-  var marginH = 50;
+  var marginW = config.world.margin.x;
+  var marginH = config.world.margin.y;
   
   // Full-screen
   var radius = Vector.divide(config.size, 2);
@@ -158,20 +155,6 @@ Nodes.prototype.createWeb = function(center, rad){
   this.nodes.forEach(function(node){
     node.randomBurn();
   });
-
-  // sort a target node
-  var sorted = false;
-  var len = this.nodes.length-1;
-  while(!sorted) {
-
-    var idx = Mathf.rnd(0, len);
-    var node = this.nodes[idx];
-
-    if (!node.burned){
-      node.target = true;
-      sorted = true;
-    }
-  }
 
 };
 

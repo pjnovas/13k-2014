@@ -1,6 +1,10 @@
 
 module.exports = {
 
+  world: {
+    margin: { x: 200, y: 80 }
+  },
+
   nodes: {
       size: 3
     , targetSize: 6
@@ -9,7 +13,6 @@ module.exports = {
       , burn: [255,0,0,1]
       , burned: [0,0,0,0.2]
       , earth: [190,160,40,1]
-      , target: [75,245,50,1]
     }
   },
 
@@ -45,6 +48,13 @@ module.exports = {
           h: 32
         }]
     }
+  },
+
+  target: {
+      pos: { x: 1, y: 1 }
+    , size: 150
+    , color: [255,255,255,0.2]
+    , suckForce: 3
   },
 
   images: {  

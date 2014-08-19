@@ -1,17 +1,55 @@
 
-var Target = module.exports = function(pos){
+var Target = module.exports = function(){
   
-  this.pos = pos;
   this.size = config.target.size;
+  this.suckForce = config.target.suckForce;
 
-  this.color = config.target.colors.cold;
+  var marginW = config.world.margin.x;
+  var marginH = config.world.margin.y;
+
+  this.pos = Vector.prod(config.target.pos, config.size);
+  this.pos.x -= marginW + this.size/2;
+  this.pos.y -= marginH + this.size/2;
+  
+  this.color = config.target.color;
   this.dColor = Color.toRGBA(this.color);
 
+  this.saved = [];
+  this.saving = [];
 };
 
-Target.prototype.update = function(){
+Target.prototype.update = function(spiders){
 
-  //TODO: Catch Spiders! 
+  spiders.forEach(function(spider){
+    if (!spider.dead && !spider.exited){
+
+      if (Vector.pointInCircle(spider.pos, this.pos, this.size)){
+        spider.building = false;
+        spider.exited = true;
+        spider.vel = { x: 0, y: 0 };
+        this.saving.push(spider);
+      }
+    }
+  }, this);
+
+  var dt = Time.deltaTime
+    , force = dt * this.suckForce
+    , p = this.pos;
+
+  this.saving.forEach(function(spider){
+
+    if (!spider.catched){
+      var sp = spider.pos;
+      var imp = Vector.normal(sp, p);
+      spider.vel = Vector.add(spider.vel, Vector.multiply(imp, force)); 
+      spider.pos = Vector.add(sp, spider.vel);
+      
+      if (Vector.pointInCircle(spider.pos, p, 5)){
+        spider.catched = true;
+      }
+    }
+
+  }, this); 
 
 };
 
@@ -21,6 +59,12 @@ Target.prototype.draw = function(ctx){
     pos: this.pos,
     radius: this.size,
     color: this.dColor
+  });
+
+  Renderer.drawCircle(ctx, {
+    pos: this.pos,
+    radius: 5,
+    color: "rgba(255,0,0,1)"
   });
 
 };
