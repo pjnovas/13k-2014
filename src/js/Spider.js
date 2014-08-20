@@ -184,7 +184,7 @@ Spider.prototype.draw = function(ctx){
   if (this.isDead){
     return;
   }
-  
+
   if (this.building){
     Renderer.drawLine(ctx, {
       from: this.pos,

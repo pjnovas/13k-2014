@@ -1054,7 +1054,7 @@ Renderer.drawSprite = function(ctx, ps){
     }
   }
 
-  if (ps.angle){
+  if (ps.hasOwnProperty("angle")){
     ctx.save();
 
     ctx.translate(x + w/2, y + h/2);
@@ -1065,6 +1065,7 @@ Renderer.drawSprite = function(ctx, ps){
     draw();
 
     ctx.restore();
+    return;
   }
 
   draw();
@@ -1418,7 +1419,7 @@ Spider.prototype.draw = function(ctx){
   if (this.isDead){
     return;
   }
-  
+
   if (this.building){
     Renderer.drawLine(ctx, {
       from: this.pos,
@@ -1435,6 +1436,7 @@ Spider.prototype.draw = function(ctx){
     angle: this.angle,
     sp: config.spiders.sprites.move[this.spriteIndex]
   });  
+
 };
 
 },{}],17:[function(require,module,exports){

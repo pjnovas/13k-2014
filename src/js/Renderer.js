@@ -45,7 +45,7 @@ Renderer.drawSprite = function(ctx, ps){
     }
   }
 
-  if (ps.angle){
+  if (ps.hasOwnProperty("angle")){
     ctx.save();
 
     ctx.translate(x + w/2, y + h/2);
@@ -56,6 +56,7 @@ Renderer.drawSprite = function(ctx, ps){
     draw();
 
     ctx.restore();
+    return;
   }
 
   draw();
