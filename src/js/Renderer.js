@@ -69,17 +69,21 @@ Renderer.drawText = function(ctx, ps){
   ctx.fillText(ps.text, ps.pos.x, ps.pos.y);
 };
 
-/*
 Renderer.drawRect = function(ctx, ps){
   ctx.beginPath();
   
   ctx.rect(ps.pos.x, ps.pos.y, ps.size.x, ps.size.y);
-  //ctx.fillStyle = ps.color || "yellow";
-  //ctx.fill();
 
-  ctx.lineWidth = 1;
-  ctx.strokeStyle = 'red';
-  ctx.stroke();
+  if (ps.hasOwnProperty("fill")){
+    ctx.fillStyle = ps.fill;
+    ctx.fill();
+  }
+
+  if (ps.hasOwnProperty("stroke")){
+    ctx.lineWidth = ps.strokeWidth || 1;
+    ctx.strokeStyle = ps.stroke;
+    ctx.stroke();
+  }
 };
-*/
+
 module.exports = Renderer;

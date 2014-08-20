@@ -1,6 +1,8 @@
 
 var Desktop = module.exports = function(options){
   this.container = options.container || window.document;
+  this.ctx = options.ctx;
+  this.pos = options.pos;
 
   this.events = {
       "pressing": null

@@ -6,6 +6,7 @@ var Spiders = require("./Spiders");
 var Target = require("./Target");
 var Vacuum = require("./Vacuum");
 var Stats = require("./Stats");
+var Elements = require("./Elements");
 
 var Manager = module.exports = function(){
 
@@ -15,6 +16,7 @@ var Manager = module.exports = function(){
   this.target = new Target();
   this.vacuum = new Vacuum();
   this.stats = new Stats();
+  this.elements = new Elements();
 
   var self = this;
 /*
@@ -40,6 +42,8 @@ Manager.prototype.update = function(){
   this.cursor.update();
 
   window.blowing = this.cursor.blowing;
+  this.elements.current = this.cursor.element;
+  this.elements.active = this.cursor.active;
 
   if (this.cursor.active){
     this.nodes.applyPos = this.cursor.pos;
@@ -55,6 +59,8 @@ Manager.prototype.update = function(){
   this.target.update(this.spiders.spiders);
   this.vacuum.update();
   this.stats.update();
+
+  this.elements.update();
 };
 
 Manager.prototype.draw = function(viewCtx, worldCtx, vacuumCtx){
@@ -72,4 +78,5 @@ Manager.prototype.draw = function(viewCtx, worldCtx, vacuumCtx){
 
   this.vacuum.draw(vacuumCtx);
   this.stats.draw(viewCtx);
+  this.elements.draw(viewCtx);
 };

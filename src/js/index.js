@@ -33,8 +33,8 @@ function configGame(){
   }
 
   cfg.size = {
-    x: getSize("Width") - 50,
-    y: getSize("Height") - 50
+    x: getSize("Width"),
+    y: getSize("Height")
   };
 
   w.config = cfg;
