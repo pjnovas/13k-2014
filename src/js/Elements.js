@@ -35,6 +35,7 @@ Elements.prototype.draw = function(ctx){
       Renderer.drawRect(ctx, {
         pos: pos,
         size: this.spSize,
+        corner: 8,
         fill: (this.selected[ele] ? "white" : "transparent"),
         stroke: (this.active && this.current === ele ? "red" : "gray"),
         strokeWidth: 5

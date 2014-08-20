@@ -164,7 +164,7 @@ Spider.prototype.buildWeb = function(from, to){
 Spider.prototype.update = function(){
   this.spPos = Vector.origin(this.pos, this.spSize);
 
-  if (this.isDead || this.exited){
+  if (this.isDead || this.exited || this.inVacuum){
     return;
   }
   

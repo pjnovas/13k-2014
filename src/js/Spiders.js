@@ -112,6 +112,8 @@ Spiders.prototype.update = function(){
 
 Spiders.prototype.draw = function(ctx){
   this.spiders.forEach(function (spider) {
-    spider.draw(ctx);
+    if (!spider.inVacuum){
+      spider.draw(ctx);
+    }
   });
 };

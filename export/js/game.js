@@ -320,6 +320,7 @@ Elements.prototype.draw = function(ctx){
       Renderer.drawRect(ctx, {
         pos: pos,
         size: this.spSize,
+        corner: 8,
         fill: (this.selected[ele] ? "white" : "transparent"),
         stroke: (this.active && this.current === ele ? "red" : "gray"),
         strokeWidth: 5
@@ -1066,9 +1067,26 @@ module.exports = Physics;
 
 var Renderer = {};
 
+function fill(ctx, ps){
+  if (ps.hasOwnProperty("fill")){
+    ctx.fillStyle = ps.fill;
+    ctx.fill();
+  }
+}
+
+function stroke(ctx, ps){
+  if (ps.hasOwnProperty("stroke")){
+    ctx.lineWidth = ps.strokeWidth || 1;
+    ctx.strokeStyle = ps.stroke;
+    ctx.stroke();
+  }
+}
+
 Renderer.drawCircle = function(ctx, ps){
   ctx.beginPath();
   ctx.arc(ps.pos.x, ps.pos.y, ps.radius, 0, 2 * Math.PI, false);
+  
+
   ctx.fillStyle = ps.color;
   ctx.fill();
 
@@ -1128,27 +1146,46 @@ Renderer.drawSprite = function(ctx, ps){
 };
 
 Renderer.drawText = function(ctx, ps){
-  ctx.font = ps.size +  'pt Arial';
+  ctx.font = ps.size + 'pt Arial';
   ctx.textBaseline = 'middle';
   ctx.fillStyle = ps.color;
   ctx.fillText(ps.text, ps.pos.x, ps.pos.y);
 };
 
-Renderer.drawRect = function(ctx, ps){
+function drawRect(ctx, ps){
   ctx.beginPath();
-  
   ctx.rect(ps.pos.x, ps.pos.y, ps.size.x, ps.size.y);
+  fill(ctx, ps);
+  stroke(ctx, ps);
+}
 
-  if (ps.hasOwnProperty("fill")){
-    ctx.fillStyle = ps.fill;
-    ctx.fill();
+Renderer.drawRect = function(ctx, ps){
+  var x = ps.pos.x
+    , y = ps.pos.y
+    , w = ps.size.x
+    , h = ps.size.y;
+
+  if (!ps.hasOwnProperty("corner")){
+    drawRect(ctx, ps);
+    return;
   }
 
-  if (ps.hasOwnProperty("stroke")){
-    ctx.lineWidth = ps.strokeWidth || 1;
-    ctx.strokeStyle = ps.stroke;
-    ctx.stroke();
-  }
+  var c = ps.corner;
+
+  ctx.beginPath();
+  ctx.moveTo(x + c, y);
+  ctx.lineTo(x + w - c, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + c);
+  ctx.lineTo(x + w, y + h - c);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - c, y + h);
+  ctx.lineTo(x + c, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - c);
+  ctx.lineTo(x, y + c);
+  ctx.quadraticCurveTo(x, y, x + c, y);
+  ctx.closePath();
+  
+  fill(ctx, ps);
+  stroke(ctx, ps);
 };
 
 module.exports = Renderer;
@@ -1468,7 +1505,7 @@ Spider.prototype.buildWeb = function(from, to){
 Spider.prototype.update = function(){
   this.spPos = Vector.origin(this.pos, this.spSize);
 
-  if (this.isDead || this.exited){
+  if (this.isDead || this.exited || this.inVacuum){
     return;
   }
   
@@ -1622,7 +1659,9 @@ Spiders.prototype.update = function(){
 
 Spiders.prototype.draw = function(ctx){
   this.spiders.forEach(function (spider) {
-    spider.draw(ctx);
+    if (!spider.inVacuum){
+      spider.draw(ctx);
+    }
   });
 };
 },{"./Spider":17}],19:[function(require,module,exports){
@@ -1841,25 +1880,67 @@ var Vacuum = module.exports = function(target){
 
   this.targetLen = 20;
   this.current = 0;
+
+  this.offx = 30;
+  this.offy = 10;
+
+  this.recipePos = { x: this.offx + 165, y: this.offy + 65 };
+  this.recipeSize = { x: 80, y: 300 };
 };
 
 Vacuum.prototype.update = function(){
   this.current = this.target.saved.length;
+
+  //TODO: Update spider animation inside the Vacuum
+
+  var margin = 15;
+  this.target.saved.forEach(function(spider){
+    if (!spider.inVacuum){
+      spider.inVacuum = true;
+      spider.pos = { 
+        x: Mathf.rnd(this.recipePos.x + margin, this.recipePos.x + this.recipeSize.x - margin), 
+        y: Mathf.rnd(this.recipePos.y + margin, this.recipePos.y + this.recipeSize.y - margin)
+      };
+    }
+  }, this);
+  
 };
 
 Vacuum.prototype.draw = function(ctx){
   this.drawBG(ctx);
-  this.drawSpiders(ctx);
-  this.drawGlass(ctx);
+  this.drawContent(ctx);
   this.drawStats(ctx);
 };
 
-Vacuum.prototype.drawGlass = function(/*ctx*/){
-  
+Vacuum.prototype.drawContent = function(ctx){
+
+  var cPos = this.recipePos;
+  var recSize = this.recipeSize;
+
+  Renderer.drawRect(ctx, {
+    pos: cPos,
+    size: recSize,
+    corner: 6,
+    fill: "#ffffff",
+    strokeWidth: 2
+  });
+
+  this.drawSpiders(ctx);
+
+  Renderer.drawRect(ctx, {
+    pos: cPos,
+    size: recSize,
+    corner: 6,
+    stroke: "#bbbbf9",
+    fill: "rgba(0,0,255,0.5)",
+    strokeWidth: 2
+  });
 };
 
-Vacuum.prototype.drawSpiders = function(/*ctx*/){
-  
+Vacuum.prototype.drawSpiders = function(ctx){
+  this.target.saved.forEach(function(spider){
+    spider.draw(ctx);
+  });
 };
 
 Vacuum.prototype.drawStats = function(ctx){
@@ -1876,12 +1957,10 @@ Vacuum.prototype.drawStats = function(ctx){
 
 Vacuum.prototype.drawBG = function(ctx){
   
-  var offx = 30
-    , offy = 10
+  var offx = this.offx
+    , offy = this.offy
     , tunnel = [ [0,480], [120,400], [160,450], [160,480] ]
-    , tube = [ [160,450], [185,450], [185,380], [225,380], [225,480], [160,480] ]
-    , cilindre = [ [150,380], [150,50], [260,50], [260,380] ];
-
+    , tube = [ [160,450], [185,450], [185,380], [225,380], [225,480], [160,480] ];
 
   function drawPath(path, fill, stroke){
     ctx.beginPath();
@@ -1900,7 +1979,7 @@ Vacuum.prototype.drawBG = function(ctx){
       ctx.fill();
     }
 
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 3;
     ctx.strokeStyle = stroke;
     ctx.lineCap = 'round';
     ctx.stroke();
@@ -1908,9 +1987,18 @@ Vacuum.prototype.drawBG = function(ctx){
     ctx.closePath();
   }
 
-  drawPath(tunnel, '#000', '#fff');
-  drawPath(tube, '#000', '#fff');
-  drawPath(cilindre, '#000', '#fff');
+  drawPath(tunnel, '#9e9e9e', '#474747');
+  drawPath(tube, '#9e9e9e', '#474747');
+
+  var cPos = { x: offx + 150, y: offy + 50 };
+  Renderer.drawRect(ctx, {
+    pos: cPos,
+    size: { x: 110, y: 330 },
+    corner: 6,
+    fill: "#9e9e9e",
+    stroke: "#474747",
+    strokeWidth: 2
+  });
 
 };
 },{}],23:[function(require,module,exports){

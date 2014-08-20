@@ -10,25 +10,67 @@ var Vacuum = module.exports = function(target){
 
   this.targetLen = 20;
   this.current = 0;
+
+  this.offx = 30;
+  this.offy = 10;
+
+  this.recipePos = { x: this.offx + 165, y: this.offy + 65 };
+  this.recipeSize = { x: 80, y: 300 };
 };
 
 Vacuum.prototype.update = function(){
   this.current = this.target.saved.length;
+
+  //TODO: Update spider animation inside the Vacuum
+
+  var margin = 15;
+  this.target.saved.forEach(function(spider){
+    if (!spider.inVacuum){
+      spider.inVacuum = true;
+      spider.pos = { 
+        x: Mathf.rnd(this.recipePos.x + margin, this.recipePos.x + this.recipeSize.x - margin), 
+        y: Mathf.rnd(this.recipePos.y + margin, this.recipePos.y + this.recipeSize.y - margin)
+      };
+    }
+  }, this);
+  
 };
 
 Vacuum.prototype.draw = function(ctx){
   this.drawBG(ctx);
-  this.drawSpiders(ctx);
-  this.drawGlass(ctx);
+  this.drawContent(ctx);
   this.drawStats(ctx);
 };
 
-Vacuum.prototype.drawGlass = function(/*ctx*/){
-  
+Vacuum.prototype.drawContent = function(ctx){
+
+  var cPos = this.recipePos;
+  var recSize = this.recipeSize;
+
+  Renderer.drawRect(ctx, {
+    pos: cPos,
+    size: recSize,
+    corner: 6,
+    fill: "#ffffff",
+    strokeWidth: 2
+  });
+
+  this.drawSpiders(ctx);
+
+  Renderer.drawRect(ctx, {
+    pos: cPos,
+    size: recSize,
+    corner: 6,
+    stroke: "#bbbbf9",
+    fill: "rgba(0,0,255,0.5)",
+    strokeWidth: 2
+  });
 };
 
-Vacuum.prototype.drawSpiders = function(/*ctx*/){
-  
+Vacuum.prototype.drawSpiders = function(ctx){
+  this.target.saved.forEach(function(spider){
+    spider.draw(ctx);
+  });
 };
 
 Vacuum.prototype.drawStats = function(ctx){
@@ -45,12 +87,10 @@ Vacuum.prototype.drawStats = function(ctx){
 
 Vacuum.prototype.drawBG = function(ctx){
   
-  var offx = 30
-    , offy = 10
+  var offx = this.offx
+    , offy = this.offy
     , tunnel = [ [0,480], [120,400], [160,450], [160,480] ]
-    , tube = [ [160,450], [185,450], [185,380], [225,380], [225,480], [160,480] ]
-    , cilindre = [ [150,380], [150,50], [260,50], [260,380] ];
-
+    , tube = [ [160,450], [185,450], [185,380], [225,380], [225,480], [160,480] ];
 
   function drawPath(path, fill, stroke){
     ctx.beginPath();
@@ -69,7 +109,7 @@ Vacuum.prototype.drawBG = function(ctx){
       ctx.fill();
     }
 
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 3;
     ctx.strokeStyle = stroke;
     ctx.lineCap = 'round';
     ctx.stroke();
@@ -77,8 +117,17 @@ Vacuum.prototype.drawBG = function(ctx){
     ctx.closePath();
   }
 
-  drawPath(tunnel, '#000', '#fff');
-  drawPath(tube, '#000', '#fff');
-  drawPath(cilindre, '#000', '#fff');
+  drawPath(tunnel, '#9e9e9e', '#474747');
+  drawPath(tube, '#9e9e9e', '#474747');
+
+  var cPos = { x: offx + 150, y: offy + 50 };
+  Renderer.drawRect(ctx, {
+    pos: cPos,
+    size: { x: 110, y: 330 },
+    corner: 6,
+    fill: "#9e9e9e",
+    stroke: "#474747",
+    strokeWidth: 2
+  });
 
 };
