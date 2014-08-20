@@ -1,15 +1,15 @@
 
 var Target = module.exports = function(){
   
-  this.size = config.target.size;
+  this.size = config.size.y/6; // config.target.size;
   this.suckForce = config.target.suckForce;
 
   var marginW = config.world.margin.x;
   var marginH = config.world.margin.y;
 
   this.pos = Vector.prod(config.target.pos, config.size);
-  this.pos.x -= marginW/2 + this.size/1.2;
-  this.pos.y -= marginH + this.size/3;
+  this.pos.x -= marginW + 10;
+  this.pos.y -= marginH + 10;
   
   this.color = config.target.color;
   this.dColor = Color.toRGBA(this.color);
@@ -54,7 +54,7 @@ Target.prototype.update = function(spiders){
 };
 
 Target.prototype.draw = function(ctx){
-  
+  /*
   Renderer.drawCircle(ctx, {
     pos: this.pos,
     radius: this.size,
@@ -66,5 +66,14 @@ Target.prototype.draw = function(ctx){
     radius: 5,
     color: "rgba(255,0,0,1)"
   });
+  */
+  var startAngle = 0.97 * Math.PI;
+  var endAngle = 1.52 * Math.PI;
+
+  ctx.beginPath();
+  ctx.arc(this.pos.x, this.pos.y, this.size/2, startAngle, endAngle, false);
+  ctx.lineWidth = this.size;
+  ctx.strokeStyle = "rgba(0,255,0,0.3)";
+  ctx.stroke();
 
 };

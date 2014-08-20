@@ -47,7 +47,7 @@ module.exports = {
 
   target: {
       pos: { x: 1, y: 1 }
-    , size: 150
+    , size: 180
     , color: [255,255,255,0.2]
     , suckForce: 3
   },
