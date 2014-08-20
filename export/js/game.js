@@ -287,9 +287,11 @@ var Manager = require("./Manager");
 var Game = module.exports = function(opts){
   this.cview = opts.viewport;
   this.cworld = opts.world;
+  this.cvacuum = opts.vacuum;
 
   this.viewCtx = null;
   this.worldCtx = null;
+  this.vacuumCtx = null;
 
   this.tLoop = null;
   this.paused = false;
@@ -313,12 +315,14 @@ Game.prototype.initialize = function(){
   this.worldCtx = this.cworld.getContext("2d");
   this.cworld.width = size.x;
   this.cworld.height = size.y;
+
+  this.vacuumCtx = this.cvacuum.getContext("2d");
 };
 
 Game.prototype.loop = function(){
   //console.log(Time.frameTime + "( " + Time.deltaTime + " ) / " + Time.time);
   this.manager.update();
-  this.manager.draw(this.viewCtx, this.worldCtx);
+  this.manager.draw(this.viewCtx, this.worldCtx, this.vacuumCtx);
 };
 
 Game.prototype.start = function(){
@@ -388,12 +392,14 @@ var Paths = require("./Paths");
 var Cursor = require("./Cursor");
 var Spiders = require("./Spiders");
 var Target = require("./Target");
+var Vacuum = require("./Vacuum");
 
 var Manager = module.exports = function(){
   this.cursor = new Cursor();
   this.nodes = new Nodes();
   this.paths = new Paths();
   this.target = new Target();
+  this.vacuum = new Vacuum();
 
   function set(id, value){
     var ele = document.getElementById(id);
@@ -427,9 +433,10 @@ Manager.prototype.update = function(){
   this.nodes.update();
   this.spiders.update();
   this.target.update(this.spiders.spiders);
+  this.vacuum.update();
 };
 
-Manager.prototype.draw = function(viewCtx, worldCtx){
+Manager.prototype.draw = function(viewCtx, worldCtx, vacuumCtx){
   var s = config.size;
 
   viewCtx.clearRect(0, 0, s.x, s.y);
@@ -438,9 +445,11 @@ Manager.prototype.draw = function(viewCtx, worldCtx){
   this.cursor.draw(viewCtx);
   this.nodes.draw(worldCtx);
   this.spiders.draw(worldCtx);
-  this.target.draw(viewCtx);
+  this.target.draw(worldCtx);
+  
+  this.vacuum.draw(vacuumCtx);
 };
-},{"./Cursor":3,"./Nodes":9,"./Paths":11,"./Spiders":17,"./Target":18}],7:[function(require,module,exports){
+},{"./Cursor":3,"./Nodes":9,"./Paths":11,"./Spiders":17,"./Target":18,"./Vacuum":20}],7:[function(require,module,exports){
 
 var Mathf = {};
 
@@ -1133,7 +1142,7 @@ module.exports = (function(){
 module.exports = {
 
   world: {
-    margin: { x: 200, y: 80 }
+    margin: { x: 150, y: 20 }
   },
 
   nodes: {
@@ -1167,27 +1176,12 @@ module.exports = {
       , tStayB: 10000
     }
     , sprites: {
-        move: [{
-          x: 0,
-          y: 0,
-          w: 32,
-          h: 32
-        }, {
-          x: 32,
-          y: 0,
-          w: 32,
-          h: 32
-        }, {
-          x: 64,
-          y: 0,
-          w: 32,
-          h: 32
-        }, {
-          x: 96,
-          y: 0,
-          w: 32,
-          h: 32
-        }]
+        move: [
+          { x: 0, y: 0, w: 32, h: 32 }, 
+          { x: 32, y: 0, w: 32, h: 32 }, 
+          { x: 64, y: 0, w: 32, h: 32 }, 
+          { x: 96, y: 0, w: 32, h: 32 }
+        ]
     }
   },
 
@@ -1200,6 +1194,7 @@ module.exports = {
 
   images: {  
       "spider": "images/spider.png"
+    , "elements": "images/elements.png"
   }
 
 };
@@ -1539,8 +1534,8 @@ var Target = module.exports = function(){
   var marginH = config.world.margin.y;
 
   this.pos = Vector.prod(config.target.pos, config.size);
-  this.pos.x -= marginW + this.size/2;
-  this.pos.y -= marginH + this.size/2;
+  this.pos.x -= marginW/2 + this.size/1.2;
+  this.pos.y -= marginH + this.size/3;
   
   this.color = config.target.color;
   this.dColor = Color.toRGBA(this.color);
@@ -1613,6 +1608,68 @@ Utils.prototype.guid = function(type){
 };
 
 },{}],20:[function(require,module,exports){
+
+var Vacuum = module.exports = function(){
+  
+  this.size = 128;
+
+  var marginW = config.world.margin.x;
+  var marginH = config.world.margin.y;
+
+  this.pos = Vector.prod(config.target.pos, config.size);
+  this.pos.x -= marginW + this.size;
+  this.pos.y -= marginH + this.size;
+  
+  this.color = config.target.color;
+  this.dColor = Color.toRGBA(this.color);
+
+  this.tubePos = { x: this.pos.x + this.size/1.25, y: this.pos.y + 30 };
+};
+
+Vacuum.prototype.update = function(){
+
+};
+
+Vacuum.prototype.draw = function(ctx){
+  
+  var offx = 30
+    , offy = 10
+    , tunnel = [ [0,135], [120,100], [120,120], [90,135] ]
+    , tube = [ [120,120], [180,120], [180,100], [230,100], [230,135], [90,135] ]
+    , cilindre = [ [150,100], [150,10], [260,10], [260,100] ];
+
+
+  function drawPath(path, fill, stroke){
+    ctx.beginPath();
+
+    var first = path[0];
+    ctx.moveTo(offx + first[0], offy + first[1]);
+
+    for (var i=1; i<path.length; i++){
+      ctx.lineTo(offx + path[i][0], offy + path[i][1]);
+    }
+
+    ctx.lineTo(offx + first[0], offy + first[1]);
+
+    if (fill){
+      ctx.fillStyle = fill;
+      ctx.fill();
+    }
+
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = stroke;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+
+    ctx.closePath();
+  }
+
+  drawPath(tunnel, '#000', '#fff');
+  drawPath(tube, '#000', '#fff');
+  drawPath(cilindre, '#000', '#fff');
+
+};
+},{}],21:[function(require,module,exports){
 
 var Vector = {};
 
@@ -1724,7 +1781,7 @@ Vector.debug = function(vec){
 
 module.exports = Vector;
 
-},{}],21:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 var w = window;
 var doc = w.document;
 
@@ -1770,6 +1827,7 @@ function configGame(){
 function initGame(){
   var cviewport = doc.getElementById("game-viewport");
   var cworld = doc.getElementById("game-world");
+  var cvacuum = doc.getElementById("vacuum");
 
   w._ = new Utils();  
   w.Time = new GameTime();
@@ -1780,7 +1838,8 @@ function initGame(){
 
   w.game = new Game({
     viewport: cviewport,
-    world: cworld
+    world: cworld,
+    vacuum: cvacuum
   });
 
   function pauseGame(){
@@ -1814,7 +1873,7 @@ function onDocLoad(){
 
 w.onload = onDocLoad;
 
-},{"./Color":1,"./Controls":2,"./Game":4,"./GameTime":5,"./Mathf":7,"./Physics":12,"./Renderer":13,"./Repo":14,"./Settings":15,"./Utils":19,"./Vector":20,"./reqAnimFrame":22}],22:[function(require,module,exports){
+},{"./Color":1,"./Controls":2,"./Game":4,"./GameTime":5,"./Mathf":7,"./Physics":12,"./Renderer":13,"./Repo":14,"./Settings":15,"./Utils":19,"./Vector":21,"./reqAnimFrame":23}],23:[function(require,module,exports){
 // http://paulirish.com/2011/requestanimationframe-for-smart-animating/
 // http://my.opera.com/emoller/blog/2011/12/20/requestanimationframe-for-smart-er-animating
 
@@ -1844,4 +1903,4 @@ w.onload = onDocLoad;
     window.cancelAnimationFrame = function(id) { window.clearTimeout(id); };
   }
 }());
-},{}]},{},[21]);
+},{}]},{},[22]);

@@ -43,6 +43,7 @@ function configGame(){
 function initGame(){
   var cviewport = doc.getElementById("game-viewport");
   var cworld = doc.getElementById("game-world");
+  var cvacuum = doc.getElementById("vacuum");
 
   w._ = new Utils();  
   w.Time = new GameTime();
@@ -53,7 +54,8 @@ function initGame(){
 
   w.game = new Game({
     viewport: cviewport,
-    world: cworld
+    world: cworld,
+    vacuum: cvacuum
   });
 
   function pauseGame(){

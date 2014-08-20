@@ -2,7 +2,7 @@
 module.exports = {
 
   world: {
-    margin: { x: 200, y: 80 }
+    margin: { x: 150, y: 20 }
   },
 
   nodes: {
@@ -36,27 +36,12 @@ module.exports = {
       , tStayB: 10000
     }
     , sprites: {
-        move: [{
-          x: 0,
-          y: 0,
-          w: 32,
-          h: 32
-        }, {
-          x: 32,
-          y: 0,
-          w: 32,
-          h: 32
-        }, {
-          x: 64,
-          y: 0,
-          w: 32,
-          h: 32
-        }, {
-          x: 96,
-          y: 0,
-          w: 32,
-          h: 32
-        }]
+        move: [
+          { x: 0, y: 0, w: 32, h: 32 }, 
+          { x: 32, y: 0, w: 32, h: 32 }, 
+          { x: 64, y: 0, w: 32, h: 32 }, 
+          { x: 96, y: 0, w: 32, h: 32 }
+        ]
     }
   },
 
@@ -69,6 +54,7 @@ module.exports = {
 
   images: {  
       "spider": "images/spider.png"
+    , "elements": "images/elements.png"
   }
 
 };

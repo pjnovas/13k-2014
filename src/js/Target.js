@@ -8,8 +8,8 @@ var Target = module.exports = function(){
   var marginH = config.world.margin.y;
 
   this.pos = Vector.prod(config.target.pos, config.size);
-  this.pos.x -= marginW + this.size/2;
-  this.pos.y -= marginH + this.size/2;
+  this.pos.x -= marginW/2 + this.size/1.2;
+  this.pos.y -= marginH + this.size/3;
   
   this.color = config.target.color;
   this.dColor = Color.toRGBA(this.color);

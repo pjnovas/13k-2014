@@ -4,9 +4,11 @@ var Manager = require("./Manager");
 var Game = module.exports = function(opts){
   this.cview = opts.viewport;
   this.cworld = opts.world;
+  this.cvacuum = opts.vacuum;
 
   this.viewCtx = null;
   this.worldCtx = null;
+  this.vacuumCtx = null;
 
   this.tLoop = null;
   this.paused = false;
@@ -30,12 +32,14 @@ Game.prototype.initialize = function(){
   this.worldCtx = this.cworld.getContext("2d");
   this.cworld.width = size.x;
   this.cworld.height = size.y;
+
+  this.vacuumCtx = this.cvacuum.getContext("2d");
 };
 
 Game.prototype.loop = function(){
   //console.log(Time.frameTime + "( " + Time.deltaTime + " ) / " + Time.time);
   this.manager.update();
-  this.manager.draw(this.viewCtx, this.worldCtx);
+  this.manager.draw(this.viewCtx, this.worldCtx, this.vacuumCtx);
 };
 
 Game.prototype.start = function(){
