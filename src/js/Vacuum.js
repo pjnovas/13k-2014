@@ -1,5 +1,6 @@
 
-var Vacuum = module.exports = function(){
+var Vacuum = module.exports = function(target){
+  this.target = target;
   this.size = config.vacuum.size;
 
   // Text
@@ -12,7 +13,7 @@ var Vacuum = module.exports = function(){
 };
 
 Vacuum.prototype.update = function(){
-  
+  this.current = this.target.saved.length;
 };
 
 Vacuum.prototype.draw = function(ctx){

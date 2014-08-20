@@ -46,6 +46,7 @@ Target.prototype.update = function(spiders){
       
       if (Vector.pointInCircle(spider.pos, p, 5)){
         spider.catched = true;
+        this.saved.push(spider);
       }
     }
 

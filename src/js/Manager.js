@@ -14,26 +14,14 @@ var Manager = module.exports = function(){
   this.nodes = new Nodes();
   this.paths = new Paths();
   this.target = new Target();
-  this.vacuum = new Vacuum();
+  this.vacuum = new Vacuum(this.target);
   this.stats = new Stats();
   this.elements = new Elements();
 
   var self = this;
-/*
-  function set(id, value){
-    var ele = document.getElementById(id);
-    if (ele) { ele.innerText = value; }
-  }
-*/
+
   this.spiders = new Spiders(this.nodes, function(_stats){
     self.stats.set(_stats);
-    /*
-    for (var p in _stats){
-      if (_stats.hasOwnProperty(p)){
-        set(p, _stats[p]);
-      }
-    }
-    */
   });
 };
 

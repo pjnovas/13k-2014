@@ -122,6 +122,7 @@ Node.prototype.setBurned = function(){
   this.burned = true;
   this.color = config.nodes.colors.burned;
   this.dColor = Color.toRGBA(this.color);
+  this.resetTemp();
 };
 
 Node.prototype.update = function(){
