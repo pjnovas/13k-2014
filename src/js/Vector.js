@@ -4,6 +4,10 @@ var Vector = {};
 Vector.zero = { x: 0, y: 0 };
 Vector.one = { x: 1, y: 1 };
 
+Vector.clone = function(v){
+  return { x: v.x, y: v.y };
+};
+
 Vector.prod = function(a, b){
   return { x: a.x * b.x, y: a.y * b.y };
 };

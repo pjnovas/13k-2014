@@ -61,6 +61,13 @@ Renderer.drawSprite = function(ctx, ps){
   draw();
 };
 
+Renderer.drawText = function(ctx, ps){
+  ctx.font = ps.size +  'pt Arial';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = ps.color;
+  ctx.fillText(ps.text, ps.pos.x, ps.pos.y);
+};
+
 /*
 Renderer.drawRect = function(ctx, ps){
   ctx.beginPath();

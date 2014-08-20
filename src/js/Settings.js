@@ -52,6 +52,18 @@ module.exports = {
     , suckForce: 3
   },
 
+  stats: {
+    pos: { x: 1, y: 0 },
+    colors: {
+      kills: [255,0,0,1],
+      alives: [0,255,0,1]
+    }
+  },
+
+  vacuum: {
+    size: { x: 300, y: 500 }
+  },
+
   images: {  
       "spider": "images/spider.png"
     , "elements": "images/elements.png"

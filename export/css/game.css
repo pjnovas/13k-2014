@@ -32,13 +32,11 @@ body {
 
 #vacuum {
   /*border: 1px solid #000;*/
-  width: 300px;
-  height: 500px;
   position: absolute;
   right: 30px;
   bottom: 10px;
 }
-
+/*
 .controls {
   position: absolute;
   right: 50px;
@@ -69,3 +67,4 @@ body {
 #total {
   color: gray;
 }
+*/

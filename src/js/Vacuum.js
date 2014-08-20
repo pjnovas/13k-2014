@@ -1,32 +1,54 @@
 
 var Vacuum = module.exports = function(){
-  
-  this.size = 128;
+  this.size = config.vacuum.size;
 
-  var marginW = config.world.margin.x;
-  var marginH = config.world.margin.y;
+  // Text
+  this.txtColor = "#fff";
+  this.txtSize = 20;
+  this.txtPos = { x: 180, y: 30 };
 
-  this.pos = Vector.prod(config.target.pos, config.size);
-  this.pos.x -= marginW + this.size;
-  this.pos.y -= marginH + this.size;
-  
-  this.color = config.target.color;
-  this.dColor = Color.toRGBA(this.color);
-
-  this.tubePos = { x: this.pos.x + this.size/1.25, y: this.pos.y + 30 };
+  this.targetLen = 20;
+  this.current = 0;
 };
 
 Vacuum.prototype.update = function(){
-
+  
 };
 
 Vacuum.prototype.draw = function(ctx){
+  this.drawBG(ctx);
+  this.drawSpiders(ctx);
+  this.drawGlass(ctx);
+  this.drawStats(ctx);
+};
+
+Vacuum.prototype.drawGlass = function(/*ctx*/){
+  
+};
+
+Vacuum.prototype.drawSpiders = function(/*ctx*/){
+  
+};
+
+Vacuum.prototype.drawStats = function(ctx){
+  var txtSize = this.txtSize;
+
+  Renderer.drawText(ctx, {
+    text: _.pad(this.current, 3) + " / " + _.pad(this.targetLen, 3),
+    pos: this.txtPos,
+    size: txtSize,
+    color: this.txtColor
+  });
+
+};
+
+Vacuum.prototype.drawBG = function(ctx){
   
   var offx = 30
     , offy = 10
-    , tunnel = [ [0,135], [120,100], [120,120], [90,135] ]
-    , tube = [ [120,120], [180,120], [180,100], [230,100], [230,135], [90,135] ]
-    , cilindre = [ [150,100], [150,10], [260,10], [260,100] ];
+    , tunnel = [ [0,480], [120,400], [160,450], [160,480] ]
+    , tube = [ [160,450], [185,450], [185,380], [225,380], [225,480], [160,480] ]
+    , cilindre = [ [150,380], [150,50], [260,50], [260,380] ];
 
 
   function drawPath(path, fill, stroke){

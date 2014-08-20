@@ -9,3 +9,8 @@ var Utils = module.exports = function(){
 Utils.prototype.guid = function(type){
   return ++this.lastIds[type];
 };
+
+Utils.prototype.pad = function(num, size) {
+  var s = "0000000" + num;
+  return s.substr(s.length-size);
+};

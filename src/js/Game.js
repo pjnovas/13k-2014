@@ -15,7 +15,6 @@ var Game = module.exports = function(opts){
   this.boundGameRun = this.gameRun.bind(this);
 
   this.manager = new Manager();
-
   this.initialize();
 };
 
@@ -34,6 +33,8 @@ Game.prototype.initialize = function(){
   this.cworld.height = size.y;
 
   this.vacuumCtx = this.cvacuum.getContext("2d");
+  this.cvacuum.width = config.vacuum.size.x;
+  this.cvacuum.height = config.vacuum.size.y;
 };
 
 Game.prototype.loop = function(){

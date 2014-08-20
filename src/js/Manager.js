@@ -5,25 +5,33 @@ var Cursor = require("./Cursor");
 var Spiders = require("./Spiders");
 var Target = require("./Target");
 var Vacuum = require("./Vacuum");
+var Stats = require("./Stats");
 
 var Manager = module.exports = function(){
+
   this.cursor = new Cursor();
   this.nodes = new Nodes();
   this.paths = new Paths();
   this.target = new Target();
   this.vacuum = new Vacuum();
+  this.stats = new Stats();
 
+  var self = this;
+/*
   function set(id, value){
     var ele = document.getElementById(id);
     if (ele) { ele.innerText = value; }
   }
-
-  this.spiders = new Spiders(this.nodes, function(stats){
-    for (var p in stats){
-      if (stats.hasOwnProperty(p)){
-        set(p, stats[p]);
+*/
+  this.spiders = new Spiders(this.nodes, function(_stats){
+    self.stats.set(_stats);
+    /*
+    for (var p in _stats){
+      if (_stats.hasOwnProperty(p)){
+        set(p, _stats[p]);
       }
     }
+    */
   });
 };
 
@@ -46,18 +54,22 @@ Manager.prototype.update = function(){
   this.spiders.update();
   this.target.update(this.spiders.spiders);
   this.vacuum.update();
+  this.stats.update();
 };
 
 Manager.prototype.draw = function(viewCtx, worldCtx, vacuumCtx){
   var s = config.size;
+  var vs = config.vacuum.size;
 
   viewCtx.clearRect(0, 0, s.x, s.y);
   worldCtx.clearRect(0, 0, s.x, s.y);
+  vacuumCtx.clearRect(0, 0, vs.x, vs.y);
 
   this.cursor.draw(viewCtx);
   this.nodes.draw(worldCtx);
   this.spiders.draw(worldCtx);
   this.target.draw(worldCtx);
-  
+
   this.vacuum.draw(vacuumCtx);
+  this.stats.draw(viewCtx);
 };
