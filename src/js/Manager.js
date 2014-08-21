@@ -49,6 +49,8 @@ Manager.prototype.update = function(){
   this.stats.update();
 
   this.elements.update();
+
+  //Particles.update();
 };
 
 Manager.prototype.draw = function(viewCtx, worldCtx, vacuumCtx){
@@ -67,4 +69,6 @@ Manager.prototype.draw = function(viewCtx, worldCtx, vacuumCtx){
   this.vacuum.draw(vacuumCtx);
   this.stats.draw(viewCtx);
   this.elements.draw(viewCtx);
+
+  //Particles.draw(viewCtx);
 };

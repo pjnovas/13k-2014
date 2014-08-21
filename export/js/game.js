@@ -28,8 +28,6 @@ module.exports = Color;
 
 var Desktop = module.exports = function(options){
   this.container = options.container || window.document;
-  this.ctx = options.ctx;
-  this.pos = options.pos;
 
   this.events = {
       "pressing": null
@@ -312,32 +310,28 @@ Elements.prototype.draw = function(ctx){
     , gap = 30
     , i = 0;
 
-  for (var ele in elementsSP){
-    if (elementsSP.hasOwnProperty(ele)){
-      
-      var pos = { x: this.pos.x, y: this.pos.y + (i * (this.size + gap)) };
+  for (var ele in elementsSP){      
+    var pos = { x: this.pos.x, y: this.pos.y + (i * (this.size + gap)) };
 
-      Renderer.drawRect(ctx, {
-        pos: pos,
-        size: this.spSize,
-        corner: 8,
-        fill: (this.selected[ele] ? "white" : "transparent"),
-        stroke: (this.active && this.current === ele ? "red" : "gray"),
-        strokeWidth: 5
-      });
+    Renderer.drawRect(ctx, {
+      pos: pos,
+      size: this.spSize,
+      corner: 8,
+      fill: (this.selected[ele] ? "white" : "transparent"),
+      stroke: (this.active && this.current === ele ? "red" : "gray"),
+      strokeWidth: 5
+    });
 
-      Renderer.drawSprite(ctx, {
-        resource: "elements",
-        pos: pos,
-        size: this.spSize,
-        angle: 0,
-        sp: elementsSP[ele]
-      });
+    Renderer.drawSprite(ctx, {
+      resource: "elements",
+      pos: pos,
+      size: this.spSize,
+      angle: 0,
+      sp: elementsSP[ele]
+    });
 
-      i++;
-    }
+    i++;
   }
-
 
 };
 
@@ -499,6 +493,8 @@ Manager.prototype.update = function(){
   this.stats.update();
 
   this.elements.update();
+
+  //Particles.update();
 };
 
 Manager.prototype.draw = function(viewCtx, worldCtx, vacuumCtx){
@@ -517,8 +513,10 @@ Manager.prototype.draw = function(viewCtx, worldCtx, vacuumCtx){
   this.vacuum.draw(vacuumCtx);
   this.stats.draw(viewCtx);
   this.elements.draw(viewCtx);
+
+  //Particles.draw(viewCtx);
 };
-},{"./Cursor":3,"./Elements":4,"./Nodes":10,"./Paths":12,"./Spiders":18,"./Stats":19,"./Target":20,"./Vacuum":22}],8:[function(require,module,exports){
+},{"./Cursor":3,"./Elements":4,"./Nodes":10,"./Paths":12,"./Spiders":17,"./Stats":18,"./Target":19,"./Vacuum":21}],8:[function(require,module,exports){
 
 var Mathf = {};
 
@@ -591,6 +589,21 @@ var Node = module.exports = function(pos){
   this.shaked = false;
   this.originalPos = null;
   this.hasEarth = false;
+/*
+  Particles.createEmitter(this, {
+    max: 3,
+    type: "circle",
+
+    g: { x: 0, y: -1 },
+    d: { x: 0, y: -1 },
+    
+    colorFrom: [255,0,0,1],
+    colorTo: [0,0,0,0.2],
+
+    life: 2,
+    size: 1
+  });
+*/
 };
 
 Node.prototype.addNear = function(node){
@@ -1055,16 +1068,6 @@ Paths.prototype.draw = function(ctx){
 };
 },{"./Path":11}],13:[function(require,module,exports){
 
-var Physics = {};
-
-Physics.test = function(x, y){
-  return { x: x, y: y};
-};
-
-module.exports = Physics;
-
-},{}],14:[function(require,module,exports){
-
 var Renderer = {};
 
 function fill(ctx, ps){
@@ -1086,7 +1089,6 @@ Renderer.drawCircle = function(ctx, ps){
   ctx.beginPath();
   ctx.arc(ps.pos.x, ps.pos.y, ps.radius, 0, 2 * Math.PI, false);
   
-
   ctx.fillStyle = ps.color;
   ctx.fill();
 
@@ -1190,7 +1192,7 @@ Renderer.drawRect = function(ctx, ps){
 
 module.exports = Renderer;
 
-},{}],15:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 
 module.exports = (function(){
   var resources = {}
@@ -1233,21 +1235,17 @@ module.exports = (function(){
     load: function(){
       loaded = 0;
       for (var img in resources) {
-        if (resources.hasOwnProperty(img)){
-          this[img] = new window.Image();
-          this[img].onload = imageLoaded;
-          this[img].onerror = imageFailed;
-          this[img].src = resources[img];
-        }
+        this[img] = new window.Image();
+        this[img].onload = imageLoaded;
+        this[img].onerror = imageFailed;
+        this[img].src = resources[img];
       }
       return this;
     },
     
     addResources: function(newResources){
       for(var r in newResources){
-        if (newResources.hasOwnProperty(r)){
-          resources[r] = newResources[r];
-        }
+        resources[r] = newResources[r];
       }
       return this;
     }
@@ -1255,7 +1253,7 @@ module.exports = (function(){
   };
   
 })();
-},{}],16:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 
 module.exports = {
 
@@ -1338,7 +1336,7 @@ module.exports = {
 
 };
 
-},{}],17:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 
 var Spider = module.exports = function(pos, onDead){
   this.id = _.guid("spiders");
@@ -1544,7 +1542,7 @@ Spider.prototype.draw = function(ctx){
   });  
 };
 
-},{}],18:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 
 var Spider = require("./Spider");
 
@@ -1664,7 +1662,7 @@ Spiders.prototype.draw = function(ctx){
     }
   });
 };
-},{"./Spider":17}],19:[function(require,module,exports){
+},{"./Spider":16}],18:[function(require,module,exports){
 
 var Stats = module.exports = function(){
   
@@ -1769,7 +1767,7 @@ Stats.prototype.drawStats = function(ctx){
   });
 
 };
-},{}],20:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 
 var Target = module.exports = function(){
   
@@ -1850,12 +1848,13 @@ Target.prototype.draw = function(ctx){
   ctx.stroke();
 
 };
-},{}],21:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 
 var Utils = module.exports = function(){
   this.lastIds = {
     nodes: 0,
-    spiders: 0
+    spiders: 0,
+    emitters: 0
   };
 };
 
@@ -1867,7 +1866,7 @@ Utils.prototype.pad = function(num, size) {
   var s = "0000000" + num;
   return s.substr(s.length-size);
 };
-},{}],22:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 
 var Vacuum = module.exports = function(target){
   this.target = target;
@@ -2001,7 +2000,7 @@ Vacuum.prototype.drawBG = function(ctx){
   });
 
 };
-},{}],23:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 
 var Vector = {};
 
@@ -2117,7 +2116,7 @@ Vector.debug = function(vec){
 
 module.exports = Vector;
 
-},{}],24:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 var w = window;
 var doc = w.document;
 
@@ -2129,11 +2128,11 @@ var Game = require("./Game");
 var GameTime = require("./GameTime");
 var Utils = require("./Utils");
 var Controls = require("./Controls");
+//var Particles = require("./Particles");
 
 w.Mathf = require("./Mathf");
 w.Color = require("./Color");
 w.Vector = require("./Vector");
-w.Physics = require("./Physics");
 w.Renderer = require("./Renderer");
 w.Repo = require("./Repo");
 
@@ -2167,6 +2166,8 @@ function initGame(){
 
   w._ = new Utils();  
   w.Time = new GameTime();
+
+  //w.Particles = new Particles();
 
   w.Controls = new Controls({
     container: cviewport
@@ -2209,7 +2210,7 @@ function onDocLoad(){
 
 w.onload = onDocLoad;
 
-},{"./Color":1,"./Controls":2,"./Game":5,"./GameTime":6,"./Mathf":8,"./Physics":13,"./Renderer":14,"./Repo":15,"./Settings":16,"./Utils":21,"./Vector":23,"./reqAnimFrame":25}],25:[function(require,module,exports){
+},{"./Color":1,"./Controls":2,"./Game":5,"./GameTime":6,"./Mathf":8,"./Renderer":13,"./Repo":14,"./Settings":15,"./Utils":20,"./Vector":22,"./reqAnimFrame":24}],24:[function(require,module,exports){
 // http://paulirish.com/2011/requestanimationframe-for-smart-animating/
 // http://my.opera.com/emoller/blog/2011/12/20/requestanimationframe-for-smart-er-animating
 
@@ -2239,4 +2240,4 @@ w.onload = onDocLoad;
     window.cancelAnimationFrame = function(id) { window.clearTimeout(id); };
   }
 }());
-},{}]},{},[24]);
+},{}]},{},[23]);

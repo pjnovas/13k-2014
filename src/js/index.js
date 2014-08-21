@@ -9,11 +9,11 @@ var Game = require("./Game");
 var GameTime = require("./GameTime");
 var Utils = require("./Utils");
 var Controls = require("./Controls");
+//var Particles = require("./Particles");
 
 w.Mathf = require("./Mathf");
 w.Color = require("./Color");
 w.Vector = require("./Vector");
-w.Physics = require("./Physics");
 w.Renderer = require("./Renderer");
 w.Repo = require("./Repo");
 
@@ -47,6 +47,8 @@ function initGame(){
 
   w._ = new Utils();  
   w.Time = new GameTime();
+
+  //w.Particles = new Particles();
 
   w.Controls = new Controls({
     container: cviewport

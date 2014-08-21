@@ -64,7 +64,6 @@ module.exports = function(grunt) {
           bitwise: true
           ,curly: true
           ,eqeqeq: true
-          ,forin: true
           ,immed: true
           ,latedef: true
           ,newcap: true
@@ -75,6 +74,7 @@ module.exports = function(grunt) {
           ,laxcomma: true
           ,quotmark: false
           ,loopfunc: false
+          ,forin: false
 
           ,globals: {
             window: true
@@ -90,10 +90,10 @@ module.exports = function(grunt) {
             ,config: true
             ,_: true
             ,Controls: true
-            ,Physics: true
             ,Color: true
             ,Repo: true
             ,DEBUG: true
+            ,Particles: true
           }
         }
 

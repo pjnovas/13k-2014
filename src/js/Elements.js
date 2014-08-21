@@ -27,31 +27,27 @@ Elements.prototype.draw = function(ctx){
     , gap = 30
     , i = 0;
 
-  for (var ele in elementsSP){
-    if (elementsSP.hasOwnProperty(ele)){
-      
-      var pos = { x: this.pos.x, y: this.pos.y + (i * (this.size + gap)) };
+  for (var ele in elementsSP){      
+    var pos = { x: this.pos.x, y: this.pos.y + (i * (this.size + gap)) };
 
-      Renderer.drawRect(ctx, {
-        pos: pos,
-        size: this.spSize,
-        corner: 8,
-        fill: (this.selected[ele] ? "white" : "transparent"),
-        stroke: (this.active && this.current === ele ? "red" : "gray"),
-        strokeWidth: 5
-      });
+    Renderer.drawRect(ctx, {
+      pos: pos,
+      size: this.spSize,
+      corner: 8,
+      fill: (this.selected[ele] ? "white" : "transparent"),
+      stroke: (this.active && this.current === ele ? "red" : "gray"),
+      strokeWidth: 5
+    });
 
-      Renderer.drawSprite(ctx, {
-        resource: "elements",
-        pos: pos,
-        size: this.spSize,
-        angle: 0,
-        sp: elementsSP[ele]
-      });
+    Renderer.drawSprite(ctx, {
+      resource: "elements",
+      pos: pos,
+      size: this.spSize,
+      angle: 0,
+      sp: elementsSP[ele]
+    });
 
-      i++;
-    }
+    i++;
   }
-
 
 };

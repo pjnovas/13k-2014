@@ -20,7 +20,6 @@ Renderer.drawCircle = function(ctx, ps){
   ctx.beginPath();
   ctx.arc(ps.pos.x, ps.pos.y, ps.radius, 0, 2 * Math.PI, false);
   
-
   ctx.fillStyle = ps.color;
   ctx.fill();
 

@@ -40,21 +40,17 @@ module.exports = (function(){
     load: function(){
       loaded = 0;
       for (var img in resources) {
-        if (resources.hasOwnProperty(img)){
-          this[img] = new window.Image();
-          this[img].onload = imageLoaded;
-          this[img].onerror = imageFailed;
-          this[img].src = resources[img];
-        }
+        this[img] = new window.Image();
+        this[img].onload = imageLoaded;
+        this[img].onerror = imageFailed;
+        this[img].src = resources[img];
       }
       return this;
     },
     
     addResources: function(newResources){
       for(var r in newResources){
-        if (newResources.hasOwnProperty(r)){
-          resources[r] = newResources[r];
-        }
+        resources[r] = newResources[r];
       }
       return this;
     }

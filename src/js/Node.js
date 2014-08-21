@@ -20,6 +20,21 @@ var Node = module.exports = function(pos){
   this.shaked = false;
   this.originalPos = null;
   this.hasEarth = false;
+/*
+  Particles.createEmitter(this, {
+    max: 3,
+    type: "circle",
+
+    g: { x: 0, y: -1 },
+    d: { x: 0, y: -1 },
+    
+    colorFrom: [255,0,0,1],
+    colorTo: [0,0,0,0.2],
+
+    life: 2,
+    size: 1
+  });
+*/
 };
 
 Node.prototype.addNear = function(node){
