@@ -291,6 +291,13 @@ var Elements = module.exports = function(){
   this.current = null;
   this.active = false;
   this.selected = {};
+
+  this.keys = {
+    fire: "Q",
+    water: "W",
+    earth: "E",
+    air: "R"
+  };
 };
 
 Elements.prototype.update = function(){
@@ -307,7 +314,7 @@ Elements.prototype.update = function(){
 
 Elements.prototype.draw = function(ctx){
   var elementsSP = config.elements.sprites
-    , gap = 30
+    , gap = 50
     , i = 0;
 
   for (var ele in elementsSP){      
@@ -328,6 +335,24 @@ Elements.prototype.draw = function(ctx){
       size: this.spSize,
       angle: 0,
       sp: elementsSP[ele]
+    });
+
+    var txtPos = { x: pos.x, y: pos.y + this.spSize.y * 1.1 };
+    var txtSize = 20;
+
+    Renderer.drawRect(ctx, {
+      pos: { x: txtPos.x - txtSize/2, y: txtPos.y - txtSize},
+      size: Vector.multiply(Vector.one, txtSize*2),
+      corner: 4,
+      fill: "gray",
+      strokeWidth: 2
+    });
+
+    Renderer.drawText(ctx, {
+      text: this.keys[ele],
+      pos: txtPos,
+      size: txtSize,
+      color: "#fff"
     });
 
     i++;
@@ -663,6 +688,7 @@ Node.prototype.revive = function(){
 Node.prototype.burn = function(){
   if (!this.burned){
     this.incTemp = 1;
+    
   }
 };
 
@@ -674,7 +700,7 @@ Node.prototype.cool = function(){
 };
 
 Node.prototype.applyEarth = function(){
-  if (!this.burned /*&& !this.target*/){
+  if (!this.burned){
     this.hasEarth = true;
   }
 };
@@ -987,9 +1013,10 @@ var Path = module.exports = function(na, nb){
   this.nb = nb;
 
   this.size = config.paths.size;
-  this.tBurn = config.paths.tBurn;
+  this.tBurn = 0.5; //config.paths.tBurn;
 
   this.burned = false;
+  this.heat = null;
 };
 
 Path.prototype.update = function(){
@@ -997,6 +1024,19 @@ Path.prototype.update = function(){
     , nbT = this.nb.temp
     , naC = this.na.color
     , nbC = this.nb.color;
+
+  if (naT > 0){
+    this.heat = {
+      from: this.na.pos,
+      to: Vector.round(Vector.lerp(this.na.pos, this.nb.pos, naT * 2 > 1 ? 1 : naT * 2 ))
+    };
+  }
+  else if (nbT > 0){
+    this.heat = {
+      from: this.nb.pos,
+      to: Vector.round(Vector.lerp(this.nb.pos, this.na.pos, nbT * 2 > 1 ? 1 : nbT * 2))
+    };
+  }
 
   if (naT > this.tBurn && nbT === 0){
     this.nb.burn();
@@ -1013,6 +1053,7 @@ Path.prototype.update = function(){
   }
 
   if (this.na.burned || this.nb.burned) {
+    this.heat = null;
     this.burned = true;
     this.color = Color.toRGBA(config.paths.colors.burned);
   }
@@ -1026,6 +1067,16 @@ Path.prototype.draw = function(ctx){
     size: this.size,
     color: this.color
   });
+
+  if (this.heat){
+    Renderer.drawLine(ctx, {
+      from: this.heat.from,
+      to: this.heat.to,
+      size: 5,
+      color: "rgba(255,0,0,0.4)"
+    });
+  }
+  
 
 };
 },{}],12:[function(require,module,exports){
@@ -1088,7 +1139,7 @@ function stroke(ctx, ps){
 Renderer.drawCircle = function(ctx, ps){
   ctx.beginPath();
   ctx.arc(ps.pos.x, ps.pos.y, ps.radius, 0, 2 * Math.PI, false);
-  
+
   ctx.fillStyle = ps.color;
   ctx.fill();
 
@@ -1104,6 +1155,8 @@ Renderer.drawLine = function(ctx, ps){
     , b = ps.to;
 
   ctx.beginPath();
+
+  ctx.lineCap = 'round';
 
   ctx.moveTo(a.x, a.y);
   ctx.lineTo(b.x, b.y);
@@ -1149,7 +1202,7 @@ Renderer.drawSprite = function(ctx, ps){
 
 Renderer.drawText = function(ctx, ps){
   ctx.font = ps.size + 'pt Arial';
-  ctx.textBaseline = 'middle';
+  ctx.textBaseline = ps.baseline || 'middle';
   ctx.fillStyle = ps.color;
   ctx.fillText(ps.text, ps.pos.x, ps.pos.y);
 };
@@ -1696,7 +1749,7 @@ var Stats = module.exports = function(){
 
   this.oAPos = Vector.origin(this.aPos, this.spSize);
   this.oKPos = Vector.origin(this.kPos, this.spSize);
-  this.txtSize = 40;
+  this.txtSize = 30;
 };
 
 Stats.prototype.set = function(stats){
@@ -1842,9 +1895,10 @@ Target.prototype.draw = function(ctx){
   var endAngle = 1.52 * Math.PI;
 
   ctx.beginPath();
+  ctx.lineCap = 'butt';
   ctx.arc(this.pos.x, this.pos.y, this.size/2, startAngle, endAngle, false);
   ctx.lineWidth = this.size;
-  ctx.strokeStyle = "rgba(0,255,0,0.3)";
+  ctx.strokeStyle = "rgba(0,255,85,0.3)";
   ctx.stroke();
 
 };

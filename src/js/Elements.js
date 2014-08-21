@@ -8,6 +8,13 @@ var Elements = module.exports = function(){
   this.current = null;
   this.active = false;
   this.selected = {};
+
+  this.keys = {
+    fire: "Q",
+    water: "W",
+    earth: "E",
+    air: "R"
+  };
 };
 
 Elements.prototype.update = function(){
@@ -24,7 +31,7 @@ Elements.prototype.update = function(){
 
 Elements.prototype.draw = function(ctx){
   var elementsSP = config.elements.sprites
-    , gap = 30
+    , gap = 50
     , i = 0;
 
   for (var ele in elementsSP){      
@@ -45,6 +52,24 @@ Elements.prototype.draw = function(ctx){
       size: this.spSize,
       angle: 0,
       sp: elementsSP[ele]
+    });
+
+    var txtPos = { x: pos.x, y: pos.y + this.spSize.y * 1.1 };
+    var txtSize = 20;
+
+    Renderer.drawRect(ctx, {
+      pos: { x: txtPos.x - txtSize/2, y: txtPos.y - txtSize},
+      size: Vector.multiply(Vector.one, txtSize*2),
+      corner: 4,
+      fill: "gray",
+      strokeWidth: 2
+    });
+
+    Renderer.drawText(ctx, {
+      text: this.keys[ele],
+      pos: txtPos,
+      size: txtSize,
+      color: "#fff"
     });
 
     i++;

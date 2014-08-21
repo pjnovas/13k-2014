@@ -19,7 +19,7 @@ function stroke(ctx, ps){
 Renderer.drawCircle = function(ctx, ps){
   ctx.beginPath();
   ctx.arc(ps.pos.x, ps.pos.y, ps.radius, 0, 2 * Math.PI, false);
-  
+
   ctx.fillStyle = ps.color;
   ctx.fill();
 
@@ -35,6 +35,8 @@ Renderer.drawLine = function(ctx, ps){
     , b = ps.to;
 
   ctx.beginPath();
+
+  ctx.lineCap = 'round';
 
   ctx.moveTo(a.x, a.y);
   ctx.lineTo(b.x, b.y);
@@ -80,7 +82,7 @@ Renderer.drawSprite = function(ctx, ps){
 
 Renderer.drawText = function(ctx, ps){
   ctx.font = ps.size + 'pt Arial';
-  ctx.textBaseline = 'middle';
+  ctx.textBaseline = ps.baseline || 'middle';
   ctx.fillStyle = ps.color;
   ctx.fillText(ps.text, ps.pos.x, ps.pos.y);
 };

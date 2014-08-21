@@ -94,6 +94,7 @@ Node.prototype.revive = function(){
 Node.prototype.burn = function(){
   if (!this.burned){
     this.incTemp = 1;
+    
   }
 };
 
@@ -105,7 +106,7 @@ Node.prototype.cool = function(){
 };
 
 Node.prototype.applyEarth = function(){
-  if (!this.burned /*&& !this.target*/){
+  if (!this.burned){
     this.hasEarth = true;
   }
 };

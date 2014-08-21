@@ -31,7 +31,7 @@ var Stats = module.exports = function(){
 
   this.oAPos = Vector.origin(this.aPos, this.spSize);
   this.oKPos = Vector.origin(this.kPos, this.spSize);
-  this.txtSize = 40;
+  this.txtSize = 30;
 };
 
 Stats.prototype.set = function(stats){
