@@ -1832,7 +1832,7 @@ var Target = module.exports = function(){
 
   this.pos = Vector.prod(config.target.pos, config.size);
   this.pos.x -= marginW + 10;
-  this.pos.y -= marginH + 10;
+  this.pos.y -= marginH + 20;
   
   this.color = config.target.color;
   this.dColor = Color.toRGBA(this.color);
@@ -2012,8 +2012,7 @@ Vacuum.prototype.drawBG = function(ctx){
   
   var offx = this.offx
     , offy = this.offy
-    , tunnel = [ [0,480], [120,400], [160,450], [160,480] ]
-    , tube = [ [160,450], [185,450], [185,380], [225,380], [225,480], [160,480] ];
+    , tube = [ [70,460], [120,400], [160,445], [195,450, 185,380], [225,380], [230,510, 145,475] ];
 
   function drawPath(path, fill, stroke){
     ctx.beginPath();
@@ -2022,7 +2021,13 @@ Vacuum.prototype.drawBG = function(ctx){
     ctx.moveTo(offx + first[0], offy + first[1]);
 
     for (var i=1; i<path.length; i++){
-      ctx.lineTo(offx + path[i][0], offy + path[i][1]);
+      var p = path[i];
+      if (p.length === 4){
+        ctx.quadraticCurveTo(offx + p[0], offy + p[1], offx + p[2], offy + p[3]);
+      }
+      else {
+        ctx.lineTo(offx + p[0], offy + p[1]);
+      }
     }
 
     ctx.lineTo(offx + first[0], offy + first[1]);
@@ -2040,7 +2045,6 @@ Vacuum.prototype.drawBG = function(ctx){
     ctx.closePath();
   }
 
-  drawPath(tunnel, '#9e9e9e', '#474747');
   drawPath(tube, '#9e9e9e', '#474747');
 
   var cPos = { x: offx + 150, y: offy + 50 };

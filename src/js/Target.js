@@ -9,7 +9,7 @@ var Target = module.exports = function(){
 
   this.pos = Vector.prod(config.target.pos, config.size);
   this.pos.x -= marginW + 10;
-  this.pos.y -= marginH + 10;
+  this.pos.y -= marginH + 20;
   
   this.color = config.target.color;
   this.dColor = Color.toRGBA(this.color);
