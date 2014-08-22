@@ -75,7 +75,7 @@ Target.prototype.draw = function(ctx){
   ctx.lineCap = 'butt';
   ctx.arc(this.pos.x, this.pos.y, this.size/2, startAngle, endAngle, false);
   ctx.lineWidth = this.size;
-  ctx.strokeStyle = "rgba(0,255,85,0.3)";
+  ctx.strokeStyle = "rgba(80,255,85,0.1)";
   ctx.stroke();
 
 };

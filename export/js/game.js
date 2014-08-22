@@ -1898,7 +1898,7 @@ Target.prototype.draw = function(ctx){
   ctx.lineCap = 'butt';
   ctx.arc(this.pos.x, this.pos.y, this.size/2, startAngle, endAngle, false);
   ctx.lineWidth = this.size;
-  ctx.strokeStyle = "rgba(0,255,85,0.3)";
+  ctx.strokeStyle = "rgba(80,255,85,0.1)";
   ctx.stroke();
 
 };
@@ -1944,17 +1944,43 @@ var Vacuum = module.exports = function(target){
 Vacuum.prototype.update = function(){
   this.current = this.target.saved.length;
 
-  //TODO: Update spider animation inside the Vacuum
+  var p = this.recipePos
+    , s = this.recipeSize
+    , centerY = p.y + (s.y/2)
+    , centerX = p.x + (s.x/2)
+    , sinTime = Time.time * 2 * Math.PI;
 
-  var margin = 15;
   this.target.saved.forEach(function(spider){
+
     if (!spider.inVacuum){
       spider.inVacuum = true;
+      
+      spider.vacuum = {
+        ampY: Mathf.rnd(10, centerY/2),
+        velY: Mathf.rnd(600, 1000),
+        ampX: Mathf.rnd(5, 20),
+        velX: Mathf.rnd(2000, 6000),
+        rot: Mathf.rnd(1, 5)/10
+      };
+
       spider.pos = { 
-        x: Mathf.rnd(this.recipePos.x + margin, this.recipePos.x + this.recipeSize.x - margin), 
-        y: Mathf.rnd(this.recipePos.y + margin, this.recipePos.y + this.recipeSize.y - margin)
+        x: centerX,
+        y: centerY
       };
     }
+    else {
+      spider.animate();
+
+      var v = spider.vacuum;
+
+      spider.pos = {
+        x: v.ampX * Math.sin(sinTime / v.velX) + centerX,
+        y: v.ampY * Math.sin(sinTime / v.velY) + centerY
+      };
+
+      spider.angle += v.rot;
+    }
+
   }, this);
   
 };
