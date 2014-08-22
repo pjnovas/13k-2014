@@ -6,15 +6,23 @@ Color.toRGBA = function(arr){
 };
 
 Color.lerp = function(from, to, t){
-  var fromA = from[3] === undefined ? 1 : from[3];
-  var toA = to[3] === undefined ? 1 : to[3];
 
-  var r = Math.round(Mathf.lerp(from[0], to[0], t));
-  var g = Math.round(Mathf.lerp(from[1], to[1], t));
-  var b = Math.round(Mathf.lerp(from[2], to[2], t));
-  var a = Math.round(Mathf.lerp(fromA, toA, t) * 100) / 100;
+  function l(a, b, t, m){
+    m = m ? m : 1;
+    return Math.round(Mathf.lerp(a, b, t) * m) / m;
+  }
 
-  return [r,g,b,a];
+  return [
+      l(from[0], to[0], t)
+    , l(from[1], to[1], t)
+    , l(from[2], to[2], t)
+    , l(
+        from[3] >= 0 ? from[3]: 1
+      , to[3] >= 0 ? to[3] : 1
+      , t
+      , 100
+      )
+  ];
 };
 
 Color.eql = function(a, b){

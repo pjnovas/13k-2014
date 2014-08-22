@@ -7,7 +7,6 @@ module.exports = {
 
   nodes: {
       size: 3
-    , targetSize: 6
     , colors: {
         cold: [255,255,255,1]
       , burn: [255,0,0,1]
@@ -17,11 +16,7 @@ module.exports = {
   },
 
   paths: {
-      size: 2
-    , tBurn: 0.5
-    , colors: {
-        burned: [0,0,0,0.2]
-    }
+    size: 2
   },
 
   spiders: {
@@ -46,9 +41,7 @@ module.exports = {
   },
 
   target: {
-      pos: { x: 1, y: 1 }
-    , size: 180
-    , color: [255,255,255,0.2]
+      size: 180
     , suckForce: 3
   },
 

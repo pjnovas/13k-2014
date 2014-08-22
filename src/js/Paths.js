@@ -24,9 +24,7 @@ Paths.prototype.addOne = function(nA, nB){
 
 Paths.prototype.update = function(){
   this.paths.forEach(function (path) {
-    //if (!path.burned){
-      path.update();
-    //}
+    path.update();
   });
 };
 

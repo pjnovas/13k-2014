@@ -146,6 +146,15 @@ module.exports = function(grunt) {
       }
     },
 
+    cssmin: {
+      all: {
+        files: {
+          "<%= paths.dist.exportCSS %><%= paths.dist.gameCSS %>": 
+            ["<%= paths.dist.exportCSS %><%= paths.dist.gameCSS %>"],
+        }
+      }
+    }
+
   });
 
   grunt.loadNpmTasks('grunt-contrib-watch');
@@ -156,6 +165,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-contrib-uglify');
+  grunt.loadNpmTasks('grunt-contrib-cssmin');
 
   var build = [
     "clean", 
@@ -165,7 +175,7 @@ module.exports = function(grunt) {
   ];
 
   grunt.registerTask("default", build);
-  grunt.registerTask("export", build.concat(["uglify"]));
+  grunt.registerTask("export", build.concat(["uglify", "cssmin"]));
   
   return grunt.registerTask('server', function() {
     grunt.task.run(build);

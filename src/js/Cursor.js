@@ -1,21 +1,10 @@
 
 var Cursor = module.exports = function(){
   this.pos = { x: 0, y: 0 };
-  
-  this.normalSize = 20;
-  this.airSize = 50;
-
-  this.size = this.normalSize;
-
-  this.coldColor = [0,0,255,0.5];
-  this.burnColor = [255,0,0,0.4];
-  this.earthColor = [165,140,80,0.4];
-  this.airColor = [0,220,255,0.4];
-
-  this.color = [255,255,255,0.5];
 
   this.active = false;
   this.element = "fire";
+  this.color = [255,255,255,0.5];
 
   Controls.on("pressing", this.onPressing.bind(this));
   Controls.on("moving", this.onMoving.bind(this));
@@ -41,23 +30,18 @@ Cursor.prototype.onElement = function(element){
 };
 
 Cursor.prototype.update = function(){
-  this.size = this.normalSize;
+  var elements = ["fire", "water", "earth", "air"]
+    , alpha = 0.4
+    , sizes = [20,20,20,50]
+    , colors = [
+        [255,0,0, alpha]
+      , [0,0,255, alpha]
+      , [165,140,80, alpha]
+      , [0,220,255, alpha]
+    ];
 
-  switch(this.element){
-    case "fire":
-      this.color = this.burnColor;
-      break;
-    case "water":
-      this.color = this.coldColor;
-      break;
-    case "earth":
-      this.color = this.earthColor;
-      break;
-    case "air":
-      this.color = this.airColor;
-      this.size = this.airSize;
-      break;
-  }
+  this.color = colors[elements.indexOf(this.element)];
+  this.size = sizes[elements.indexOf(this.element)];
 };
 
 Cursor.prototype.draw = function(ctx){

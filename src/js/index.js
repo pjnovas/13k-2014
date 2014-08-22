@@ -76,12 +76,6 @@ function onDocLoad(){
   configGame();
 
   w.Repo.addResources(w.config.images)
-    .on('error', function(err){
-      console.log(err);
-    })
-    .on('report', function(prg){
-      console.log("Images loaded: " + prg);
-    })
     .on('complete', function(){
       initGame();
       w.game.start();

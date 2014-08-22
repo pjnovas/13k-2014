@@ -7,13 +7,10 @@ var Target = module.exports = function(){
   var marginW = config.world.margin.x;
   var marginH = config.world.margin.y;
 
-  this.pos = Vector.prod(config.target.pos, config.size);
+  this.pos = Vector.prod(Vector.one, config.size);
   this.pos.x -= marginW + 10;
   this.pos.y -= marginH + 20;
   
-  this.color = config.target.color;
-  this.dColor = Color.toRGBA(this.color);
-
   this.saved = [];
   this.saving = [];
 };
@@ -67,19 +64,7 @@ Target.prototype.update = function(spiders){
 };
 
 Target.prototype.draw = function(ctx){
-  /*
-  Renderer.drawCircle(ctx, {
-    pos: this.pos,
-    radius: this.size,
-    color: this.dColor
-  });
-
-  Renderer.drawCircle(ctx, {
-    pos: this.pos,
-    radius: 5,
-    color: "rgba(255,0,0,1)"
-  });
-  */
+ 
   var startAngle = 0.97 * Math.PI;
   var endAngle = 1.52 * Math.PI;
 

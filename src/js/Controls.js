@@ -1,6 +1,6 @@
 
 var Desktop = module.exports = function(options){
-  this.container = options.container || window.document;
+  var c = this.container = options.container || window.document;
 
   this.events = {
       "pressing": null
@@ -12,17 +12,10 @@ var Desktop = module.exports = function(options){
 
   this.enabled = false;
 
-  this.onMouseUp = this._onMouseUp.bind(this);
-  this.onMouseDown = this._onMouseDown.bind(this);
-  this.onMouseMove = this._onMouseMove.bind(this);
-  
-  this.keyUp = this._onKeyUp.bind(this);
-
-  this.container.onmouseup = this.onMouseUp;
-  this.container.onmousedown = this.onMouseDown;
-  this.container.onmousemove = this.onMouseMove;
-  window.document.onkeyup = this.keyUp;
-  window.document.onkeydown = this.keyDown;
+  c.onmouseup = this._onMouseEvent.bind(this, "release");
+  c.onmousedown = this._onMouseEvent.bind(this, "pressing");
+  c.onmousemove = this._onMouseEvent.bind(this, "moving");
+  window.document.onkeyup = this._onKeyUp.bind(this);
 };
 
 Desktop.prototype.enable = function(){
@@ -54,15 +47,18 @@ Desktop.prototype.off = function(evName){
 };
 
 function getCoordsEvent(e, canvas){
-  var x, y;
+  var x, y
+    , doc = document
+    , body = doc.body
+    , docEle = doc.documentElement;
 
   if (e.pageX || e.pageY) { 
     x = e.pageX;
     y = e.pageY;
   }
   else { 
-    x = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft; 
-    y = e.clientY + document.body.scrollTop + document.documentElement.scrollTop; 
+    x = e.clientX + body.scrollLeft + docEle.scrollLeft; 
+    y = e.clientY + body.scrollTop + docEle.scrollTop; 
   } 
   
   x -= canvas.offsetLeft;
@@ -72,8 +68,7 @@ function getCoordsEvent(e, canvas){
 }
 
 Desktop.prototype._getEventName = function(e){
-  var key = e.which || e.keyCode;
-  switch(key){
+  switch(e.which || e.keyCode){
     case 81: //Q
     case 113: //q
       return "element:fire";
@@ -86,7 +81,6 @@ Desktop.prototype._getEventName = function(e){
     case 82: //R
     case 114: //r
       return "element:air";
-
     case 112: //P
     case 80: //p
       return "pause";
@@ -119,38 +113,14 @@ Desktop.prototype._onKeyUp = function(e){
   }
 };
 
-Desktop.prototype._onMouseUp = function(e){
+Desktop.prototype._onMouseEvent = function(type, e){
   if (!this.enabled){
     return;
   }
 
   var pos = getCoordsEvent(e, this.container);
 
-  this.events.release.forEach(function(cb){
-    cb(pos);
-  });
-};
-
-Desktop.prototype._onMouseDown = function(e){
-  if (!this.enabled){
-    return;
-  }
-
-  var pos = getCoordsEvent(e, this.container);
-
-  this.events.pressing.forEach(function(cb){
-    cb(pos);
-  });
-};
-
-Desktop.prototype._onMouseMove = function(e){
-  if (!this.enabled){
-    return;
-  }
-
-  var pos = getCoordsEvent(e, this.container);
-
-  this.events.moving.forEach(function(cb){
+  this.events[type].forEach(function(cb){
     cb(pos);
   });
 };
