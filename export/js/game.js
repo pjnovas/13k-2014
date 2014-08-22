@@ -484,14 +484,11 @@ var Manager = module.exports = function(){
   this.paths = new Paths();
   this.target = new Target();
   this.vacuum = new Vacuum(this.target);
-  this.stats = new Stats();
   this.elements = new Elements();
+  this.spiders = new Spiders(this.nodes);
+  this.stats = new Stats();
 
-  var self = this;
-
-  this.spiders = new Spiders(this.nodes, function(_stats){
-    self.stats.set(_stats);
-  });
+  this.target.setNodesInside(this.nodes.GetNodes());
 };
 
 Manager.prototype.update = function(){
@@ -515,7 +512,7 @@ Manager.prototype.update = function(){
   this.spiders.update();
   this.target.update(this.spiders.spiders);
   this.vacuum.update();
-  this.stats.update();
+  this.stats.update(this.spiders.stats);
 
   this.elements.update();
 
@@ -614,6 +611,9 @@ var Node = module.exports = function(pos){
   this.shaked = false;
   this.originalPos = null;
   this.hasEarth = false;
+
+  this.insideTarget = false;
+
 /*
   Particles.createEmitter(this, {
     max: 3,
@@ -761,7 +761,7 @@ Node.prototype.update = function(){
     }
   }
 
-  if (window.blowing) {
+  if (window.blowing || this.insideTarget) {
     this.shake();
   }
   else if (this.shaked){
@@ -1612,16 +1612,17 @@ var Spiders = module.exports = function(nodes, onExitSpider){
 
   this.generateSpiders();
 
+  this.stats = {};
   this.updateGUI();
 };
 
 Spiders.prototype.updateGUI = function(){
-  this.onExitSpider({
+  this.stats = {
     saved: this.spidersExit,
     killed: this.spidersKilled,
     alives: this.spiders.length - (this.spidersKilled + this.spidersExit),
     total: this.spiders.length
-  });
+  };
 };
 
 Spiders.prototype.onSpiderDead = function(){
@@ -1647,12 +1648,6 @@ Spiders.prototype.generateSpiders = function(){
       amount--;
     }
   } while(amount);
-};
-
-Spiders.prototype.exitSpider = function(spider){
-  spider.exited = true;
-  this.spidersExit++;
-  this.updateGUI();
 };
 
 Spiders.prototype.update = function(){
@@ -1693,19 +1688,26 @@ Spiders.prototype.update = function(){
 
   var nodes = this.nodes.GetNodes();
 
+  var lastExits = this.spidersExit;
+  this.spidersExit = 0;
   this.spiders.forEach(function (spider) {
 
-      if (!spider.exited && spider.canMove()){
-
-        nodes.some(function (node) {
-          spiderNodeCollide(spider, node);
-        }, this);
-
-      }
-    
-      spider.update();
+    if (spider.exited){
+      this.spidersExit++;
+    }
+    else if (spider.canMove()){
+      nodes.some(function (node) {
+        spiderNodeCollide(spider, node);
+      }, this);
+    }
+  
+    spider.update();
 
   }, this);
+
+  if (lastExits !== this.spidersExit){
+    this.updateGUI();
+  }
 };
 
 Spiders.prototype.draw = function(ctx){
@@ -1752,12 +1754,8 @@ var Stats = module.exports = function(){
   this.txtSize = 30;
 };
 
-Stats.prototype.set = function(stats){
+Stats.prototype.update = function(stats){
   this.stats = stats;
-};
-
-Stats.prototype.update = function(){
-
 };
 
 Stats.prototype.draw = function(ctx){
@@ -1823,7 +1821,7 @@ Stats.prototype.drawStats = function(ctx){
 },{}],19:[function(require,module,exports){
 
 var Target = module.exports = function(){
-  
+
   this.size = config.size.y/6; // config.target.size;
   this.suckForce = config.target.suckForce;
 
@@ -1839,6 +1837,18 @@ var Target = module.exports = function(){
 
   this.saved = [];
   this.saving = [];
+};
+
+Target.prototype.setNodesInside = function(nodes){
+  nodes.forEach(function(node){
+    if (Vector.pointInCircle(node.pos, this.pos, this.size)){
+      if (node.burned){
+        node.burned = false;
+        node.revive();
+      }
+      node.insideTarget = true;
+    }
+  }, this);
 };
 
 Target.prototype.update = function(spiders){

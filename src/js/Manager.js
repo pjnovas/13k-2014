@@ -15,14 +15,11 @@ var Manager = module.exports = function(){
   this.paths = new Paths();
   this.target = new Target();
   this.vacuum = new Vacuum(this.target);
-  this.stats = new Stats();
   this.elements = new Elements();
+  this.spiders = new Spiders(this.nodes);
+  this.stats = new Stats();
 
-  var self = this;
-
-  this.spiders = new Spiders(this.nodes, function(_stats){
-    self.stats.set(_stats);
-  });
+  this.target.setNodesInside(this.nodes.GetNodes());
 };
 
 Manager.prototype.update = function(){
@@ -46,7 +43,7 @@ Manager.prototype.update = function(){
   this.spiders.update();
   this.target.update(this.spiders.spiders);
   this.vacuum.update();
-  this.stats.update();
+  this.stats.update(this.spiders.stats);
 
   this.elements.update();
 

@@ -14,16 +14,17 @@ var Spiders = module.exports = function(nodes, onExitSpider){
 
   this.generateSpiders();
 
+  this.stats = {};
   this.updateGUI();
 };
 
 Spiders.prototype.updateGUI = function(){
-  this.onExitSpider({
+  this.stats = {
     saved: this.spidersExit,
     killed: this.spidersKilled,
     alives: this.spiders.length - (this.spidersKilled + this.spidersExit),
     total: this.spiders.length
-  });
+  };
 };
 
 Spiders.prototype.onSpiderDead = function(){
@@ -49,12 +50,6 @@ Spiders.prototype.generateSpiders = function(){
       amount--;
     }
   } while(amount);
-};
-
-Spiders.prototype.exitSpider = function(spider){
-  spider.exited = true;
-  this.spidersExit++;
-  this.updateGUI();
 };
 
 Spiders.prototype.update = function(){
@@ -95,19 +90,26 @@ Spiders.prototype.update = function(){
 
   var nodes = this.nodes.GetNodes();
 
+  var lastExits = this.spidersExit;
+  this.spidersExit = 0;
   this.spiders.forEach(function (spider) {
 
-      if (!spider.exited && spider.canMove()){
-
-        nodes.some(function (node) {
-          spiderNodeCollide(spider, node);
-        }, this);
-
-      }
-    
-      spider.update();
+    if (spider.exited){
+      this.spidersExit++;
+    }
+    else if (spider.canMove()){
+      nodes.some(function (node) {
+        spiderNodeCollide(spider, node);
+      }, this);
+    }
+  
+    spider.update();
 
   }, this);
+
+  if (lastExits !== this.spidersExit){
+    this.updateGUI();
+  }
 };
 
 Spiders.prototype.draw = function(ctx){

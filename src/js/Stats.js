@@ -34,12 +34,8 @@ var Stats = module.exports = function(){
   this.txtSize = 30;
 };
 
-Stats.prototype.set = function(stats){
+Stats.prototype.update = function(stats){
   this.stats = stats;
-};
-
-Stats.prototype.update = function(){
-
 };
 
 Stats.prototype.draw = function(ctx){

@@ -1,6 +1,6 @@
 
 var Target = module.exports = function(){
-  
+
   this.size = config.size.y/6; // config.target.size;
   this.suckForce = config.target.suckForce;
 
@@ -16,6 +16,18 @@ var Target = module.exports = function(){
 
   this.saved = [];
   this.saving = [];
+};
+
+Target.prototype.setNodesInside = function(nodes){
+  nodes.forEach(function(node){
+    if (Vector.pointInCircle(node.pos, this.pos, this.size)){
+      if (node.burned){
+        node.burned = false;
+        node.revive();
+      }
+      node.insideTarget = true;
+    }
+  }, this);
 };
 
 Target.prototype.update = function(spiders){

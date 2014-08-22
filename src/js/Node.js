@@ -20,6 +20,9 @@ var Node = module.exports = function(pos){
   this.shaked = false;
   this.originalPos = null;
   this.hasEarth = false;
+
+  this.insideTarget = false;
+
 /*
   Particles.createEmitter(this, {
     max: 3,
@@ -167,7 +170,7 @@ Node.prototype.update = function(){
     }
   }
 
-  if (window.blowing) {
+  if (window.blowing || this.insideTarget) {
     this.shake();
   }
   else if (this.shaked){
