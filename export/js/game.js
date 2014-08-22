@@ -34,8 +34,6 @@ var Desktop = module.exports = function(options){
     , "moving": null
     , "release": null
     , "element": null
-    , "blowing:on": null
-    , "blowing:off": null
     , "pause": null
   };
 
@@ -46,7 +44,6 @@ var Desktop = module.exports = function(options){
   this.onMouseMove = this._onMouseMove.bind(this);
   
   this.keyUp = this._onKeyUp.bind(this);
-  this.keyDown = this._onKeyDown.bind(this);
 
   this.container.onmouseup = this.onMouseUp;
   this.container.onmousedown = this.onMouseDown;
@@ -115,7 +112,7 @@ Desktop.prototype._getEventName = function(e){
       return "element:earth";
     case 82: //R
     case 114: //r
-      return "blowing";
+      return "element:air";
 
     case 112: //P
     case 80: //p
@@ -134,10 +131,7 @@ Desktop.prototype._onKeyUp = function(e){
 
   if (evName){
 
-    if (evName === "blowing"){
-      evName += ":off";
-    }
-    else if (evName.indexOf("element") > -1){
+    if (evName.indexOf("element") > -1){
       var element = evName.split(":")[1];
       this.events.element.forEach(function(cb){
         cb(element);
@@ -150,23 +144,6 @@ Desktop.prototype._onKeyUp = function(e){
       cb();
     });
   }
-};
-
-Desktop.prototype._onKeyDown = function(e){
-  if (!this.enabled){
-    return;
-  }
-
-  var evName = this._getEventName(e);
-
-  // for now only blow for key down
-  if (evName !== "blowing"){
-    return;
-  }
-
-  this.events[evName + ":on"].forEach(function(cb){
-    cb();
-  });
 };
 
 Desktop.prototype._onMouseUp = function(e){
@@ -208,24 +185,26 @@ Desktop.prototype._onMouseMove = function(e){
 
 var Cursor = module.exports = function(){
   this.pos = { x: 0, y: 0 };
-  this.size = 20;
+  
+  this.normalSize = 20;
+  this.airSize = 50;
+
+  this.size = this.normalSize;
 
   this.coldColor = [0,0,255,0.5];
   this.burnColor = [255,0,0,0.4];
   this.earthColor = [165,140,80,0.4];
+  this.airColor = [0,220,255,0.4];
 
   this.color = [255,255,255,0.5];
 
   this.active = false;
   this.element = "fire";
-  this.blowing = false;
 
   Controls.on("pressing", this.onPressing.bind(this));
   Controls.on("moving", this.onMoving.bind(this));
   Controls.on("release", this.onRelease.bind(this));
   Controls.on("element", this.onElement.bind(this));
-  Controls.on("blowing:on", this.onBlowing.bind(this));
-  Controls.on("blowing:off", this.onStopBlowing.bind(this));
 };
 
 Cursor.prototype.onPressing = function(pos){
@@ -245,15 +224,9 @@ Cursor.prototype.onElement = function(element){
   this.element = element;
 };
 
-Cursor.prototype.onStopBlowing = function(){
-  this.blowing = false;
-};
-
-Cursor.prototype.onBlowing = function(){
-  this.blowing = true;
-};
-
 Cursor.prototype.update = function(){
+  this.size = this.normalSize;
+
   switch(this.element){
     case "fire":
       this.color = this.burnColor;
@@ -263,6 +236,10 @@ Cursor.prototype.update = function(){
       break;
     case "earth":
       this.color = this.earthColor;
+      break;
+    case "air":
+      this.color = this.airColor;
+      this.size = this.airSize;
       break;
   }
 };
@@ -613,6 +590,8 @@ var Node = module.exports = function(pos){
   this.hasEarth = false;
 
   this.insideTarget = false;
+  this.blowing = false;
+  this.blowingEnd = 0;
 
 /*
   Particles.createEmitter(this, {
@@ -688,7 +667,6 @@ Node.prototype.revive = function(){
 Node.prototype.burn = function(){
   if (!this.burned){
     this.incTemp = 1;
-    
   }
 };
 
@@ -702,6 +680,14 @@ Node.prototype.cool = function(){
 Node.prototype.applyEarth = function(){
   if (!this.burned){
     this.hasEarth = true;
+  }
+};
+
+Node.prototype.applyAir = function(){
+  if (!this.burned){
+    this.blowing = true;
+    this.hasEarth = false;
+    this.blowingEnd = Time.time + 500;
   }
 };
 
@@ -737,6 +723,10 @@ Node.prototype.setBurned = function(){
 
 Node.prototype.update = function(){
 
+  if (this.blowing && Time.time > this.blowingEnd){
+    this.blowing = false;
+  }
+
   if (this.hasEarth){
     this.dColor = Color.toRGBA(config.nodes.colors.earth);
     this.resetTemp();
@@ -753,7 +743,7 @@ Node.prototype.update = function(){
   }
 
   if (this.incTemp > 0){ // is burning
-    if (window.blowing) {    
+    if (this.blowing) {    
       this.incTempSize = 0.2; 
     }
     else {
@@ -761,7 +751,7 @@ Node.prototype.update = function(){
     }
   }
 
-  if (window.blowing || this.insideTarget) {
+  if (this.blowing || this.insideTarget) {
     this.shake();
   }
   else if (this.shaked){
@@ -970,6 +960,9 @@ Nodes.prototype.findNodeByCollider = function(){
           break;
         case "earth":
           node.applyEarth();
+          break;
+        case "air":
+          node.applyAir();
           break;
       }
     }

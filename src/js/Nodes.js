@@ -174,6 +174,9 @@ Nodes.prototype.findNodeByCollider = function(){
         case "earth":
           node.applyEarth();
           break;
+        case "air":
+          node.applyAir();
+          break;
       }
     }
   }, this);

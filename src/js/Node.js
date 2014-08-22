@@ -22,6 +22,8 @@ var Node = module.exports = function(pos){
   this.hasEarth = false;
 
   this.insideTarget = false;
+  this.blowing = false;
+  this.blowingEnd = 0;
 
 /*
   Particles.createEmitter(this, {
@@ -97,7 +99,6 @@ Node.prototype.revive = function(){
 Node.prototype.burn = function(){
   if (!this.burned){
     this.incTemp = 1;
-    
   }
 };
 
@@ -111,6 +112,14 @@ Node.prototype.cool = function(){
 Node.prototype.applyEarth = function(){
   if (!this.burned){
     this.hasEarth = true;
+  }
+};
+
+Node.prototype.applyAir = function(){
+  if (!this.burned){
+    this.blowing = true;
+    this.hasEarth = false;
+    this.blowingEnd = Time.time + 500;
   }
 };
 
@@ -146,6 +155,10 @@ Node.prototype.setBurned = function(){
 
 Node.prototype.update = function(){
 
+  if (this.blowing && Time.time > this.blowingEnd){
+    this.blowing = false;
+  }
+
   if (this.hasEarth){
     this.dColor = Color.toRGBA(config.nodes.colors.earth);
     this.resetTemp();
@@ -162,7 +175,7 @@ Node.prototype.update = function(){
   }
 
   if (this.incTemp > 0){ // is burning
-    if (window.blowing) {    
+    if (this.blowing) {    
       this.incTempSize = 0.2; 
     }
     else {
@@ -170,7 +183,7 @@ Node.prototype.update = function(){
     }
   }
 
-  if (window.blowing || this.insideTarget) {
+  if (this.blowing || this.insideTarget) {
     this.shake();
   }
   else if (this.shaked){

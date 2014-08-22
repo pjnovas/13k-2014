@@ -7,8 +7,6 @@ var Desktop = module.exports = function(options){
     , "moving": null
     , "release": null
     , "element": null
-    , "blowing:on": null
-    , "blowing:off": null
     , "pause": null
   };
 
@@ -19,7 +17,6 @@ var Desktop = module.exports = function(options){
   this.onMouseMove = this._onMouseMove.bind(this);
   
   this.keyUp = this._onKeyUp.bind(this);
-  this.keyDown = this._onKeyDown.bind(this);
 
   this.container.onmouseup = this.onMouseUp;
   this.container.onmousedown = this.onMouseDown;
@@ -88,7 +85,7 @@ Desktop.prototype._getEventName = function(e){
       return "element:earth";
     case 82: //R
     case 114: //r
-      return "blowing";
+      return "element:air";
 
     case 112: //P
     case 80: //p
@@ -107,10 +104,7 @@ Desktop.prototype._onKeyUp = function(e){
 
   if (evName){
 
-    if (evName === "blowing"){
-      evName += ":off";
-    }
-    else if (evName.indexOf("element") > -1){
+    if (evName.indexOf("element") > -1){
       var element = evName.split(":")[1];
       this.events.element.forEach(function(cb){
         cb(element);
@@ -123,23 +117,6 @@ Desktop.prototype._onKeyUp = function(e){
       cb();
     });
   }
-};
-
-Desktop.prototype._onKeyDown = function(e){
-  if (!this.enabled){
-    return;
-  }
-
-  var evName = this._getEventName(e);
-
-  // for now only blow for key down
-  if (evName !== "blowing"){
-    return;
-  }
-
-  this.events[evName + ":on"].forEach(function(cb){
-    cb();
-  });
 };
 
 Desktop.prototype._onMouseUp = function(e){
