@@ -14,9 +14,11 @@ module.exports = function(grunt) {
       dist: {
         gameJS: "game.js",
         gameCSS: "game.css",
+        export: "export/",
         exportJS: "export/js/",
         exportCSS: "export/css/",
-        exportImages: "export/images/"
+        exportImages: "export/images/",
+        exportZip: "export/dist.zip"
       }
     },
 
@@ -134,10 +136,7 @@ module.exports = function(grunt) {
             global_defs: {
               "DEBUG": false
             }
-          },
-          stripBanners: {
-            line: true
-          },
+          }
         },
         files: {
           '<%= paths.dist.exportJS %><%= paths.dist.gameJS %>': 
@@ -153,19 +152,36 @@ module.exports = function(grunt) {
             ["<%= paths.dist.exportCSS %><%= paths.dist.gameCSS %>"],
         }
       }
+    },
+
+    compress: {
+      all: {
+        options: {
+          archive: "<%= paths.dist.exportZip %>"
+        },
+        expand: true,
+        cwd: "<%= paths.dist.export %>",
+        src: ['**/*'],
+        dest: "<%= paths.dist.export %>"
+      }
     }
 
   });
 
+  // server
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-contrib-connect');
 
+  // compile
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-browserify');
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-jshint');
+
+  // export
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-cssmin');
+  //grunt.loadNpmTasks('grunt-contrib-compress');
 
   var build = [
     "clean", 
@@ -174,8 +190,13 @@ module.exports = function(grunt) {
     "copy"
   ];
 
+  var dist = [
+    "uglify", 
+    "cssmin"
+  ];
+
   grunt.registerTask("default", build);
-  grunt.registerTask("export", build.concat(["uglify", "cssmin"]));
+  grunt.registerTask("export", build.concat(dist));
   
   return grunt.registerTask('server', function() {
     grunt.task.run(build);
