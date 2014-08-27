@@ -1,5 +1,5 @@
 
-module.exports = Collection.extend({
+module.exports = psycho.Collection.extend({
 
   size: { x: 96, y: 96 },
 
@@ -19,7 +19,7 @@ module.exports = Collection.extend({
 
   createElement: function(){
     
-    this.bg = new Rect({
+    this.bg = new psycho.Rect({
       pos: this.pos,
       size: this.size,
       fill: this.color,
@@ -28,9 +28,9 @@ module.exports = Collection.extend({
     });
     this.entities.push(this.bg);
 
-    this.icon = new Sprite({
+    this.icon = new psycho.Sprite({
       resource: "elements",
-      pos: Vector.center(this.pos, this.size),
+      pos: psycho.Vector.center(this.pos, this.size),
       size: this.size,
       angle: 0,
       sprite: this.sprite
@@ -40,15 +40,15 @@ module.exports = Collection.extend({
     var txtPos = { x: this.pos.x, y: this.pos.y + this.size.y * 1.1 };
     var txtSize = 20;
 
-    this.ctrlKey = new Rect({
+    this.ctrlKey = new psycho.Rect({
       pos: { x: txtPos.x - txtSize/2, y: txtPos.y - txtSize},
-      size: Vector.multiply(Vector.one, txtSize*2),
+      size: psycho.Vector.multiply(psycho.Vector.one, txtSize*2),
       fill: [0,0,0,1],
       corner: 4
     });
     this.entities.push(this.ctrlKey);
 
-    this.txtKey = new Text({
+    this.txtKey = new psycho.Text({
       text: this.key,
       pos: txtPos,
       size: txtSize,

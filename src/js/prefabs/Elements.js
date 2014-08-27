@@ -1,7 +1,5 @@
 
-var Element = require("./Element");
-
-module.exports = Collection.extend({
+module.exports = psycho.Collection.extend({
 
   pos: { x: 20, y: 50},
 
@@ -28,7 +26,7 @@ module.exports = Collection.extend({
 
     this.elements.forEach(function(ele, i){
 
-      this.entities.push(new Element({
+      this.entities.push(new prefabs.Element({
         pos: { x: this.pos.x, y: this.pos.y + (i * (size + gap)) },
         name: ele,
         key: this.keys[i],

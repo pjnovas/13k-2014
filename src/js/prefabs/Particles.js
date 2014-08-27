@@ -1,4 +1,4 @@
-
+/*
 //var Fire = require("./Fire");
 //var WebBurned = require("./WebBurned");
 
@@ -170,3 +170,4 @@ Particles.prototype.draw = function(ctx){
   }, this);
 };
 
+*/

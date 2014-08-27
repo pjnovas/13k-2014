@@ -3,26 +3,13 @@ var doc = w.document;
 
 require("./reqAnimFrame");
 
-w.Base = require("./Base/Base");
+require("./psycho");
 
-w.Mathf = require("./Mathf");
-w.Color = require("./Color");
-w.Vector = require("./Vector");
-w.Renderer = require("./Renderer");
-w.Repo = require("./Repo");
-
-w.Entity = require("./Base/Entity");
-w.Collection = require("./Base/Collection");
-
-w.Circle = require("./Base/Circle");
-w.Line = require("./Base/Line");
-w.Rect = require("./Base/Rect");
-w.Text = require("./Base/Text");
-w.Sprite = require("./Base/Sprite");
+w.prefabs = require("./prefabs");
 
 var Game = require("./Game");
 var GameTime = require("./GameTime");
-var Controls = require("./prefabs/Controls");
+
 //var Particles = require("./Particles");
 
 function configGame(){
@@ -73,7 +60,7 @@ function initGame(){
 
   //w.Particles = new Particles();
 
-  w.Controls = new Controls({
+  w.Controls = new prefabs.Controls({
     container: cviewport
   });
 
@@ -98,7 +85,7 @@ function initGame(){
 function onDocLoad(){
   configGame();
 
-  w.Repo.addResources(w.config.images)
+  w.psycho.Repo.addResources(w.config.images)
     .onComplete(function(){
       initGame();
       w.game.start();

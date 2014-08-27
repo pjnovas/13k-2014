@@ -1,11 +1,11 @@
 
-var Path = module.exports = Line.extend({
+var Path = module.exports = psycho.Line.extend({
 
   pos: { x: 0, y: 0 },
   to: { x: 0, y: 0 },
 
   size: 2,
-  color: Color.white,
+  color: psycho.Color.white,
 
   tBurn: 0.5,
   burned: false,
@@ -21,7 +21,7 @@ var Path = module.exports = Line.extend({
   setHeat: function(from, to, t){
     this.heat = {
       from: from.pos,
-      to: Vector.round(Vector.lerp(from.pos, to.pos, t * 2 > 1 ? 1 : t * 2 ))
+      to: psycho.Vector.round(psycho.Vector.lerp(from.pos, to.pos, t * 2 > 1 ? 1 : t * 2 ))
     };
   },
 
@@ -47,11 +47,11 @@ var Path = module.exports = Line.extend({
       na.burn();
     }
 
-    if (Color.eql(naC,  nbC)){
+    if (psycho.Color.eql(naC,  nbC)){
       this.color = naC;
     }
     else {
-      this.color = Color.lerp(naC, nbC, this.tBurn);
+      this.color = psycho.Color.lerp(naC, nbC, this.tBurn);
     }
 
     if (na.burned || nb.burned) {
@@ -68,7 +68,7 @@ var Path = module.exports = Line.extend({
     Path._super.draw.apply(this, arguments);
 
     if (this.heat){
-      Renderer.drawLine(ctx, {
+      psycho.Renderer.drawLine(ctx, {
         from: this.heat.from,
         to: this.heat.to,
         size: 5,

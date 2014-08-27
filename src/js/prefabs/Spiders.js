@@ -1,7 +1,5 @@
 
-var Spider = require("./Spider");
-
-module.exports = Collection.extend({
+module.exports = psycho.Collection.extend({
 
   nodes: null,
   spidersExit: 0,
@@ -42,13 +40,13 @@ module.exports = Collection.extend({
       , amount = (len < this.amount ? len-2: this.amount);
 
     do {
-      idx = Mathf.rnd(0, len-1);
+      idx = psycho.Mathf.rnd(0, len-1);
       node = nodes[idx];
 
       if (!node.burned && nodesIds.indexOf(node.cid) === -1){
         nodesIds.push(node.cid);
         
-        this.entities.push(new Spider({
+        this.entities.push(new prefabs.Spider({
           pos: node.pos, 
           onDead: this.onSpiderDead.bind(this)
         }));
@@ -63,7 +61,7 @@ module.exports = Collection.extend({
   },
 
   gonnaBuildWeb: function(node, spider){
-    if (!node.hasEarth && node.temp === 0 && Mathf.rnd01() > 0.7) {
+    if (!node.hasEarth && node.temp === 0 && psycho.Mathf.rnd01() > 0.7) {
       var nearBurned = node.getNearBurned();
       if (nearBurned){
         spider.buildWeb(node, nearBurned);
@@ -86,7 +84,7 @@ module.exports = Collection.extend({
   },
 
   spiderNodeCollide: function(spider, node){
-    if (Vector.pointInCircle(spider.pos, node.pos, 5)) {
+    if (psycho.Vector.pointInCircle(spider.pos, node.pos, 5)) {
      
       if (!this.gonnaBuildWeb(node, spider) && !this.gotNearNodeToGo(node, spider)){
         if (node.burned){

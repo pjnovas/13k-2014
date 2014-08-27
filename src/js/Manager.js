@@ -1,32 +1,23 @@
 
-var Nodes = require("./prefabs/Nodes");
-var Paths = require("./prefabs/Paths");
-var Cursor = require("./prefabs/Cursor");
-var Spiders = require("./prefabs/Spiders");
-var Target = require("./prefabs/Target");
-var Vacuum = require("./prefabs/Vacuum");
-var Stats = require("./prefabs/Stats");
-var Elements = require("./prefabs/Elements");
-
-module.exports = Base.extend({
+module.exports = psycho.Base.extend({
 
   initialize: function(){
-    this.cursor = new Cursor();
-    this.nodes = new Nodes();
-    this.paths = new Paths();
-    this.target = new Target();
+    this.cursor = new prefabs.Cursor();
+    this.nodes = new prefabs.Nodes();
+    this.paths = new prefabs.Paths();
+    this.target = new prefabs.Target();
 
-    this.vacuum = new Vacuum({
+    this.vacuum = new prefabs.Vacuum({
       target: this.target
     });
 
-    this.elements = new Elements();
+    this.elements = new prefabs.Elements();
 
-    this.spiders = new Spiders({
+    this.spiders = new prefabs.Spiders({
       nodes: this.nodes
     });
 
-    this.stats = new Stats();
+    this.stats = new prefabs.Stats();
 
     this.target.setNodesInside(this.nodes.getNodes());
   },

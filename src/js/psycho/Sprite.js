@@ -1,5 +1,5 @@
 
-module.exports = Entity.extend({
+module.exports = psycho.Entity.extend({
 
   resource: "",
   pos: { x: 0, y: 0 },
@@ -13,7 +13,7 @@ module.exports = Entity.extend({
 
   draw: function(ctx){
 
-    Renderer.drawSprite(ctx, {
+    psycho.Renderer.drawSprite(ctx, {
       resource: this.resource,
       pos: this.pos,
       size: this.size,

@@ -1,5 +1,5 @@
 
-var Spider = module.exports = Sprite.extend({
+var Spider = module.exports = psycho.Sprite.extend({
 
   resource: "spider",
   size: { x: 32, y: 32 },
@@ -38,7 +38,7 @@ var Spider = module.exports = Sprite.extend({
   },
 
   initialize: function(options){
-    this.pos = Vector.round(options.pos);
+    this.pos = psycho.Vector.round(options.pos);
     this.onDead = options.onDead;
 
     this.speed = this.calmSpeed;
@@ -56,10 +56,10 @@ var Spider = module.exports = Sprite.extend({
     this.nTo = nTo;
 
     this.t_startMove = Time.time;
-    this.journeyLength = Vector.magnitude(nFrom.pos, nTo.pos);
+    this.journeyLength = psycho.Vector.magnitude(nFrom.pos, nTo.pos);
     this.traveling = true;
 
-    this.angle = Vector.angleTo(this.pos, this.nTo.pos);
+    this.angle = psycho.Vector.angleTo(this.pos, this.nTo.pos);
   },
 
   setDead: function(){
@@ -127,13 +127,13 @@ var Spider = module.exports = Sprite.extend({
     if (this.staying){
       if(tm > tstart + tstay) {
         this.staying = false;
-        this.t_nextStay = tm + tstay / Mathf.rnd(2, 5);
+        this.t_nextStay = tm + tstay / psycho.Mathf.rnd(2, 5);
       }
     }
-    else if (tm > this.t_nextStay && Mathf.rnd01() < 0.8){
+    else if (tm > this.t_nextStay && psycho.Mathf.rnd01() < 0.8){
       this.staying = true;
       this.t_startStay = tm;
-      this.t_stay = Mathf.rnd(cfgTm.tStayA, cfgTm.tStayB);
+      this.t_stay = psycho.Mathf.rnd(cfgTm.tStayA, cfgTm.tStayB);
     }
 
   },
@@ -159,7 +159,7 @@ var Spider = module.exports = Sprite.extend({
       return true;
     }
 
-    this.pos = Vector.round(Vector.lerp(this.nFrom.pos, this.nTo.pos, fracJourney));
+    this.pos = psycho.Vector.round(psycho.Vector.lerp(this.nFrom.pos, this.nTo.pos, fracJourney));
 
     this.animate();
   },
@@ -195,11 +195,11 @@ var Spider = module.exports = Sprite.extend({
     }
 
     if (this.building){
-      Renderer.drawLine(ctx, {
+      psycho.Renderer.drawLine(ctx, {
         from: this.pos,
         to: this.nFrom.pos,
         size: 2,
-        color: Color.toRGBA(Color.white)
+        color: psycho.Color.toRGBA(psycho.Color.white)
       });
     }
 

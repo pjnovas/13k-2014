@@ -1,5 +1,5 @@
 
-module.exports = Entity.extend({
+module.exports = psycho.Entity.extend({
 
   initialize: function(options){
     this.target = options.target;
@@ -20,7 +20,7 @@ module.exports = Entity.extend({
   createGraphics: function(){
     var cPos = { x: this.offx + 150, y: this.offy + 50 };
 
-    this.bgBack = new Rect({
+    this.bgBack = new psycho.Rect({
       pos: cPos,
       size: { x: 110, y: 330 },
       corner: 6,
@@ -37,22 +37,22 @@ module.exports = Entity.extend({
       pos: this.recipePos,
       size: this.recipeSize,
       corner: 6,
-      fill: Color.white,
+      fill: psycho.Color.white,
       stroke: {
         size: 2,
         color: c
       }
     };
 
-    this.cilinder = new Rect(opts);
+    this.cilinder = new psycho.Rect(opts);
 
     opts.fill = [0,0,255,0.5];
-    this.glass = new Rect(opts);
+    this.glass = new psycho.Rect(opts);
 
-    this.stats = new Text({
+    this.stats = new psycho.Text({
       pos: { x: 180, y: 30 },
       size: 20,
-      color: Color.white
+      color: psycho.Color.white
     });
 
   },
@@ -72,11 +72,11 @@ module.exports = Entity.extend({
         spider.inVacuum = true;
         
         spider.vacuum = {
-          ampY: Mathf.rnd(10, centerY/2),
-          velY: Mathf.rnd(600, 1000),
-          ampX: Mathf.rnd(5, 20),
-          velX: Mathf.rnd(2000, 6000),
-          rot: Mathf.rnd(1, 5)/10
+          ampY: psycho.Mathf.rnd(10, centerY/2),
+          velY: psycho.Mathf.rnd(600, 1000),
+          ampX: psycho.Mathf.rnd(5, 20),
+          velX: psycho.Mathf.rnd(2000, 6000),
+          rot: psycho.Mathf.rnd(1, 5)/10
         };
 
         spider.pos = { 

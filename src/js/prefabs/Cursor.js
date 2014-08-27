@@ -1,5 +1,5 @@
 
-module.exports = Circle.extend({
+module.exports = psycho.Circle.extend({
 
   radius: 20,
   stroke: {

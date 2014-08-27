@@ -1,5 +1,5 @@
 
-module.exports = Entity.extend({
+module.exports = psycho.Entity.extend({
 
   pos: { x: 0, y: 0 },
   radius: 5,
@@ -18,7 +18,7 @@ module.exports = Entity.extend({
     };
 
     if (this.color){
-      opts.fill = Color.toRGBA(this.color);
+      opts.fill = psycho.Color.toRGBA(this.color);
     }
 
     if (this.stroke){
@@ -29,7 +29,7 @@ module.exports = Entity.extend({
       opts.angles = this.angles;
     }
 
-    Renderer.drawCircle(ctx, opts);
+    psycho.Renderer.drawCircle(ctx, opts);
   },
 
 });

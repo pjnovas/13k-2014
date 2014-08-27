@@ -1,9 +1,9 @@
 
 
-module.exports = Circle.extend({
+module.exports = psycho.Circle.extend({
 
   radius: 3,
-  color: Color.white,
+  color: psycho.Color.white,
 
   nears: null,
   selected: false,
@@ -42,7 +42,7 @@ module.exports = Circle.extend({
       return node.burned;
     });
 
-    if (!oneBurned && Mathf.rnd01() < 0.15){
+    if (!oneBurned && psycho.Mathf.rnd01() < 0.15){
       this.setBurned();
     }
   },
@@ -69,7 +69,7 @@ module.exports = Circle.extend({
     }
     
     this.shaked = true;
-    this.pos = Vector.round(Vector.add(this.pos, Mathf.rndInCircle(0.2)));
+    this.pos = psycho.Vector.round(psycho.Vector.add(this.pos, psycho.Mathf.rndInCircle(0.2)));
   },
 
   endShake: function(){
@@ -123,7 +123,7 @@ module.exports = Circle.extend({
     });
 
     if (ns.length > 0){
-      var idx = Mathf.rnd(0, ns.length-1);
+      var idx = psycho.Mathf.rnd(0, ns.length-1);
       return ns[idx];
     }
 
@@ -189,7 +189,7 @@ module.exports = Circle.extend({
       this.resetTemp();
     }
 
-    this.fill = this.color = Color.lerp(this.colors.cold, this.colors.burn, this.temp);
+    this.fill = this.color = psycho.Color.lerp(this.colors.cold, this.colors.burn, this.temp);
 
     if (this.temp > 1){
       this.setBurned();

@@ -81,31 +81,20 @@ module.exports = function(grunt) {
           ,globals: {
             window: true
             ,document: true
+
             ,require: true
             ,module: true
             ,console: true
-            ,Time: true
-            ,game: true
-            ,Vector: true
-            ,Mathf: true
-            ,Renderer: true
+
             ,config: true
             ,_: true
-            
-            ,Base: true
-            ,Entity: true
-            ,Collection: true
-            ,Circle: true
-            ,Rect: true
-            ,Line: true
-            ,Sprite: true
-            ,Text: true
 
+            ,Time: true
+            ,game: true
+
+            ,psycho: true
+            ,prefabs: true
             ,Controls: true
-            ,Color: true
-            ,Repo: true
-            ,DEBUG: true
-            ,Particles: true
           }
         }
 

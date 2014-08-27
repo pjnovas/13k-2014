@@ -1,7 +1,7 @@
 
 var Manager = require("./Manager");
 
-module.exports = Base.extend({
+module.exports = psycho.Base.extend({
 
   viewCtx:  null,
   worldCtx:  null,

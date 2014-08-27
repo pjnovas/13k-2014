@@ -11,7 +11,7 @@ function stroke(ctx, ps){
     ctx.lineWidth = ps.strokeWidth || ps.stroke.size || 1;
 
     var strokeColor = ps.stroke.color || ps.stroke || "#000";
-    ctx.strokeStyle = Array.isArray(strokeColor) ? Color.toRGBA(strokeColor) : strokeColor;
+    ctx.strokeStyle = Array.isArray(strokeColor) ? psycho.Color.toRGBA(strokeColor) : strokeColor;
     ctx.stroke();
   }
 }
@@ -23,7 +23,7 @@ function drawRect(ctx, ps){
   stroke(ctx, ps);
 }
 
-module.exports = Base.extend({ }, {
+module.exports = psycho.Base.extend({ }, {
 
   drawCircle: function(ctx, ps){
     var start = (ps.angles && ps.angles.start) || 0,
@@ -58,8 +58,8 @@ module.exports = Base.extend({ }, {
   },
 
   drawSprite: function(ctx, ps){
-    var img = Repo[ps.resource]
-      , p = Vector.origin(ps.pos, ps.size)
+    var img = psycho.Repo[ps.resource]
+      , p = psycho.Vector.origin(ps.pos, ps.size)
       , x = p.x
       , y = p.y
       , w = ps.size.x

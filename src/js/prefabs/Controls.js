@@ -20,7 +20,7 @@ function getCoordsEvent(e, canvas){
   return { x: x, y: y };
 }
 
-module.exports = Base.extend({
+module.exports = psycho.Base.extend({
 
   events: {
       "pressing": null

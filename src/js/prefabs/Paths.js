@@ -1,7 +1,5 @@
 
-var Path = require("./Path");
-
-module.exports = Collection.extend({
+module.exports = psycho.Collection.extend({
 
   hasOne: function(naId, nbId){
     return this.entities.some(function(path){
@@ -16,7 +14,7 @@ module.exports = Collection.extend({
       nA.addNear(nB);
       nB.addNear(nA);
 
-      this.entities.push(new Path({
+      this.entities.push(new prefabs.Path({
         na: nA, 
         nb: nB
       }));

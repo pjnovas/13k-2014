@@ -1,5 +1,5 @@
 
-module.exports = Base.extend({
+module.exports = psycho.Base.extend({
 
   pos: { x: 0, y: 0 },
 

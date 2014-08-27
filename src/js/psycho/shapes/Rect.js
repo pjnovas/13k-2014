@@ -1,5 +1,5 @@
 
-module.exports = Entity.extend({
+module.exports = psycho.Entity.extend({
 
   pos: { x: 0, y: 0 },
   size: { x: 20, y: 20},
@@ -21,19 +21,19 @@ module.exports = Entity.extend({
     if (this.stroke){
       opts.stroke = this.stroke;
       if (opts.stroke.color) {
-        opts.stroke.color = Color.toRGBA(opts.stroke.color);
+        opts.stroke.color = psycho.Color.toRGBA(opts.stroke.color);
       }
     }
 
     if (this.fill){
-      opts.fill = Color.toRGBA(this.fill);
+      opts.fill = psycho.Color.toRGBA(this.fill);
     }
 
     if (this.corner){
       opts.corner = this.corner;
     }
 
-    Renderer.drawRect(ctx, opts);
+    psycho.Renderer.drawRect(ctx, opts);
 
   },
 
