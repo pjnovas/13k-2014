@@ -163,6 +163,34 @@ module.exports = Entity.extend({
 
 },{}],6:[function(require,module,exports){
 
+module.exports = Entity.extend({
+
+  resource: "",
+  pos: { x: 0, y: 0 },
+  sprite: { x: 0, y: 0, w: 20, h: 20 },
+  size: { x: 20, y: 20 },
+  angle: 0,
+
+  initialize: function(){},
+
+  update: function(){ },
+
+  draw: function(ctx){
+
+    Renderer.drawSprite(ctx, {
+      resource: "spider",
+      pos: this.pos,
+      size: this.size,
+      angle: this.angle,
+      sp: this.sprite
+    });
+
+  },
+
+});
+
+},{}],7:[function(require,module,exports){
+
 var Color = {};
 
 Color.white = [255,255,255,1];
@@ -197,7 +225,7 @@ Color.eql = function(a, b){
 
 module.exports = Color;
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 
 var Manager = require("./Manager");
 
@@ -260,7 +288,7 @@ Game.prototype.gameRun = function(){
   this.tLoop = window.requestAnimationFrame(this.boundGameRun);
 };
 
-},{"./Manager":9}],8:[function(require,module,exports){
+},{"./Manager":10}],9:[function(require,module,exports){
 // Manages the ticks for a Game Loop
 
 var GameTime = module.exports = function(){
@@ -303,7 +331,7 @@ GameTime.prototype.reset = function() {
   this.minFrameTime = 12; 
   this.time = 0;
 };
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 
 var Nodes = require("./prefabs/Nodes");
 var Paths = require("./prefabs/Paths");
@@ -322,10 +350,12 @@ var Manager = module.exports = function(){
   this.target = new Target();
   this.vacuum = new Vacuum(this.target);
   this.elements = new Elements();
-  this.spiders = new Spiders(this.nodes);
+  this.spiders = new Spiders({
+    nodes: this.nodes
+  });
   this.stats = new Stats();
 
-  this.target.setNodesInside(this.nodes.GetNodes());
+  this.target.setNodesInside(this.nodes.getNodes());
 };
 
 Manager.prototype.update = function(){
@@ -347,7 +377,7 @@ Manager.prototype.update = function(){
 
   this.nodes.update();
   this.spiders.update();
-  this.target.update(this.spiders.spiders);
+  this.target.update(this.spiders.getSpiders());
   this.vacuum.update();
   this.stats.update(this.spiders.stats);
 
@@ -375,7 +405,7 @@ Manager.prototype.draw = function(viewCtx, worldCtx, vacuumCtx){
 
   //Particles.draw(viewCtx);
 };
-},{"./prefabs/Cursor":18,"./prefabs/Elements":19,"./prefabs/Nodes":21,"./prefabs/Paths":23,"./prefabs/Spiders":25,"./prefabs/Stats":26,"./prefabs/Target":27,"./prefabs/Vacuum":28}],10:[function(require,module,exports){
+},{"./prefabs/Cursor":19,"./prefabs/Elements":20,"./prefabs/Nodes":22,"./prefabs/Paths":24,"./prefabs/Spiders":26,"./prefabs/Stats":27,"./prefabs/Target":28,"./prefabs/Vacuum":29}],11:[function(require,module,exports){
 
 var Mathf = {};
 
@@ -425,7 +455,7 @@ Mathf.polygonPoints = function(center, radius, sides) {
 
 module.exports = Mathf;
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 
 var Renderer = {};
 
@@ -476,8 +506,9 @@ Renderer.drawLine = function(ctx, ps){
 
 Renderer.drawSprite = function(ctx, ps){
   var img = Repo[ps.resource]
-    , x = ps.pos.x
-    , y = ps.pos.y
+    , p = Vector.origin(ps.pos, ps.size)
+    , x = p.x
+    , y = p.y
     , w = ps.size.x
     , h = ps.size.y
     , sp = ps.sp;
@@ -553,7 +584,7 @@ Renderer.drawRect = function(ctx, ps){
 
 module.exports = Renderer;
 
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 
 module.exports = (function(){
   var resources = {}
@@ -614,7 +645,7 @@ module.exports = (function(){
   };
   
 })();
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 
 module.exports = {
 
@@ -690,7 +721,7 @@ module.exports = {
 
 };
 
-},{}],14:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 
 var Utils = module.exports = function(){
   this.lastIds = {
@@ -709,7 +740,7 @@ Utils.prototype.pad = function(num, size) {
   return s.substr(s.length-size);
 };
 
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 
 var Vector = {};
 
@@ -825,7 +856,7 @@ Vector.debug = function(vec){
 
 module.exports = Vector;
 
-},{}],16:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 var w = window;
 var doc = w.document;
 
@@ -846,6 +877,7 @@ w.Collection = require("./Base/Collection");
 
 w.Circle = require("./Base/Circle");
 w.Line = require("./Base/Line");
+w.Sprite = require("./Base/Sprite");
 
 var Game = require("./Game");
 var GameTime = require("./GameTime");
@@ -921,7 +953,7 @@ function onDocLoad(){
 
 w.onload = onDocLoad;
 
-},{"./Base/Base":1,"./Base/Circle":2,"./Base/Collection":3,"./Base/Entity":4,"./Base/Line":5,"./Color":6,"./Game":7,"./GameTime":8,"./Mathf":10,"./Renderer":11,"./Repo":12,"./Settings":13,"./Utils":14,"./Vector":15,"./prefabs/Controls":17,"./reqAnimFrame":29}],17:[function(require,module,exports){
+},{"./Base/Base":1,"./Base/Circle":2,"./Base/Collection":3,"./Base/Entity":4,"./Base/Line":5,"./Base/Sprite":6,"./Color":7,"./Game":8,"./GameTime":9,"./Mathf":11,"./Renderer":12,"./Repo":13,"./Settings":14,"./Utils":15,"./Vector":16,"./prefabs/Controls":18,"./reqAnimFrame":30}],18:[function(require,module,exports){
 
 function getCoordsEvent(e, canvas){
   var x, y
@@ -1054,7 +1086,7 @@ module.exports = Base.extend({
 
 });
 
-},{}],18:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 
 module.exports = Circle.extend({
 
@@ -1110,7 +1142,7 @@ module.exports = Circle.extend({
 
 });
 
-},{}],19:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 
 var Elements = module.exports = function(){
   this.size = 96;
@@ -1190,7 +1222,7 @@ Elements.prototype.draw = function(ctx){
 
 };
 
-},{}],20:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 
 
 module.exports = Circle.extend({
@@ -1215,7 +1247,6 @@ module.exports = Circle.extend({
   blowingEnd: 0,
 
   initialize: function(){
-    this.id = _.guid("nodes"); //TODO: remove this id and change by BaseId (cid)
     this.nears = [];
   },
 
@@ -1304,7 +1335,7 @@ module.exports = Circle.extend({
     var ns = [];
 
     this.nears.forEach(function(n){
-      if (n.id !== excludeId && !n.burned && n.temp < 0.5){
+      if (n.cid !== excludeId && !n.burned && n.temp < 0.5){
         ns.push(n);
       }
     });
@@ -1388,7 +1419,7 @@ module.exports = Circle.extend({
 
 });
 
-},{}],21:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 /*jslint -W083 */
 
 var Node = require("./Node")
@@ -1556,7 +1587,7 @@ var Nodes = module.exports = Collection.extend({
     }, this);
   },
 
-  GetNodes: function(){
+  getNodes: function(){
     return this.entities;
   },
 
@@ -1577,7 +1608,7 @@ var Nodes = module.exports = Collection.extend({
 
 });
 
-},{"./Node":20,"./Paths":23}],22:[function(require,module,exports){
+},{"./Node":21,"./Paths":24}],23:[function(require,module,exports){
 
 var Path = module.exports = Line.extend({
 
@@ -1660,7 +1691,7 @@ var Path = module.exports = Line.extend({
 
 });
 
-},{}],23:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 
 var Path = require("./Path");
 
@@ -1668,13 +1699,13 @@ module.exports = Collection.extend({
 
   hasOne: function(naId, nbId){
     return this.entities.some(function(path){
-      var pa = path.na.id, pb = path.nb.id;
+      var pa = path.na.cid, pb = path.nb.cid;
       return (naId === pa || naId === pb) && (nbId === pa || nbId === pb);
     });
   },
 
   addOne: function(nA, nB){
-    if (nB && !this.hasOne(nA.id, nB.id)){
+    if (nB && !this.hasOne(nA.cid, nB.cid)){
       
       nA.addNear(nB);
       nB.addNear(nA);
@@ -1688,270 +1719,284 @@ module.exports = Collection.extend({
 
 });
 
-},{"./Path":22}],24:[function(require,module,exports){
+},{"./Path":23}],25:[function(require,module,exports){
 
-var Spider = module.exports = function(pos, onDead){
-  this.id = _.guid("spiders");
+var Spider = module.exports = Sprite.extend({
 
-  var cfg = config.spiders;
+  resource: "spider",
+  size: { x: 32, y: 32 },
 
-  this.pos = Vector.round(pos);
-  this.onDead = onDead;
+  nFrom: null,
+  nTo: null,
+  journeyLength: null,
 
-  this.size = cfg.size;
-  this.color = cfg.color;
-  this.speed = cfg.speed;
+  traveling: false,
+  isDead: false,
 
-  this.nFrom = null;
-  this.nTo = null;
-  this.journeyLength = null;
+  temp: 0,
+  staying: false,
 
-  this.traveling = false;
-  this.isDead = false;
+  t_stay: 2000,
+  t_startStay: 0,
+  t_nextStay: 0,
 
-  this.temp = 0;
-  this.staying = false;
+  t_startMove: 0,
 
-  this.t_stay = 2000;
-  this.t_startStay = 0;
-  this.t_nextStay = 0;
+  building: false,
 
-  this.t_startMove = 0;
+  spriteIndex: 0,
 
-  this.building = false;
+  animTime: 3,
+  lastFrameTime: 0,
+  exited: false,
 
-  this.spSize = Vector.multiply(Vector.one, this.size);
-  this.spPos = Vector.origin(this.pos, this.spSize);
+  calmSpeed: 0.05,
+  alertSpeed: 0.1,
 
-  this.angle = 0;
-  this.spriteIndex = 0;
+  behaviour: {
+      alertTemp: 0
+    , tStayA: 3000
+    , tStayB: 10000
+  },
 
-  this.animTime = 3;
-  this.lastFrameTime = 0;
-  this.exited = false;
-};
+  move: [
+    { x: 0, y: 0, w: 32, h: 32 }, 
+    { x: 32, y: 0, w: 32, h: 32 }, 
+    { x: 64, y: 0, w: 32, h: 32 }, 
+    { x: 96, y: 0, w: 32, h: 32 }
+  ],
 
-Spider.prototype.setNode = function(nFrom, nTo){
-  this.nFrom = nFrom;
-  this.nTo = nTo;
+  initialize: function(options){    
+    this.pos = Vector.round(options.pos);
+    this.onDead = options.onDead;
 
-  this.t_startMove = Time.time;
-  this.journeyLength = Vector.length(nFrom.pos, nTo.pos);
-  this.traveling = true;
+    this.speed = this.calmSpeed;
+    this.sprite = this.move[0];
+  },
 
-  this.angle = Vector.angleTo(this.pos, this.nTo.pos);
-};
+  setNode: function(nFrom, nTo){
+    this.nFrom = nFrom;
+    this.nTo = nTo;
 
-Spider.prototype.setDead = function(){
-  if (!this.isDead){
-    this.isDead = true;
-    this.onDead();
-  }
-};
+    this.t_startMove = Time.time;
+    this.journeyLength = Vector.length(nFrom.pos, nTo.pos);
+    this.traveling = true;
 
-Spider.prototype.animate = function(){
+    this.angle = Vector.angleTo(this.pos, this.nTo.pos);
+  },
 
-  if (!this.staying){
-    this.lastFrameTime -= Time.frameTime;
+  setDead: function(){
+    if (!this.isDead){
+      this.isDead = true;
+      this.onDead();
+    }
+  },
 
-    if (this.lastFrameTime <= 0){
-      this.spriteIndex++;
-      if (this.spriteIndex > 3){
-        this.spriteIndex = 0;
+  animate: function(){
+
+    if (!this.staying){
+      this.lastFrameTime -= Time.frameTime;
+
+      if (this.lastFrameTime <= 0){
+        this.spriteIndex++;
+        if (this.spriteIndex > 3){
+          this.spriteIndex = 0;
+        }
+
+        this.lastFrameTime = this.animTime / this.speed;
       }
-
-      this.lastFrameTime = this.animTime / this.speed;
     }
-  }
 
-};
+  },
 
-Spider.prototype.updateTemp = function(){
-  var nfromT = this.nFrom.temp;
-  var ntoT = this.nTo.temp;
+  updateTemp: function(){
+    var nfromT = this.nFrom.temp;
+    var ntoT = this.nTo.temp;
 
-  if (nfromT === 0 && ntoT === 0){
-    this.temp = 0;
-    return;
-  }
-
-  if (nfromT > ntoT){
-    this.temp = nfromT;
-    return;
-  }
-
-  if (ntoT > nfromT){
-    this.temp = ntoT;
-  }
-};
-
-Spider.prototype.canMove = function(){
-  return !this.staying && !this.traveling && !this.building;
-};
-
-Spider.prototype.updateState = function(){
-  var cfg = config.spiders
-    , tm = Time.time
-    , cfgTm = cfg.behaviour
-    , tstart = this.t_startStay
-    , tstay = this.t_stay;
-
-  if (this.temp > cfgTm.alertTemp){ //alert behaviour!
-    this.speed = cfg.speedAlert;
-    this.staying = false;
-    return;
-  }
-
-  // calm behaviour
-  this.speed = cfg.speed;
-
-  if (this.staying){
-    if(tm > tstart + tstay) {
-      this.staying = false;
-      this.t_nextStay = tm + tstay / Mathf.rnd(2, 5);
-    }
-  }
-  else if (tm > this.t_nextStay && Mathf.rnd01() < 0.8){
-    this.staying = true;
-    this.t_startStay = tm;
-    this.t_stay = Mathf.rnd(cfgTm.tStayA, cfgTm.tStayB);
-  }
-
-};
-
-// returns true if the travel is ended
-Spider.prototype.updateMove = function(){
-
-  if (!this.building && (this.nFrom.burned || this.nTo.burned)){
-    this.setDead();
-    return;
-  }
-
-  var distCovered = (Time.time - this.t_startMove) * this.speed;
-  var fracJourney = distCovered / this.journeyLength;
-  
-  if (fracJourney > 1) {
-    this.pos = this.nTo.pos;
-    this.nTo.revive();
-
-    this.traveling = false;
-    this.building = false;
-
-    return true;
-  }
-
-  this.pos = Vector.round(Vector.lerp(this.nFrom.pos, this.nTo.pos, fracJourney));
-
-  this.animate();
-  this.spPos = Vector.origin(this.pos, this.spSize);
-};
-
-Spider.prototype.buildWeb = function(from, to){
-  this.building = true;
-  this.traveling = true;
-  this.setNode(from, to);
-};
-
-Spider.prototype.update = function(){
-  this.spPos = Vector.origin(this.pos, this.spSize);
-
-  if (this.isDead || this.exited || this.inVacuum){
-    return;
-  }
-  
-  this.updateTemp();
-
-  if (this.building || this.traveling){
-    var ended = this.updateMove();
-    if (!ended){
+    if (nfromT === 0 && ntoT === 0){
+      this.temp = 0;
       return;
     }
+
+    if (nfromT > ntoT){
+      this.temp = nfromT;
+      return;
+    }
+
+    if (ntoT > nfromT){
+      this.temp = ntoT;
+    }
+  },
+
+  canMove: function(){
+    return !this.staying && !this.traveling && !this.building;
+  },
+
+  updateState: function(){
+    var tm = Time.time
+      , cfgTm = this.behaviour
+      , tstart = this.t_startStay
+      , tstay = this.t_stay;
+
+    if (this.temp > cfgTm.alertTemp){ //alert behaviour!
+      this.speed = this.alertSpeed;
+      this.staying = false;
+      return;
+    }
+
+    // calm behaviour
+    this.speed = this.calmSpeed;
+
+    if (this.staying){
+      if(tm > tstart + tstay) {
+        this.staying = false;
+        this.t_nextStay = tm + tstay / Mathf.rnd(2, 5);
+      }
+    }
+    else if (tm > this.t_nextStay && Mathf.rnd01() < 0.8){
+      this.staying = true;
+      this.t_startStay = tm;
+      this.t_stay = Mathf.rnd(cfgTm.tStayA, cfgTm.tStayB);
+    }
+
+  },
+
+  // returns true if the travel is ended
+  updateMove: function(){
+
+    if (!this.building && (this.nFrom.burned || this.nTo.burned)){
+      this.setDead();
+      return;
+    }
+
+    var distCovered = (Time.time - this.t_startMove) * this.speed;
+    var fracJourney = distCovered / this.journeyLength;
+    
+    if (fracJourney > 1) {
+      this.pos = this.nTo.pos;
+      this.nTo.revive();
+
+      this.traveling = false;
+      this.building = false;
+
+      return true;
+    }
+
+    this.pos = Vector.round(Vector.lerp(this.nFrom.pos, this.nTo.pos, fracJourney));
+
+    this.animate();
+  },
+
+  buildWeb: function(from, to){
+    this.building = true;
+    this.traveling = true;
+    this.setNode(from, to);
+  },
+
+  update: function(){
+    this.sprite = this.move[this.spriteIndex];
+
+    if (this.isDead || this.exited || this.inVacuum){
+      return;
+    }
+    
+    this.updateTemp();
+
+    if (this.building || this.traveling){
+      var ended = this.updateMove();
+      if (!ended){
+        return;
+      }
+    }
+
+    this.updateState();
+  },
+
+  draw: function(ctx){
+    if (this.isDead){
+      return;
+    }
+
+    if (this.building){
+      Renderer.drawLine(ctx, {
+        from: this.pos,
+        to: this.nFrom.pos,
+        size: config.paths.size,
+        color: Color.toRGBA(config.nodes.colors.cold)
+      });
+    }
+
+    Spider._super.draw.apply(this, arguments);
   }
 
-  this.updateState();
-};
+});
 
-Spider.prototype.draw = function(ctx){
-  if (this.isDead){
-    return;
-  }
-
-  if (this.building){
-    Renderer.drawLine(ctx, {
-      from: this.pos,
-      to: this.nFrom.pos,
-      size: config.paths.size,
-      color: Color.toRGBA(config.nodes.colors.cold)
-    });
-  }
-
-  Renderer.drawSprite(ctx, {
-    resource: "spider",
-    pos: this.spPos,
-    size: this.spSize,
-    angle: this.angle,
-    sp: config.spiders.sprites.move[this.spriteIndex]
-  });  
-};
-
-},{}],25:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 
 var Spider = require("./Spider");
 
-var Spiders = module.exports = function(nodes, onExitSpider){
-  this.nodes = nodes;
-  this.onExitSpider = onExitSpider;
+module.exports = Collection.extend({
 
-  this.amount = config.spiders.quantity;
+  nodes: null,
+  spidersExit: 0,
+  spidersKilled: 0,
+  stats: {},
+  amount: 50,
 
-  this.spiders = [];
+  initialize: function(options){
+    this.entities = [];
+    this.nodes = options.nodes;
 
-  this.spidersExit = 0;
-  this.spidersKilled = 0;
+    this.onExitSpider = options.onExitSpider;
 
-  this.generateSpiders();
+    this.generateSpiders();
+    this.updateGUI();
+  },
 
-  this.stats = {};
-  this.updateGUI();
-};
+  updateGUI: function(){
+    this.stats = {
+      saved: this.spidersExit,
+      killed: this.spidersKilled,
+      alives: this.entities.length - (this.spidersKilled + this.spidersExit),
+      total: this.entities.length
+    };
+  },
 
-Spiders.prototype.updateGUI = function(){
-  this.stats = {
-    saved: this.spidersExit,
-    killed: this.spidersKilled,
-    alives: this.spiders.length - (this.spidersKilled + this.spidersExit),
-    total: this.spiders.length
-  };
-};
+  onSpiderDead: function(){
+    this.spidersKilled++;
+    this.updateGUI();
+  },
 
-Spiders.prototype.onSpiderDead = function(){
-  this.spidersKilled++;
-  this.updateGUI();
-};
+  generateSpiders: function(){
+    var nodes = this.nodes.getNodes()
+      , len = nodes.length
+      , nodesIds = []
+      , node
+      , idx
+      , amount = (len < this.amount ? len-2: this.amount);
 
-Spiders.prototype.generateSpiders = function(){
-  var nodes = this.nodes.GetNodes()
-    , len = nodes.length
-    , nodesIds = []
-    , node
-    , idx
-    , amount = (len < this.amount ? len-2: this.amount);
+    do {
+      idx = Mathf.rnd(0, len-1);
+      node = nodes[idx];
 
-  do {
-    idx = Mathf.rnd(0, len-1);
-    node = nodes[idx];
+      if (!node.burned && nodesIds.indexOf(node.cid) === -1){
+        nodesIds.push(node.cid);
+        
+        this.entities.push(new Spider({
+          pos: node.pos, 
+          onDead: this.onSpiderDead.bind(this)
+        }));
 
-    if (!node.burned && nodesIds.indexOf(node.id) === -1){
-      nodesIds.push(node.id);
-      this.spiders.push(new Spider(node.pos, this.onSpiderDead.bind(this)));
-      amount--;
-    }
-  } while(amount);
-};
+        amount--;
+      }
+    } while(amount);
+  },
 
-Spiders.prototype.update = function(){
+  getSpiders: function(){
+    return this.entities;
+  },
 
-  function gonnaBuildWeb(node, spider){
+  gonnaBuildWeb: function(node, spider){
     if (!node.hasEarth && node.temp === 0 && Mathf.rnd01() > 0.7) {
       var nearBurned = node.getNearBurned();
       if (nearBurned){
@@ -1961,10 +2006,10 @@ Spiders.prototype.update = function(){
     }
 
     return false;
-  }
+  },
 
-  function gotNearNodeToGo(node, spider){
-    var fromId = (spider.nodeFrom && spider.nodeFrom.id) || -1;
+  gotNearNodeToGo: function(node, spider){
+    var fromId = (spider.nodeFrom && spider.nodeFrom.cid) || -1;
     var nodeTo = node.getRandomNear(fromId);
     if (nodeTo){
       spider.setNode(node, nodeTo);
@@ -1972,51 +2017,56 @@ Spiders.prototype.update = function(){
     }
 
     return false;
-  }
+  },
 
-  function spiderNodeCollide(spider, node){
+  spiderNodeCollide: function(spider, node){
     if (Vector.pointInCircle(spider.pos, node.pos, 5)) {
      
-      if (!gonnaBuildWeb(node, spider) && !gotNearNodeToGo(node, spider)){
+      if (!this.gonnaBuildWeb(node, spider) && !this.gotNearNodeToGo(node, spider)){
         if (node.burned){
           spider.setDead();
         }
       }
     }
+  },
+
+  update: function(){
+    
+    var nodes = this.nodes.getNodes();
+
+    var lastExits = this.spidersExit;
+    this.spidersExit = 0;
+    this.entities.forEach(function (spider) {
+
+      if (spider.exited){
+        this.spidersExit++;
+      }
+      else if (spider.canMove()){
+        nodes.some(function (node) {
+          this.spiderNodeCollide(spider, node);
+        }, this);
+      }
+    
+      spider.update();
+
+    }, this);
+
+    if (lastExits !== this.spidersExit){
+      this.updateGUI();
+    }
+  },
+
+  draw: function(ctx){
+    this.entities.forEach(function (spider) {
+      if (!spider.inVacuum){
+        spider.draw(ctx);
+      }
+    });
   }
 
-  var nodes = this.nodes.GetNodes();
+});
 
-  var lastExits = this.spidersExit;
-  this.spidersExit = 0;
-  this.spiders.forEach(function (spider) {
-
-    if (spider.exited){
-      this.spidersExit++;
-    }
-    else if (spider.canMove()){
-      nodes.some(function (node) {
-        spiderNodeCollide(spider, node);
-      }, this);
-    }
-  
-    spider.update();
-
-  }, this);
-
-  if (lastExits !== this.spidersExit){
-    this.updateGUI();
-  }
-};
-
-Spiders.prototype.draw = function(ctx){
-  this.spiders.forEach(function (spider) {
-    if (!spider.inVacuum){
-      spider.draw(ctx);
-    }
-  });
-};
-},{"./Spider":24}],26:[function(require,module,exports){
+},{"./Spider":25}],27:[function(require,module,exports){
 
 var Stats = module.exports = function(){
   
@@ -2117,7 +2167,7 @@ Stats.prototype.drawStats = function(ctx){
   });
 
 };
-},{}],27:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 
 var Target = module.exports = function(){
 
@@ -2196,7 +2246,7 @@ Target.prototype.draw = function(ctx){
   ctx.stroke();
 
 };
-},{}],28:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 
 var Vacuum = module.exports = function(target){
   this.target = target;
@@ -2360,7 +2410,7 @@ Vacuum.prototype.drawBG = function(ctx){
   });
 
 };
-},{}],29:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 // http://paulirish.com/2011/requestanimationframe-for-smart-animating/
 // http://my.opera.com/emoller/blog/2011/12/20/requestanimationframe-for-smart-er-animating
 
@@ -2390,4 +2440,4 @@ Vacuum.prototype.drawBG = function(ctx){
     window.cancelAnimationFrame = function(id) { window.clearTimeout(id); };
   }
 }());
-},{}]},{},[16]);
+},{}]},{},[17]);

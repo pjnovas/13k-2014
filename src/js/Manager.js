@@ -16,10 +16,12 @@ var Manager = module.exports = function(){
   this.target = new Target();
   this.vacuum = new Vacuum(this.target);
   this.elements = new Elements();
-  this.spiders = new Spiders(this.nodes);
+  this.spiders = new Spiders({
+    nodes: this.nodes
+  });
   this.stats = new Stats();
 
-  this.target.setNodesInside(this.nodes.GetNodes());
+  this.target.setNodesInside(this.nodes.getNodes());
 };
 
 Manager.prototype.update = function(){
@@ -41,7 +43,7 @@ Manager.prototype.update = function(){
 
   this.nodes.update();
   this.spiders.update();
-  this.target.update(this.spiders.spiders);
+  this.target.update(this.spiders.getSpiders());
   this.vacuum.update();
   this.stats.update(this.spiders.stats);
 

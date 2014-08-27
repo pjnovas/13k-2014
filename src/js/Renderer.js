@@ -48,8 +48,9 @@ Renderer.drawLine = function(ctx, ps){
 
 Renderer.drawSprite = function(ctx, ps){
   var img = Repo[ps.resource]
-    , x = ps.pos.x
-    , y = ps.pos.y
+    , p = Vector.origin(ps.pos, ps.size)
+    , x = p.x
+    , y = p.y
     , w = ps.size.x
     , h = ps.size.y
     , sp = ps.sp;

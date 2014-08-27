@@ -22,7 +22,6 @@ module.exports = Circle.extend({
   blowingEnd: 0,
 
   initialize: function(){
-    this.id = _.guid("nodes"); //TODO: remove this id and change by BaseId (cid)
     this.nears = [];
   },
 
@@ -111,7 +110,7 @@ module.exports = Circle.extend({
     var ns = [];
 
     this.nears.forEach(function(n){
-      if (n.id !== excludeId && !n.burned && n.temp < 0.5){
+      if (n.cid !== excludeId && !n.burned && n.temp < 0.5){
         ns.push(n);
       }
     });

@@ -1,60 +1,68 @@
 
 var Spider = require("./Spider");
 
-var Spiders = module.exports = function(nodes, onExitSpider){
-  this.nodes = nodes;
-  this.onExitSpider = onExitSpider;
+module.exports = Collection.extend({
 
-  this.amount = config.spiders.quantity;
+  nodes: null,
+  spidersExit: 0,
+  spidersKilled: 0,
+  stats: {},
+  amount: 50,
 
-  this.spiders = [];
+  initialize: function(options){
+    this.entities = [];
+    this.nodes = options.nodes;
 
-  this.spidersExit = 0;
-  this.spidersKilled = 0;
+    this.onExitSpider = options.onExitSpider;
 
-  this.generateSpiders();
+    this.generateSpiders();
+    this.updateGUI();
+  },
 
-  this.stats = {};
-  this.updateGUI();
-};
+  updateGUI: function(){
+    this.stats = {
+      saved: this.spidersExit,
+      killed: this.spidersKilled,
+      alives: this.entities.length - (this.spidersKilled + this.spidersExit),
+      total: this.entities.length
+    };
+  },
 
-Spiders.prototype.updateGUI = function(){
-  this.stats = {
-    saved: this.spidersExit,
-    killed: this.spidersKilled,
-    alives: this.spiders.length - (this.spidersKilled + this.spidersExit),
-    total: this.spiders.length
-  };
-};
+  onSpiderDead: function(){
+    this.spidersKilled++;
+    this.updateGUI();
+  },
 
-Spiders.prototype.onSpiderDead = function(){
-  this.spidersKilled++;
-  this.updateGUI();
-};
+  generateSpiders: function(){
+    var nodes = this.nodes.getNodes()
+      , len = nodes.length
+      , nodesIds = []
+      , node
+      , idx
+      , amount = (len < this.amount ? len-2: this.amount);
 
-Spiders.prototype.generateSpiders = function(){
-  var nodes = this.nodes.GetNodes()
-    , len = nodes.length
-    , nodesIds = []
-    , node
-    , idx
-    , amount = (len < this.amount ? len-2: this.amount);
+    do {
+      idx = Mathf.rnd(0, len-1);
+      node = nodes[idx];
 
-  do {
-    idx = Mathf.rnd(0, len-1);
-    node = nodes[idx];
+      if (!node.burned && nodesIds.indexOf(node.cid) === -1){
+        nodesIds.push(node.cid);
+        
+        this.entities.push(new Spider({
+          pos: node.pos, 
+          onDead: this.onSpiderDead.bind(this)
+        }));
 
-    if (!node.burned && nodesIds.indexOf(node.id) === -1){
-      nodesIds.push(node.id);
-      this.spiders.push(new Spider(node.pos, this.onSpiderDead.bind(this)));
-      amount--;
-    }
-  } while(amount);
-};
+        amount--;
+      }
+    } while(amount);
+  },
 
-Spiders.prototype.update = function(){
+  getSpiders: function(){
+    return this.entities;
+  },
 
-  function gonnaBuildWeb(node, spider){
+  gonnaBuildWeb: function(node, spider){
     if (!node.hasEarth && node.temp === 0 && Mathf.rnd01() > 0.7) {
       var nearBurned = node.getNearBurned();
       if (nearBurned){
@@ -64,10 +72,10 @@ Spiders.prototype.update = function(){
     }
 
     return false;
-  }
+  },
 
-  function gotNearNodeToGo(node, spider){
-    var fromId = (spider.nodeFrom && spider.nodeFrom.id) || -1;
+  gotNearNodeToGo: function(node, spider){
+    var fromId = (spider.nodeFrom && spider.nodeFrom.cid) || -1;
     var nodeTo = node.getRandomNear(fromId);
     if (nodeTo){
       spider.setNode(node, nodeTo);
@@ -75,47 +83,51 @@ Spiders.prototype.update = function(){
     }
 
     return false;
-  }
+  },
 
-  function spiderNodeCollide(spider, node){
+  spiderNodeCollide: function(spider, node){
     if (Vector.pointInCircle(spider.pos, node.pos, 5)) {
      
-      if (!gonnaBuildWeb(node, spider) && !gotNearNodeToGo(node, spider)){
+      if (!this.gonnaBuildWeb(node, spider) && !this.gotNearNodeToGo(node, spider)){
         if (node.burned){
           spider.setDead();
         }
       }
     }
+  },
+
+  update: function(){
+    
+    var nodes = this.nodes.getNodes();
+
+    var lastExits = this.spidersExit;
+    this.spidersExit = 0;
+    this.entities.forEach(function (spider) {
+
+      if (spider.exited){
+        this.spidersExit++;
+      }
+      else if (spider.canMove()){
+        nodes.some(function (node) {
+          this.spiderNodeCollide(spider, node);
+        }, this);
+      }
+    
+      spider.update();
+
+    }, this);
+
+    if (lastExits !== this.spidersExit){
+      this.updateGUI();
+    }
+  },
+
+  draw: function(ctx){
+    this.entities.forEach(function (spider) {
+      if (!spider.inVacuum){
+        spider.draw(ctx);
+      }
+    });
   }
 
-  var nodes = this.nodes.GetNodes();
-
-  var lastExits = this.spidersExit;
-  this.spidersExit = 0;
-  this.spiders.forEach(function (spider) {
-
-    if (spider.exited){
-      this.spidersExit++;
-    }
-    else if (spider.canMove()){
-      nodes.some(function (node) {
-        spiderNodeCollide(spider, node);
-      }, this);
-    }
-  
-    spider.update();
-
-  }, this);
-
-  if (lastExits !== this.spidersExit){
-    this.updateGUI();
-  }
-};
-
-Spiders.prototype.draw = function(ctx){
-  this.spiders.forEach(function (spider) {
-    if (!spider.inVacuum){
-      spider.draw(ctx);
-    }
-  });
-};
+});

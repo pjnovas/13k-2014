@@ -165,7 +165,7 @@ var Nodes = module.exports = Collection.extend({
     }, this);
   },
 
-  GetNodes: function(){
+  getNodes: function(){
     return this.entities;
   },
 

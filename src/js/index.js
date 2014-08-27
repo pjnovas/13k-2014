@@ -18,6 +18,7 @@ w.Collection = require("./Base/Collection");
 
 w.Circle = require("./Base/Circle");
 w.Line = require("./Base/Line");
+w.Sprite = require("./Base/Sprite");
 
 var Game = require("./Game");
 var GameTime = require("./GameTime");

@@ -1,204 +1,210 @@
 
-var Spider = module.exports = function(pos, onDead){
-  this.id = _.guid("spiders");
+var Spider = module.exports = Sprite.extend({
 
-  var cfg = config.spiders;
+  resource: "spider",
+  size: { x: 32, y: 32 },
 
-  this.pos = Vector.round(pos);
-  this.onDead = onDead;
+  nFrom: null,
+  nTo: null,
+  journeyLength: null,
 
-  this.size = cfg.size;
-  this.color = cfg.color;
-  this.speed = cfg.speed;
+  traveling: false,
+  isDead: false,
 
-  this.nFrom = null;
-  this.nTo = null;
-  this.journeyLength = null;
+  temp: 0,
+  staying: false,
 
-  this.traveling = false;
-  this.isDead = false;
+  t_stay: 2000,
+  t_startStay: 0,
+  t_nextStay: 0,
 
-  this.temp = 0;
-  this.staying = false;
+  t_startMove: 0,
 
-  this.t_stay = 2000;
-  this.t_startStay = 0;
-  this.t_nextStay = 0;
+  building: false,
 
-  this.t_startMove = 0;
+  spriteIndex: 0,
 
-  this.building = false;
+  animTime: 3,
+  lastFrameTime: 0,
+  exited: false,
 
-  this.spSize = Vector.multiply(Vector.one, this.size);
-  this.spPos = Vector.origin(this.pos, this.spSize);
+  calmSpeed: 0.05,
+  alertSpeed: 0.1,
 
-  this.angle = 0;
-  this.spriteIndex = 0;
+  behaviour: {
+      alertTemp: 0
+    , tStayA: 3000
+    , tStayB: 10000
+  },
 
-  this.animTime = 3;
-  this.lastFrameTime = 0;
-  this.exited = false;
-};
+  move: [
+    { x: 0, y: 0, w: 32, h: 32 }, 
+    { x: 32, y: 0, w: 32, h: 32 }, 
+    { x: 64, y: 0, w: 32, h: 32 }, 
+    { x: 96, y: 0, w: 32, h: 32 }
+  ],
 
-Spider.prototype.setNode = function(nFrom, nTo){
-  this.nFrom = nFrom;
-  this.nTo = nTo;
+  initialize: function(options){    
+    this.pos = Vector.round(options.pos);
+    this.onDead = options.onDead;
 
-  this.t_startMove = Time.time;
-  this.journeyLength = Vector.length(nFrom.pos, nTo.pos);
-  this.traveling = true;
+    this.speed = this.calmSpeed;
+    this.sprite = this.move[0];
+  },
 
-  this.angle = Vector.angleTo(this.pos, this.nTo.pos);
-};
+  setNode: function(nFrom, nTo){
+    this.nFrom = nFrom;
+    this.nTo = nTo;
 
-Spider.prototype.setDead = function(){
-  if (!this.isDead){
-    this.isDead = true;
-    this.onDead();
-  }
-};
+    this.t_startMove = Time.time;
+    this.journeyLength = Vector.length(nFrom.pos, nTo.pos);
+    this.traveling = true;
 
-Spider.prototype.animate = function(){
+    this.angle = Vector.angleTo(this.pos, this.nTo.pos);
+  },
 
-  if (!this.staying){
-    this.lastFrameTime -= Time.frameTime;
+  setDead: function(){
+    if (!this.isDead){
+      this.isDead = true;
+      this.onDead();
+    }
+  },
 
-    if (this.lastFrameTime <= 0){
-      this.spriteIndex++;
-      if (this.spriteIndex > 3){
-        this.spriteIndex = 0;
+  animate: function(){
+
+    if (!this.staying){
+      this.lastFrameTime -= Time.frameTime;
+
+      if (this.lastFrameTime <= 0){
+        this.spriteIndex++;
+        if (this.spriteIndex > 3){
+          this.spriteIndex = 0;
+        }
+
+        this.lastFrameTime = this.animTime / this.speed;
       }
-
-      this.lastFrameTime = this.animTime / this.speed;
     }
-  }
 
-};
+  },
 
-Spider.prototype.updateTemp = function(){
-  var nfromT = this.nFrom.temp;
-  var ntoT = this.nTo.temp;
+  updateTemp: function(){
+    var nfromT = this.nFrom.temp;
+    var ntoT = this.nTo.temp;
 
-  if (nfromT === 0 && ntoT === 0){
-    this.temp = 0;
-    return;
-  }
-
-  if (nfromT > ntoT){
-    this.temp = nfromT;
-    return;
-  }
-
-  if (ntoT > nfromT){
-    this.temp = ntoT;
-  }
-};
-
-Spider.prototype.canMove = function(){
-  return !this.staying && !this.traveling && !this.building;
-};
-
-Spider.prototype.updateState = function(){
-  var cfg = config.spiders
-    , tm = Time.time
-    , cfgTm = cfg.behaviour
-    , tstart = this.t_startStay
-    , tstay = this.t_stay;
-
-  if (this.temp > cfgTm.alertTemp){ //alert behaviour!
-    this.speed = cfg.speedAlert;
-    this.staying = false;
-    return;
-  }
-
-  // calm behaviour
-  this.speed = cfg.speed;
-
-  if (this.staying){
-    if(tm > tstart + tstay) {
-      this.staying = false;
-      this.t_nextStay = tm + tstay / Mathf.rnd(2, 5);
-    }
-  }
-  else if (tm > this.t_nextStay && Mathf.rnd01() < 0.8){
-    this.staying = true;
-    this.t_startStay = tm;
-    this.t_stay = Mathf.rnd(cfgTm.tStayA, cfgTm.tStayB);
-  }
-
-};
-
-// returns true if the travel is ended
-Spider.prototype.updateMove = function(){
-
-  if (!this.building && (this.nFrom.burned || this.nTo.burned)){
-    this.setDead();
-    return;
-  }
-
-  var distCovered = (Time.time - this.t_startMove) * this.speed;
-  var fracJourney = distCovered / this.journeyLength;
-  
-  if (fracJourney > 1) {
-    this.pos = this.nTo.pos;
-    this.nTo.revive();
-
-    this.traveling = false;
-    this.building = false;
-
-    return true;
-  }
-
-  this.pos = Vector.round(Vector.lerp(this.nFrom.pos, this.nTo.pos, fracJourney));
-
-  this.animate();
-  this.spPos = Vector.origin(this.pos, this.spSize);
-};
-
-Spider.prototype.buildWeb = function(from, to){
-  this.building = true;
-  this.traveling = true;
-  this.setNode(from, to);
-};
-
-Spider.prototype.update = function(){
-  this.spPos = Vector.origin(this.pos, this.spSize);
-
-  if (this.isDead || this.exited || this.inVacuum){
-    return;
-  }
-  
-  this.updateTemp();
-
-  if (this.building || this.traveling){
-    var ended = this.updateMove();
-    if (!ended){
+    if (nfromT === 0 && ntoT === 0){
+      this.temp = 0;
       return;
     }
+
+    if (nfromT > ntoT){
+      this.temp = nfromT;
+      return;
+    }
+
+    if (ntoT > nfromT){
+      this.temp = ntoT;
+    }
+  },
+
+  canMove: function(){
+    return !this.staying && !this.traveling && !this.building;
+  },
+
+  updateState: function(){
+    var tm = Time.time
+      , cfgTm = this.behaviour
+      , tstart = this.t_startStay
+      , tstay = this.t_stay;
+
+    if (this.temp > cfgTm.alertTemp){ //alert behaviour!
+      this.speed = this.alertSpeed;
+      this.staying = false;
+      return;
+    }
+
+    // calm behaviour
+    this.speed = this.calmSpeed;
+
+    if (this.staying){
+      if(tm > tstart + tstay) {
+        this.staying = false;
+        this.t_nextStay = tm + tstay / Mathf.rnd(2, 5);
+      }
+    }
+    else if (tm > this.t_nextStay && Mathf.rnd01() < 0.8){
+      this.staying = true;
+      this.t_startStay = tm;
+      this.t_stay = Mathf.rnd(cfgTm.tStayA, cfgTm.tStayB);
+    }
+
+  },
+
+  // returns true if the travel is ended
+  updateMove: function(){
+
+    if (!this.building && (this.nFrom.burned || this.nTo.burned)){
+      this.setDead();
+      return;
+    }
+
+    var distCovered = (Time.time - this.t_startMove) * this.speed;
+    var fracJourney = distCovered / this.journeyLength;
+    
+    if (fracJourney > 1) {
+      this.pos = this.nTo.pos;
+      this.nTo.revive();
+
+      this.traveling = false;
+      this.building = false;
+
+      return true;
+    }
+
+    this.pos = Vector.round(Vector.lerp(this.nFrom.pos, this.nTo.pos, fracJourney));
+
+    this.animate();
+  },
+
+  buildWeb: function(from, to){
+    this.building = true;
+    this.traveling = true;
+    this.setNode(from, to);
+  },
+
+  update: function(){
+    this.sprite = this.move[this.spriteIndex];
+
+    if (this.isDead || this.exited || this.inVacuum){
+      return;
+    }
+    
+    this.updateTemp();
+
+    if (this.building || this.traveling){
+      var ended = this.updateMove();
+      if (!ended){
+        return;
+      }
+    }
+
+    this.updateState();
+  },
+
+  draw: function(ctx){
+    if (this.isDead){
+      return;
+    }
+
+    if (this.building){
+      Renderer.drawLine(ctx, {
+        from: this.pos,
+        to: this.nFrom.pos,
+        size: config.paths.size,
+        color: Color.toRGBA(config.nodes.colors.cold)
+      });
+    }
+
+    Spider._super.draw.apply(this, arguments);
   }
 
-  this.updateState();
-};
-
-Spider.prototype.draw = function(ctx){
-  if (this.isDead){
-    return;
-  }
-
-  if (this.building){
-    Renderer.drawLine(ctx, {
-      from: this.pos,
-      to: this.nFrom.pos,
-      size: config.paths.size,
-      color: Color.toRGBA(config.nodes.colors.cold)
-    });
-  }
-
-  Renderer.drawSprite(ctx, {
-    resource: "spider",
-    pos: this.spPos,
-    size: this.spSize,
-    angle: this.angle,
-    sp: config.spiders.sprites.move[this.spriteIndex]
-  });  
-};
+});
