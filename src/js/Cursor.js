@@ -1,59 +1,54 @@
 
-var Cursor = module.exports = function(){
-  this.pos = { x: 0, y: 0 };
+module.exports = Circle.extend({
 
-  this.active = false;
-  this.element = "fire";
-  this.color = [255,255,255,0.5];
+  radius: 20,
+  stroke: {
+    color: "#fff",
+    size: 2
+  },
 
-  Controls.on("pressing", this.onPressing.bind(this));
-  Controls.on("moving", this.onMoving.bind(this));
-  Controls.on("release", this.onRelease.bind(this));
-  Controls.on("element", this.onElement.bind(this));
-};
+  active: false,
+  element: "fire",
 
-Cursor.prototype.onPressing = function(pos){
-  this.pos = pos;
-  this.active = true;
-};
+  initialize: function(){
+    Controls.on("pressing", this.onPressing.bind(this));
+    Controls.on("moving", this.onMoving.bind(this));
+    Controls.on("release", this.onRelease.bind(this));
+    Controls.on("element", this.onElement.bind(this));
+  },
 
-Cursor.prototype.onMoving = function(pos){
-  this.pos = pos;
-};
+  onPressing: function(pos){
+    this.pos = pos;
+    this.active = true;
+  },
 
-Cursor.prototype.onRelease = function(){
-  this.active = false;
-};
+  onMoving: function(pos){
+    this.pos = pos;
+  },
 
-Cursor.prototype.onElement = function(element){
-  this.element = element;
-};
+  onRelease: function(){
+    this.active = false;
+  },
 
-Cursor.prototype.update = function(){
-  var elements = ["fire", "water", "earth", "air"]
-    , alpha = 0.4
-    , sizes = [20,20,20,50]
-    , colors = [
-        [255,0,0, alpha]
-      , [0,0,255, alpha]
-      , [165,140,80, alpha]
-      , [0,220,255, alpha]
-    ];
+  onElement: function(element){
+    this.element = element;
+  },
 
-  this.color = colors[elements.indexOf(this.element)];
-  this.size = sizes[elements.indexOf(this.element)];
-};
+  update: function(){
+    var elements = ["fire", "water", "earth", "air"]
+      , alpha = 0.4
+      , sizes = [20,20,20,50]
+      , colors = [
+          [255,0,0, alpha]
+        , [0,0,255, alpha]
+        , [165,140,80, alpha]
+        , [0,220,255, alpha]
+      ];
 
-Cursor.prototype.draw = function(ctx){
+    this.color = colors[elements.indexOf(this.element)];
+    this.radius = sizes[elements.indexOf(this.element)];
+  },
 
-  Renderer.drawCircle(ctx, {
-    pos: this.pos,
-    radius: this.size,
-    color: Color.toRGBA(this.color),
-    stroke: {
-      color: "#fff",
-      size: 2
-    } 
-  });
+  //draw is used from inheritance by the Circle class
 
-};
+});

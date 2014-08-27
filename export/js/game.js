@@ -1,1 +1,2393 @@
-!function a(b,c,d){function e(g,h){if(!c[g]){if(!b[g]){var i="function"==typeof require&&require;if(!h&&i)return i(g,!0);if(f)return f(g,!0);var j=new Error("Cannot find module '"+g+"'");throw j.code="MODULE_NOT_FOUND",j}var k=c[g]={exports:{}};b[g][0].call(k.exports,function(a){var c=b[g][1][a];return e(c?c:a)},k,k.exports,a,b,c,d)}return c[g].exports}for(var f="function"==typeof require&&require,g=0;g<d.length;g++)e(d[g]);return e}({1:[function(a,b){var c={};c.toRGBA=function(a){return"rgba("+a[0]+","+a[1]+","+a[2]+","+(a[3]||1)+")"},c.lerp=function(a,b,c){function d(a,b,c,d){return d=d?d:1,Math.round(Mathf.lerp(a,b,c)*d)/d}return[d(a[0],b[0],c),d(a[1],b[1],c),d(a[2],b[2],c),d(a[3]>=0?a[3]:1,b[3]>=0?b[3]:1,c,100)]},c.eql=function(a,b){return a[0]===b[0]&&a[1]===b[1]&&a[2]===b[2]&&a[3]===b[3]},b.exports=c},{}],2:[function(a,b){function c(a,b){var c,d,e=document,f=e.body,g=e.documentElement;return a.pageX||a.pageY?(c=a.pageX,d=a.pageY):(c=a.clientX+f.scrollLeft+g.scrollLeft,d=a.clientY+f.scrollTop+g.scrollTop),c-=b.offsetLeft,d-=b.offsetTop,{x:c,y:d}}var d=b.exports=function(a){var b=this.container=a.container||window.document;this.events={pressing:null,moving:null,release:null,element:null,pause:null},this.enabled=!1,b.onmouseup=this._onMouseEvent.bind(this,"release"),b.onmousedown=this._onMouseEvent.bind(this,"pressing"),b.onmousemove=this._onMouseEvent.bind(this,"moving"),window.document.onkeyup=this._onKeyUp.bind(this)};d.prototype.enable=function(){return this.enabled=!0,this},d.prototype.disable=function(){return this.enabled=!1,this},d.prototype.on=function(a,b){return this.events[a]||(this.events[a]=[]),this.events[a].push(b),this},d.prototype.off=function(a){return this.events[a]&&(this.events[a].length=0),this},d.prototype._getEventName=function(a){switch(a.which||a.keyCode){case 81:case 113:return"element:fire";case 87:case 119:return"element:water";case 69:case 101:return"element:earth";case 82:case 114:return"element:air";case 112:case 80:return"pause"}},d.prototype._onKeyUp=function(a){var b=this._getEventName(a);if((this.enabled||"pause"===b)&&b){if(b.indexOf("element")>-1){var c=b.split(":")[1];return void this.events.element.forEach(function(a){a(c)})}this.events[b].forEach(function(a){a()})}},d.prototype._onMouseEvent=function(a,b){if(this.enabled){var d=c(b,this.container);this.events[a].forEach(function(a){a(d)})}}},{}],3:[function(a,b){var c=b.exports=function(){this.pos={x:0,y:0},this.active=!1,this.element="fire",this.color=[255,255,255,.5],Controls.on("pressing",this.onPressing.bind(this)),Controls.on("moving",this.onMoving.bind(this)),Controls.on("release",this.onRelease.bind(this)),Controls.on("element",this.onElement.bind(this))};c.prototype.onPressing=function(a){this.pos=a,this.active=!0},c.prototype.onMoving=function(a){this.pos=a},c.prototype.onRelease=function(){this.active=!1},c.prototype.onElement=function(a){this.element=a},c.prototype.update=function(){var a=["fire","water","earth","air"],b=.4,c=[20,20,20,50],d=[[255,0,0,b],[0,0,255,b],[165,140,80,b],[0,220,255,b]];this.color=d[a.indexOf(this.element)],this.size=c[a.indexOf(this.element)]},c.prototype.draw=function(a){Renderer.drawCircle(a,{pos:this.pos,radius:this.size,color:Color.toRGBA(this.color),stroke:{color:"#fff",size:2}})}},{}],4:[function(a,b){var c=b.exports=function(){this.size=96,this.pos={x:20,y:50},this.spSize=Vector.multiply(Vector.one,this.size),this.current=null,this.active=!1,this.selected={},this.keys={fire:"Q",water:"W",earth:"E",air:"R"}};c.prototype.update=function(){this.selected.air=window.blowing,this.selected.fire=!1,this.selected.water=!1,this.selected.earth=!1,this.current&&(this.selected[this.current]=!0)},c.prototype.draw=function(a){var b=config.elements.sprites,c=50,d=0;for(var e in b){var f={x:this.pos.x,y:this.pos.y+d*(this.size+c)};Renderer.drawRect(a,{pos:f,size:this.spSize,corner:8,fill:this.selected[e]?"white":"transparent",stroke:this.active&&this.current===e?"red":"gray",strokeWidth:5}),Renderer.drawSprite(a,{resource:"elements",pos:f,size:this.spSize,angle:0,sp:b[e]});var g={x:f.x,y:f.y+1.1*this.spSize.y},h=20;Renderer.drawRect(a,{pos:{x:g.x-h/2,y:g.y-h},size:Vector.multiply(Vector.one,2*h),corner:4,fill:"gray",strokeWidth:2}),Renderer.drawText(a,{text:this.keys[e],pos:g,size:h,color:"#fff"}),d++}}},{}],5:[function(a,b){var c=a("./Manager"),d=b.exports=function(a){this.cview=a.viewport,this.cworld=a.world,this.cvacuum=a.vacuum,this.viewCtx=null,this.worldCtx=null,this.vacuumCtx=null,this.tLoop=null,this.paused=!1,this.boundGameRun=this.gameRun.bind(this),this.manager=new c,this.initialize()};d.prototype.initialize=function(){var a=config.size;if(!this.cview.getContext)throw"canvas not supported!";this.cview.width=a.x,this.cview.height=a.y,this.viewCtx=this.cview.getContext("2d"),this.worldCtx=this.cworld.getContext("2d"),this.cworld.width=a.x,this.cworld.height=a.y,this.vacuumCtx=this.cvacuum.getContext("2d"),this.cvacuum.width=config.vacuum.size.x,this.cvacuum.height=config.vacuum.size.y},d.prototype.loop=function(){this.manager.update(),this.manager.draw(this.viewCtx,this.worldCtx,this.vacuumCtx)},d.prototype.start=function(){this.paused=!1,Controls.enable(),this.gameRun()},d.prototype.stop=function(){this.paused=!0,Controls.disable(),window.cancelAnimationFrame(this.tLoop)},d.prototype.gameRun=function(){Time.tick()&&this.loop(),this.tLoop=window.requestAnimationFrame(this.boundGameRun)}},{"./Manager":7}],6:[function(a,b){var c=b.exports=function(){this.lastTime=Date.now(),this.frameTime=0,this.deltaTime=0,this.typicalFrameTime=20,this.minFrameTime=12,this.time=0};c.prototype.tick=function(){var a=Date.now(),b=a-this.lastTime;return b<this.minFrameTime?!1:(this.frameTime=b>2*this.typicalFrameTime?this.typicalFrameTime:b,this.deltaTime=this.frameTime/1e3,this.time+=this.frameTime,this.lastTime=a,!0)},c.prototype.reset=function(){this.lastTime=Date.now(),this.frameTime=0,this.deltaTime=0,this.typicalFrameTime=20,this.minFrameTime=12,this.time=0}},{}],7:[function(a,b){var c=a("./Nodes"),d=a("./Paths"),e=a("./Cursor"),f=a("./Spiders"),g=a("./Target"),h=a("./Vacuum"),i=a("./Stats"),j=a("./Elements"),k=b.exports=function(){this.cursor=new e,this.nodes=new c,this.paths=new d,this.target=new g,this.vacuum=new h(this.target),this.elements=new j,this.spiders=new f(this.nodes),this.stats=new i,this.target.setNodesInside(this.nodes.GetNodes())};k.prototype.update=function(){this.cursor.update(),window.blowing=this.cursor.blowing,this.elements.current=this.cursor.element,this.elements.active=this.cursor.active,this.cursor.active?(this.nodes.applyPos=this.cursor.pos,this.nodes.applyRatio=this.cursor.size,this.nodes.element=this.cursor.element):this.nodes.applyPos=null,this.nodes.update(),this.spiders.update(),this.target.update(this.spiders.spiders),this.vacuum.update(),this.stats.update(this.spiders.stats),this.elements.update()},k.prototype.draw=function(a,b,c){var d=config.size,e=config.vacuum.size;a.clearRect(0,0,d.x,d.y),b.clearRect(0,0,d.x,d.y),c.clearRect(0,0,e.x,e.y),this.cursor.draw(a),this.nodes.draw(b),this.spiders.draw(b),this.target.draw(b),this.vacuum.draw(c),this.stats.draw(a),this.elements.draw(a)}},{"./Cursor":3,"./Elements":4,"./Nodes":10,"./Paths":12,"./Spiders":17,"./Stats":18,"./Target":19,"./Vacuum":21}],8:[function(a,b){var c={};c.rnd=function(a,b){return Math.floor(Math.random()*(b-a+1)+a)},c.rnd11=function(){return Math.round(Math.random())},c.rnd01=function(){return Math.random()},c.rndAngle=function(){return Math.random()*Math.PI*2},c.rndInCircle=function(a){var b=c.rndAngle(),d=c.rnd(0,a);return{x:Math.cos(b)*d,y:Math.sin(b)*d}},c.lerp=function(a,b,c){return(1-c)*a+c*b},c.polygonPoints=function(a,b,c){for(var d=[],e=2*Math.PI/c,f=0;c>f;f++)d.push({x:a.x+b*Math.cos(f*e),y:a.y+b*Math.sin(f*e)});return d},b.exports=c},{}],9:[function(a,b){var c=b.exports=function(a){this.id=_.guid("nodes"),this.pos=a,this.size=config.nodes.size,this.color=config.nodes.colors.cold,this.dColor=Color.toRGBA(this.color),this.nears=[],this.selected=!1,this.temp=0,this.incTemp=0,this.incTempSize=0,this.burned=!1,this.shaked=!1,this.originalPos=null,this.hasEarth=!1,this.insideTarget=!1,this.blowing=!1,this.blowingEnd=0};c.prototype.addNear=function(a){this.nears.push(a)},c.prototype.randomBurn=function(){var a=this.nears.some(function(a){return a.burned});!a&&Mathf.rnd01()<.15&&this.setBurned()},c.prototype.getNearBurned=function(){var a;return this.nears.some(function(b){return b.burned?(a=b,!0):void 0}),a},c.prototype.shake=function(){this.originalPos?this.pos=this.originalPos:this.originalPos=this.pos,this.shaked=!0,this.pos=Vector.round(Vector.add(this.pos,Mathf.rndInCircle(.2)))},c.prototype.endShake=function(){this.originalPos&&(this.pos=this.originalPos),this.shaked=!1},c.prototype.revive=function(){this.burned&&(this.resetTemp(),this.burned=!1)},c.prototype.burn=function(){this.burned||(this.incTemp=1)},c.prototype.cool=function(){this.burned||(this.incTemp=-1,this.incTempSize=.5)},c.prototype.applyEarth=function(){this.burned||(this.hasEarth=!0)},c.prototype.applyAir=function(){this.burned||(this.blowing=!0,this.hasEarth=!1,this.blowingEnd=Time.time+500)},c.prototype.getRandomNear=function(a){var b=[];if(this.nears.forEach(function(c){c.id!==a&&!c.burned&&c.temp<.5&&b.push(c)}),b.length>0){var c=Mathf.rnd(0,b.length-1);return b[c]}return null},c.prototype.resetTemp=function(){this.temp=0,this.incTemp=0,this.incTempSize=0},c.prototype.setBurned=function(){this.burned=!0,this.color=config.nodes.colors.burned,this.dColor=Color.toRGBA(this.color),this.resetTemp()},c.prototype.update=function(){if(this.blowing&&Time.time>this.blowingEnd&&(this.blowing=!1),this.hasEarth)return this.dColor=Color.toRGBA(config.nodes.colors.earth),void this.resetTemp();var a=this.nears.every(function(a){return a.burned});return a?void this.setBurned():(this.incTemp>0&&(this.incTempSize=this.blowing?.2:.1),this.blowing||this.insideTarget?this.shake():this.shaked&&this.endShake(),this.temp+=this.incTemp*this.incTempSize*Time.deltaTime,this.temp<=0&&this.resetTemp(),this.color=Color.lerp(config.nodes.colors.cold,config.nodes.colors.burn,this.temp),this.dColor=Color.toRGBA(this.color),this.temp>1?(this.setBurned(),void this.resetTemp()):void 0)},c.prototype.draw=function(a){Renderer.drawCircle(a,{pos:this.pos,radius:this.size,color:this.dColor})}},{}],10:[function(a,b){var c=a("./Node"),d=a("./Paths"),e=b.exports=function(){this.nodes=[],this.paths=new d;var a=config.world.margin.x,b=config.world.margin.y,c=Vector.divide(config.size,2);c.x-=a,c.y-=b;var e=Vector.center(Vector.zero,config.size);this.createWeb(e,c),this.applyPos=null,this.applyRatio=0,this.element=null};e.prototype.createWeb=function(a,b){var d=0,e=30,f=e/5,g=6,h=3,i=2,j=8*g,k=Vector.add(a,Vector.multiply(b,-1)),l=Vector.add(a,b),m=[],n=new c(a);this.nodes.push(n);var o,p=10,q=1,r=0;do{o=!1,q%h===0&&(g*=i),g>j&&(g=j);var s=Mathf.polygonPoints(a,q*e+p,g);r+=s.length;var t=[];(10===q||20===q)&&(f+=.1),s.forEach(function(a){var b=Vector.round(Vector.add(a,Mathf.rndInCircle(f))),d=new c(b);Vector.isOut(b,k,l)?d.out=!0:(o=!0,this.nodes.push(d)),t.push(d)},this),m[q-1]=t,q++}while(o);d=q-2,m[0].forEach(function(a){this.paths.addOne(n,a)},this);var u,v,w,x;for(u=0;d>u;u++){var y=m[u],z=y.length;for(v=0;z>v;v++){w=v+1,x=v*i,w>z-1&&(w=0),x>z*i-h&&(x=-i);var A=m[u][w];if(!A.out){var B=m[u+1],C=B[w];B.length>y.length&&(C=B[x+i]),d-1>u&&C&&!C.out&&this.paths.addOne(A,C);var D=m[u][v];D.out||this.paths.addOne(A,D)}}}this.nodes.forEach(function(a){a.randomBurn()})},e.prototype.findNodeByCollider=function(){this.nodes.forEach(function(a){if(this.applyPos&&Vector.pointInCircle(this.applyPos,a.pos,this.applyRatio))switch(this.element){case"fire":a.burn();break;case"water":a.cool();break;case"earth":a.applyEarth();break;case"air":a.applyAir()}},this)},e.prototype.GetNodes=function(){return this.nodes},e.prototype.update=function(){this.applyPos&&this.findNodeByCollider(),this.paths.update(),this.nodes.forEach(function(a){a.burned||a.update()})},e.prototype.draw=function(a){this.paths.draw(a),this.nodes.forEach(function(b){b.draw(a)})}},{"./Node":9,"./Paths":12}],11:[function(a,b){var c=b.exports=function(a,b){this.na=a,this.nb=b,this.size=config.paths.size,this.tBurn=.5,this.burned=!1,this.heat=null};c.prototype.update=function(){var a=this.na,b=this.nb,c=a.temp,d=b.temp,e=a.color,f=this.nb.color;c>0?this.heat={from:a.pos,to:Vector.round(Vector.lerp(a.pos,b.pos,2*c>1?1:2*c))}:d>0&&(this.heat={from:b.pos,to:Vector.round(Vector.lerp(b.pos,a.pos,2*d>1?1:2*d))}),c>this.tBurn&&0===d?b.burn():d>this.tBurn&&0===c&&a.burn(),this.color=Color.toRGBA(Color.eql(e,f)?e:Color.lerp(e,f,this.tBurn)),(a.burned||b.burned)&&(this.heat=null,this.burned=!0,this.color=Color.toRGBA(config.nodes.colors.burned))},c.prototype.draw=function(a){Renderer.drawLine(a,{from:this.na.pos,to:this.nb.pos,size:this.size,color:this.color}),this.heat&&Renderer.drawLine(a,{from:this.heat.from,to:this.heat.to,size:5,color:"rgba(255,0,0,0.4)"})}},{}],12:[function(a,b){var c=a("./Path"),d=b.exports=function(){this.paths=[]};d.prototype.hasOne=function(a,b){return this.paths.some(function(c){var d=c.na.id,e=c.nb.id;return!(a!==d&&a!==e||b!==d&&b!==e)})},d.prototype.addOne=function(a,b){b&&!this.hasOne(a.id,b.id)&&(a.addNear(b),b.addNear(a),this.paths.push(new c(a,b)))},d.prototype.update=function(){this.paths.forEach(function(a){a.update()})},d.prototype.draw=function(a){this.paths.forEach(function(b){b.draw(a)})}},{"./Path":11}],13:[function(a,b){function c(a,b){b.hasOwnProperty("fill")&&(a.fillStyle=b.fill,a.fill())}function d(a,b){b.hasOwnProperty("stroke")&&(a.lineWidth=b.strokeWidth||1,a.strokeStyle=b.stroke,a.stroke())}function e(a,b){a.beginPath(),a.rect(b.pos.x,b.pos.y,b.size.x,b.size.y),c(a,b),d(a,b)}var f={};f.drawCircle=function(a,b){a.beginPath(),a.arc(b.pos.x,b.pos.y,b.radius,0,2*Math.PI,!1),a.fillStyle=b.color,a.fill(),b.stroke&&(a.lineWidth=b.stroke.size||1,a.strokeStyle=b.stroke.color||"#000",a.stroke())},f.drawLine=function(a,b){var c=b.from,d=b.to;a.beginPath(),a.lineCap="round",a.moveTo(c.x,c.y),a.lineTo(d.x,d.y),a.lineWidth=b.size,a.strokeStyle=b.color,a.stroke()},f.drawSprite=function(a,b){function c(){i?a.drawImage(d,i.x,i.y,i.w,i.h,e,f,g,h):a.drawImage(d,e,f,g,h)}var d=Repo[b.resource],e=b.pos.x,f=b.pos.y,g=b.size.x,h=b.size.y,i=b.sp;return b.hasOwnProperty("angle")?(a.save(),a.translate(e+g/2,f+h/2),e=-g/2,f=-h/2,a.rotate(b.angle),c(),void a.restore()):void c()},f.drawText=function(a,b){a.font=b.size+"pt Arial",a.textBaseline=b.baseline||"middle",a.fillStyle=b.color,a.fillText(b.text,b.pos.x,b.pos.y)},f.drawRect=function(a,b){var f=b.pos.x,g=b.pos.y,h=b.size.x,i=b.size.y;if(!b.hasOwnProperty("corner"))return void e(a,b);var j=b.corner;a.beginPath(),a.moveTo(f+j,g),a.lineTo(f+h-j,g),a.quadraticCurveTo(f+h,g,f+h,g+j),a.lineTo(f+h,g+i-j),a.quadraticCurveTo(f+h,g+i,f+h-j,g+i),a.lineTo(f+j,g+i),a.quadraticCurveTo(f,g+i,f,g+i-j),a.lineTo(f,g+j),a.quadraticCurveTo(f,g,f+j,g),a.closePath(),c(a,b),d(a,b)},b.exports=f},{}],14:[function(a,b){b.exports=function(){var a={},b=0,c=function(){return Object.keys(a).length},d={complete:function(){},report:function(){},error:function(){}},e=function(){var a=c(),e=100*++b/a;a>=b&&(d.report(e),e>=100&&d.complete())},f=function(a,b){d.error(a,b)};return{on:function(a,b){return d[a]&&(d[a]=b),this},load:function(){b=0;for(var c in a)this[c]=new window.Image,this[c].onload=e,this[c].onerror=f,this[c].src=a[c];return this},addResources:function(b){for(var c in b)a[c]=b[c];return this}}}()},{}],15:[function(a,b){b.exports={world:{margin:{x:150,y:20}},nodes:{size:3,colors:{cold:[255,255,255,1],burn:[255,0,0,1],burned:[0,0,0,.2],earth:[190,160,40,1]}},paths:{size:2},spiders:{size:32,quantity:50,color:[115,255,0],speed:.05,speedAlert:.1,behaviour:{alertTemp:0,tStayA:3e3,tStayB:1e4},sprites:{move:[{x:0,y:0,w:32,h:32},{x:32,y:0,w:32,h:32},{x:64,y:0,w:32,h:32},{x:96,y:0,w:32,h:32}]}},target:{size:180,suckForce:3},stats:{pos:{x:1,y:0},colors:{kills:[255,0,0,1],alives:[0,255,0,1]}},vacuum:{size:{x:300,y:500}},elements:{sprites:{fire:{x:0,y:0,w:32,h:32},water:{x:32,y:0,w:32,h:32},earth:{x:64,y:0,w:32,h:32},air:{x:96,y:0,w:32,h:32}}},images:{spider:"images/spider.png",elements:"images/elements.png"}}},{}],16:[function(a,b){var c=b.exports=function(a,b){this.id=_.guid("spiders");var c=config.spiders;this.pos=Vector.round(a),this.onDead=b,this.size=c.size,this.color=c.color,this.speed=c.speed,this.nFrom=null,this.nTo=null,this.journeyLength=null,this.traveling=!1,this.isDead=!1,this.temp=0,this.staying=!1,this.t_stay=2e3,this.t_startStay=0,this.t_nextStay=0,this.t_startMove=0,this.building=!1,this.spSize=Vector.multiply(Vector.one,this.size),this.spPos=Vector.origin(this.pos,this.spSize),this.angle=0,this.spriteIndex=0,this.animTime=3,this.lastFrameTime=0,this.exited=!1};c.prototype.setNode=function(a,b){this.nFrom=a,this.nTo=b,this.t_startMove=Time.time,this.journeyLength=Vector.length(a.pos,b.pos),this.traveling=!0,this.angle=Vector.angleTo(this.pos,this.nTo.pos)},c.prototype.setDead=function(){this.isDead||(this.isDead=!0,this.onDead())},c.prototype.animate=function(){this.staying||(this.lastFrameTime-=Time.frameTime,this.lastFrameTime<=0&&(this.spriteIndex++,this.spriteIndex>3&&(this.spriteIndex=0),this.lastFrameTime=this.animTime/this.speed))},c.prototype.updateTemp=function(){var a=this.nFrom.temp,b=this.nTo.temp;return 0===a&&0===b?void(this.temp=0):a>b?void(this.temp=a):void(b>a&&(this.temp=b))},c.prototype.canMove=function(){return!this.staying&&!this.traveling&&!this.building},c.prototype.updateState=function(){var a=config.spiders,b=Time.time,c=a.behaviour,d=this.t_startStay,e=this.t_stay;return this.temp>c.alertTemp?(this.speed=a.speedAlert,void(this.staying=!1)):(this.speed=a.speed,void(this.staying?b>d+e&&(this.staying=!1,this.t_nextStay=b+e/Mathf.rnd(2,5)):b>this.t_nextStay&&Mathf.rnd01()<.8&&(this.staying=!0,this.t_startStay=b,this.t_stay=Mathf.rnd(c.tStayA,c.tStayB))))},c.prototype.updateMove=function(){if(!this.building&&(this.nFrom.burned||this.nTo.burned))return void this.setDead();var a=(Time.time-this.t_startMove)*this.speed,b=a/this.journeyLength;return b>1?(this.pos=this.nTo.pos,this.nTo.revive(),this.traveling=!1,this.building=!1,!0):(this.pos=Vector.round(Vector.lerp(this.nFrom.pos,this.nTo.pos,b)),this.animate(),void(this.spPos=Vector.origin(this.pos,this.spSize)))},c.prototype.buildWeb=function(a,b){this.building=!0,this.traveling=!0,this.setNode(a,b)},c.prototype.update=function(){if(this.spPos=Vector.origin(this.pos,this.spSize),!(this.isDead||this.exited||this.inVacuum)){if(this.updateTemp(),this.building||this.traveling){var a=this.updateMove();if(!a)return}this.updateState()}},c.prototype.draw=function(a){this.isDead||(this.building&&Renderer.drawLine(a,{from:this.pos,to:this.nFrom.pos,size:config.paths.size,color:Color.toRGBA(config.nodes.colors.cold)}),Renderer.drawSprite(a,{resource:"spider",pos:this.spPos,size:this.spSize,angle:this.angle,sp:config.spiders.sprites.move[this.spriteIndex]}))}},{}],17:[function(a,b){var c=a("./Spider"),d=b.exports=function(a,b){this.nodes=a,this.onExitSpider=b,this.amount=config.spiders.quantity,this.spiders=[],this.spidersExit=0,this.spidersKilled=0,this.generateSpiders(),this.stats={},this.updateGUI()};d.prototype.updateGUI=function(){this.stats={saved:this.spidersExit,killed:this.spidersKilled,alives:this.spiders.length-(this.spidersKilled+this.spidersExit),total:this.spiders.length}},d.prototype.onSpiderDead=function(){this.spidersKilled++,this.updateGUI()},d.prototype.generateSpiders=function(){var a,b,d=this.nodes.GetNodes(),e=d.length,f=[],g=e<this.amount?e-2:this.amount;do b=Mathf.rnd(0,e-1),a=d[b],a.burned||-1!==f.indexOf(a.id)||(f.push(a.id),this.spiders.push(new c(a.pos,this.onSpiderDead.bind(this))),g--);while(g)},d.prototype.update=function(){function a(a,b){if(!a.hasEarth&&0===a.temp&&Mathf.rnd01()>.7){var c=a.getNearBurned();if(c)return b.buildWeb(a,c),!0}return!1}function b(a,b){var c=b.nodeFrom&&b.nodeFrom.id||-1,d=a.getRandomNear(c);return d?(b.setNode(a,d),!0):!1}function c(c,d){Vector.pointInCircle(c.pos,d.pos,5)&&(a(d,c)||b(d,c)||d.burned&&c.setDead())}var d=this.nodes.GetNodes(),e=this.spidersExit;this.spidersExit=0,this.spiders.forEach(function(a){a.exited?this.spidersExit++:a.canMove()&&d.some(function(b){c(a,b)},this),a.update()},this),e!==this.spidersExit&&this.updateGUI()},d.prototype.draw=function(a){this.spiders.forEach(function(b){b.inVacuum||b.draw(a)})}},{"./Spider":16}],18:[function(a,b){var c=b.exports=function(){this.size=40;var a=15,b=25;this.pos=Vector.prod(config.stats.pos,config.size),this.kPos=Vector.clone(this.pos),this.kPos.x-=a+this.size/2,this.kPos.y+=b+this.size,this.aPos=Vector.clone(this.pos),this.aPos.x-=a+this.size/2,this.aPos.y+=3*b+this.size,this.kcolor=Color.toRGBA(config.stats.colors.kills),this.acolor=Color.toRGBA(config.stats.colors.alives),this.stats={saved:0,killed:0,alives:0,total:0},this.spSize=Vector.multiply(Vector.one,this.size),this.angle=Math.PI/2,this.oAPos=Vector.origin(this.aPos,this.spSize),this.oKPos=Vector.origin(this.kPos,this.spSize),this.txtSize=30};c.prototype.update=function(a){this.stats=a},c.prototype.draw=function(a){this.drawIcons(a),this.drawStats(a)},c.prototype.drawIcons=function(a){var b=this.spSize,c=this.oKPos,d=this.oAPos;Renderer.drawSprite(a,{resource:"spider",pos:d,size:b,angle:this.angle,sp:config.spiders.sprites.move[0]}),Renderer.drawSprite(a,{resource:"spider",pos:c,size:b,angle:this.angle,sp:config.spiders.sprites.move[0]}),Renderer.drawLine(a,{from:c,to:Vector.add(b,c),size:2,color:this.kcolor}),Renderer.drawLine(a,{from:{x:c.x+b.x,y:c.y},to:{x:c.x,y:c.y+b.y},size:2,color:this.kcolor})},c.prototype.drawStats=function(a){var b=this.txtSize;Renderer.drawText(a,{text:_.pad(this.stats.alives,3),pos:{x:this.aPos.x-3*b,y:this.aPos.y},size:b,color:this.acolor}),Renderer.drawText(a,{text:_.pad(this.stats.killed,3),pos:{x:this.kPos.x-3*b,y:this.kPos.y},size:b,color:this.kcolor})}},{}],19:[function(a,b){var c=b.exports=function(){this.size=config.size.y/6,this.suckForce=config.target.suckForce;var a=config.world.margin.x,b=config.world.margin.y;this.pos=Vector.prod(Vector.one,config.size),this.pos.x-=a+10,this.pos.y-=b+20,this.saved=[],this.saving=[]};c.prototype.setNodesInside=function(a){a.forEach(function(a){Vector.pointInCircle(a.pos,this.pos,this.size)&&(a.burned&&(a.burned=!1,a.revive()),a.insideTarget=!0)},this)},c.prototype.update=function(a){a.forEach(function(a){a.dead||a.exited||Vector.pointInCircle(a.pos,this.pos,this.size)&&(a.building=!1,a.exited=!0,a.vel={x:0,y:0},this.saving.push(a))},this);var b=Time.deltaTime,c=b*this.suckForce,d=this.pos;this.saving.forEach(function(a){if(!a.catched){var b=a.pos,e=Vector.normal(b,d);a.vel=Vector.add(a.vel,Vector.multiply(e,c)),a.pos=Vector.add(b,a.vel),Vector.pointInCircle(a.pos,d,5)&&(a.catched=!0,this.saved.push(a))}},this)},c.prototype.draw=function(a){var b=.97*Math.PI,c=1.52*Math.PI;a.beginPath(),a.lineCap="butt",a.arc(this.pos.x,this.pos.y,this.size/2,b,c,!1),a.lineWidth=this.size,a.strokeStyle="rgba(80,255,85,0.1)",a.stroke()}},{}],20:[function(a,b){var c=b.exports=function(){this.lastIds={nodes:0,spiders:0,emitters:0}};c.prototype.guid=function(a){return++this.lastIds[a]},c.prototype.pad=function(a,b){var c="0000000"+a;return c.substr(c.length-b)}},{}],21:[function(a,b){var c=b.exports=function(a){this.target=a,this.size=config.vacuum.size,this.txtColor="#fff",this.txtSize=20,this.txtPos={x:180,y:30},this.targetLen=20,this.current=0,this.offx=30,this.offy=10,this.recipePos={x:this.offx+165,y:this.offy+65},this.recipeSize={x:80,y:300}};c.prototype.update=function(){this.current=this.target.saved.length;var a=this.recipePos,b=this.recipeSize,c=a.y+b.y/2,d=a.x+b.x/2,e=2*Time.time*Math.PI;this.target.saved.forEach(function(a){if(a.inVacuum){a.animate();var b=a.vacuum;a.pos={x:b.ampX*Math.sin(e/b.velX)+d,y:b.ampY*Math.sin(e/b.velY)+c},a.angle+=b.rot}else a.inVacuum=!0,a.vacuum={ampY:Mathf.rnd(10,c/2),velY:Mathf.rnd(600,1e3),ampX:Mathf.rnd(5,20),velX:Mathf.rnd(2e3,6e3),rot:Mathf.rnd(1,5)/10},a.pos={x:d,y:c}},this)},c.prototype.draw=function(a){this.drawBG(a),this.drawContent(a),this.drawStats(a)},c.prototype.drawContent=function(a){var b=this.recipePos,c=this.recipeSize;Renderer.drawRect(a,{pos:b,size:c,corner:6,fill:"#ffffff",strokeWidth:2}),this.drawSpiders(a),Renderer.drawRect(a,{pos:b,size:c,corner:6,stroke:"#bbbbf9",fill:"rgba(0,0,255,0.5)",strokeWidth:2})},c.prototype.drawSpiders=function(a){this.target.saved.forEach(function(b){b.draw(a)})},c.prototype.drawStats=function(a){var b=this.txtSize;Renderer.drawText(a,{text:_.pad(this.current,3)+" / "+_.pad(this.targetLen,3),pos:this.txtPos,size:b,color:this.txtColor})},c.prototype.drawBG=function(a){function b(b,e,f){a.beginPath();var g=b[0];a.moveTo(c+g[0],d+g[1]);for(var h=1;h<b.length;h++){var i=b[h];4===i.length?a.quadraticCurveTo(c+i[0],d+i[1],c+i[2],d+i[3]):a.lineTo(c+i[0],d+i[1])}a.lineTo(c+g[0],d+g[1]),e&&(a.fillStyle=e,a.fill()),a.lineWidth=3,a.strokeStyle=f,a.lineCap="round",a.stroke(),a.closePath()}var c=this.offx,d=this.offy,e=[[70,460],[120,400],[160,445],[195,450,185,380],[225,380],[230,510,145,475]];b(e,"#9e9e9e","#474747");var f={x:c+150,y:d+50};Renderer.drawRect(a,{pos:f,size:{x:110,y:330},corner:6,fill:"#9e9e9e",stroke:"#474747",strokeWidth:2})}},{}],22:[function(a,b){var c={};c.zero={x:0,y:0},c.one={x:1,y:1},c.clone=function(a){return{x:a.x,y:a.y}},c.prod=function(a,b){return{x:a.x*b.x,y:a.y*b.y}},c.multiply=function(a,b){return{x:a.x*b,y:a.y*b}},c.divide=function(a,b){return{x:a.x/b,y:a.y/b}},c.add=function(a,b){return{x:a.x+b.x,y:a.y+b.y}},c.dif=function(a,b){return{x:b.x-a.x,y:b.y-a.y}},c.part=function(a,b,d){return c.lerp(a,b,d/10)},c.angleTo=function(a,b){var d=c.dif(a,b);return Math.atan2(d.y,d.x)},c.mid=function(a,b){return c.divide(c.add(a,b),2)},c.eql=function(a,b){return a.x===b.x&&a.y===b.y},c.normal=function(a,b){var d=c.dif(a,b),e=c.length(a,b);return{x:d.x/e||0,y:d.y/e||0}},c.origin=function(a,b){return{x:a.x-b.x/2,y:a.y-b.y/2}},c.center=function(a,b){return{x:a.x+b.x/2,y:a.y+b.y/2}},c.length=function(a,b){var d=c.dif(a,b);return Math.sqrt(d.x*d.x+d.y*d.y)},c.pointInCircle=function(a,b,d){return c.length(a,b)<d},c.lerp=function(a,b,c){return{x:a.x+(b.x-a.x)*c,y:a.y+(b.y-a.y)*c}},c.round=function(a){return a.x=Math.round(a.x),a.y=Math.round(a.y),a},c.isOut=function(a,b,c){return a.x<b.x||a.x>c.x||a.y<b.y||a.y>c.y},c.debug=function(a){console.log(a.x+" : "+a.y)},b.exports=c},{}],23:[function(a){function b(){function b(a){return Math.max(d["client"+a],g["scroll"+a],d["scroll"+a],g["offset"+a],d["offset"+a])}var c=a("./Settings"),d=f.documentElement,g=f.body;c.size={x:b("Width"),y:b("Height")},e.config=c}function c(){function a(){game.paused?game.start():game.stop()}var b=f.getElementById("game-viewport"),c=f.getElementById("game-world"),d=f.getElementById("vacuum");e._=new i,e.Time=new h,e.Controls=new j({container:b}),e.game=new g({viewport:b,world:c,vacuum:d}),e.Controls.on("pause",a)}function d(){b(),e.Repo.addResources(e.config.images).on("complete",function(){c(),e.game.start()}).load()}var e=window,f=e.document;e.DEBUG=!0,a("./reqAnimFrame");var g=a("./Game"),h=a("./GameTime"),i=a("./Utils"),j=a("./Controls");e.Mathf=a("./Mathf"),e.Color=a("./Color"),e.Vector=a("./Vector"),e.Renderer=a("./Renderer"),e.Repo=a("./Repo"),e.onload=d},{"./Color":1,"./Controls":2,"./Game":5,"./GameTime":6,"./Mathf":8,"./Renderer":13,"./Repo":14,"./Settings":15,"./Utils":20,"./Vector":22,"./reqAnimFrame":24}],24:[function(){!function(){for(var a=0,b=["ms","moz","webkit","o"],c=0;c<b.length&&!window.requestAnimationFrame;++c)window.requestAnimationFrame=window[b[c]+"RequestAnimationFrame"],window.cancelAnimationFrame=window[b[c]+"CancelAnimationFrame"]||window[b[c]+"CancelRequestAnimationFrame"];window.requestAnimationFrame||(window.requestAnimationFrame=function(b){var c=(new Date).getTime(),d=Math.max(0,16-(c-a)),e=window.setTimeout(function(){b(c+d)},d);return a=c+d,e}),window.cancelAnimationFrame||(window.cancelAnimationFrame=function(a){window.clearTimeout(a)})}()},{}]},{},[23]);
+(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+
+/*
+ * Taken from Backbone and Underscore
+ * and only left the minimun and necessary code
+ */
+
+
+//TODO: centralize this in utilities
+
+var _ = {};
+
+var idCounter = 0;
+_.uniqueId = function(prefix) {
+  var id = ++idCounter + '';
+  return prefix ? prefix + id : id;
+};
+
+_.isObject = function(obj) {
+  var type = typeof obj;
+  return type === 'function' || type === 'object' && !!obj;
+};
+
+_.extend = function(obj) {
+  if (!_.isObject(obj)) { return obj; }
+  var source, prop;
+  for (var i = 1, length = arguments.length; i < length; i++) {
+    source = arguments[i];
+    for (prop in source) {
+      if (hasOwnProperty.call(source, prop)) {
+        obj[prop] = source[prop];
+      }
+    }
+  }
+  return obj;
+};
+
+
+// BASE CLASS 
+
+var Base = module.exports = function(attributes) {
+
+  if (_.isObject(attributes)){
+    _.extend(this, attributes || {});
+  }
+
+  this.cid = _.uniqueId('c');
+  
+  this.initialize.apply(this, arguments);
+};
+
+_.extend(Base.prototype, {
+  initialize: function(){},
+});
+
+Base.extend = function(protoProps, staticProps) {
+  var parent = this;
+  var child = function(){ return parent.apply(this, arguments); };
+    
+  _.extend(child, parent, staticProps);
+
+  var Surrogate = function(){ this.constructor = child; };
+  Surrogate.prototype = parent.prototype;
+  child.prototype = new Surrogate();
+
+  if (protoProps) { _.extend(child.prototype, protoProps); }
+  child._super = parent.prototype;
+
+  return child;
+};
+
+},{}],2:[function(require,module,exports){
+
+module.exports = Entity.extend({
+
+  pos: { x: 0, y: 0 },
+  radius: 5,
+  color: Color.white,
+  stroke: null,
+
+  initialize: function(){},
+
+  update: function(){ },
+
+  draw: function(ctx){
+
+    Renderer.drawCircle(ctx, {
+      pos: this.pos,
+      radius: this.radius,
+      color: Color.toRGBA(this.color),
+      stroke: this.stroke
+    });
+
+  },
+
+});
+
+},{}],3:[function(require,module,exports){
+
+module.exports = Base.extend({
+
+  entities: [],
+
+  initialize: function(){
+    this.entities = [];
+  },
+
+  update: function(){
+    this.entities.forEach(function (entity) {
+      entity.update();
+    });
+  },
+
+  draw: function(ctx){
+    this.entities.forEach(function (entity) {
+      entity.draw(ctx);
+    });
+  },
+
+});
+
+},{}],4:[function(require,module,exports){
+
+var Color = {};
+
+Color.white = [255,255,255,1];
+
+Color.toRGBA = function(arr){
+  return "rgba(" + arr[0] + "," + arr[1] + "," + arr[2] + "," + (arr[3] || 1) + ")";
+};
+
+Color.lerp = function(from, to, t){
+
+  function l(a, b, t, m){
+    m = m ? m : 1;
+    return Math.round(Mathf.lerp(a, b, t) * m) / m;
+  }
+
+  return [
+      l(from[0], to[0], t)
+    , l(from[1], to[1], t)
+    , l(from[2], to[2], t)
+    , l(
+        from[3] >= 0 ? from[3]: 1
+      , to[3] >= 0 ? to[3] : 1
+      , t
+      , 100
+      )
+  ];
+};
+
+Color.eql = function(a, b){
+  return a[0] === b[0] && a[1] === b[1] && a[2] === b[2] && a[3] === b[3];
+};
+
+module.exports = Color;
+
+},{}],5:[function(require,module,exports){
+
+function getCoordsEvent(e, canvas){
+  var x, y
+    , doc = document
+    , body = doc.body
+    , docEle = doc.documentElement;
+
+  if (e.pageX || e.pageY) { 
+    x = e.pageX;
+    y = e.pageY;
+  }
+  else { 
+    x = e.clientX + body.scrollLeft + docEle.scrollLeft; 
+    y = e.clientY + body.scrollTop + docEle.scrollTop; 
+  } 
+  
+  x -= canvas.offsetLeft;
+  y -= canvas.offsetTop;
+  
+  return { x: x, y: y };
+}
+
+module.exports = Base.extend({
+
+  events: {
+      "pressing": null
+    , "moving": null
+    , "release": null
+    , "element": null
+    , "pause": null
+  },
+
+  enabled: false,
+
+  initialize: function(options){
+    var doc = window.document
+      , c = this.container = options.container || doc;
+
+    c.onmouseup = this._onMouseEvent.bind(this, "release");
+    c.onmousedown = this._onMouseEvent.bind(this, "pressing");
+    c.onmousemove = this._onMouseEvent.bind(this, "moving");
+    doc.onkeyup = this._onKeyUp.bind(this);
+  },
+
+  enable: function(){
+    this.enabled = true;
+    return this;
+  },
+
+  disable: function(){
+    this.enabled = false;
+    return this;
+  },
+
+  on: function(evName, callback){
+    if (!this.events[evName]){
+      this.events[evName] = [];
+    }
+
+    this.events[evName].push(callback);
+
+    return this;
+  },
+
+  off: function(evName){
+    if (this.events[evName]){
+      this.events[evName].length = 0;
+    }
+
+    return this;
+  },
+
+  _getEventName: function(e){
+    switch(e.which || e.keyCode){
+      case 81: //Q
+      case 113: //q
+        return "element:fire";
+      case 87: //W
+      case 119: //w
+        return "element:water";
+      case 69: //E
+      case 101: //e
+        return "element:earth";
+      case 82: //R
+      case 114: //r
+        return "element:air";
+      case 112: //P
+      case 80: //p
+        return "pause";
+    }
+
+    return;
+  },
+
+  _onKeyUp: function(e){
+    var evName = this._getEventName(e);
+
+    if (!this.enabled && evName !== "pause"){
+      return;
+    }
+
+    if (evName){
+
+      if (evName.indexOf("element") > -1){
+        var element = evName.split(":")[1];
+        this.events.element.forEach(function(cb){
+          cb(element);
+        });
+
+        return;
+      }
+
+      this.events[evName].forEach(function(cb){
+        cb();
+      });
+    }
+  },
+
+  _onMouseEvent: function(type, e){
+    if (!this.enabled){
+      return;
+    }
+
+    var pos = getCoordsEvent(e, this.container);
+
+    this.events[type].forEach(function(cb){
+      cb(pos);
+    });
+  }
+
+});
+
+},{}],6:[function(require,module,exports){
+
+module.exports = Circle.extend({
+
+  radius: 20,
+  stroke: {
+    color: "#fff",
+    size: 2
+  },
+
+  active: false,
+  element: "fire",
+
+  initialize: function(){
+    Controls.on("pressing", this.onPressing.bind(this));
+    Controls.on("moving", this.onMoving.bind(this));
+    Controls.on("release", this.onRelease.bind(this));
+    Controls.on("element", this.onElement.bind(this));
+  },
+
+  onPressing: function(pos){
+    this.pos = pos;
+    this.active = true;
+  },
+
+  onMoving: function(pos){
+    this.pos = pos;
+  },
+
+  onRelease: function(){
+    this.active = false;
+  },
+
+  onElement: function(element){
+    this.element = element;
+  },
+
+  update: function(){
+    var elements = ["fire", "water", "earth", "air"]
+      , alpha = 0.4
+      , sizes = [20,20,20,50]
+      , colors = [
+          [255,0,0, alpha]
+        , [0,0,255, alpha]
+        , [165,140,80, alpha]
+        , [0,220,255, alpha]
+      ];
+
+    this.color = colors[elements.indexOf(this.element)];
+    this.radius = sizes[elements.indexOf(this.element)];
+  },
+
+  //draw is used from inheritance by the Circle class
+
+});
+
+},{}],7:[function(require,module,exports){
+
+var Elements = module.exports = function(){
+  this.size = 96;
+  this.pos = { x: 20, y: 50};
+
+  this.spSize = Vector.multiply(Vector.one, this.size);
+
+  this.current = null;
+  this.active = false;
+  this.selected = {};
+
+  this.keys = {
+    fire: "Q",
+    water: "W",
+    earth: "E",
+    air: "R"
+  };
+};
+
+Elements.prototype.update = function(){
+  this.selected.air = window.blowing;
+  
+  this.selected.fire = false;
+  this.selected.water = false;
+  this.selected.earth = false;
+
+  if (this.current){
+    this.selected[this.current] = true;
+  }
+};
+
+Elements.prototype.draw = function(ctx){
+  var elementsSP = config.elements.sprites
+    , gap = 50
+    , i = 0;
+
+  for (var ele in elementsSP){      
+    var pos = { x: this.pos.x, y: this.pos.y + (i * (this.size + gap)) };
+
+    Renderer.drawRect(ctx, {
+      pos: pos,
+      size: this.spSize,
+      corner: 8,
+      fill: (this.selected[ele] ? "white" : "transparent"),
+      stroke: (this.active && this.current === ele ? "red" : "gray"),
+      strokeWidth: 5
+    });
+
+    Renderer.drawSprite(ctx, {
+      resource: "elements",
+      pos: pos,
+      size: this.spSize,
+      angle: 0,
+      sp: elementsSP[ele]
+    });
+
+    var txtPos = { x: pos.x, y: pos.y + this.spSize.y * 1.1 };
+    var txtSize = 20;
+
+    Renderer.drawRect(ctx, {
+      pos: { x: txtPos.x - txtSize/2, y: txtPos.y - txtSize},
+      size: Vector.multiply(Vector.one, txtSize*2),
+      corner: 4,
+      fill: "gray",
+      strokeWidth: 2
+    });
+
+    Renderer.drawText(ctx, {
+      text: this.keys[ele],
+      pos: txtPos,
+      size: txtSize,
+      color: "#fff"
+    });
+
+    i++;
+  }
+
+};
+
+},{}],8:[function(require,module,exports){
+
+module.exports = Base.extend({
+
+  pos: { x: 0, y: 0 },
+
+  initialize: function(){},
+
+  update: function(){ },
+
+  draw: function(/*ctx*/){ },
+
+});
+
+},{}],9:[function(require,module,exports){
+
+var Manager = require("./Manager");
+
+var Game = module.exports = function(opts){
+  this.cview = opts.viewport;
+  this.cworld = opts.world;
+  this.cvacuum = opts.vacuum;
+
+  this.viewCtx = null;
+  this.worldCtx = null;
+  this.vacuumCtx = null;
+
+  this.tLoop = null;
+  this.paused = false;
+  this.boundGameRun = this.gameRun.bind(this);
+
+  this.manager = new Manager();
+  this.initialize();
+};
+
+Game.prototype.initialize = function(){
+  var size = config.size;
+
+  if (this.cview.getContext){
+    this.cview.width = size.x;
+    this.cview.height = size.y;
+    this.viewCtx = this.cview.getContext("2d");
+  }
+  else { throw "canvas not supported!"; }
+
+  this.worldCtx = this.cworld.getContext("2d");
+  this.cworld.width = size.x;
+  this.cworld.height = size.y;
+
+  this.vacuumCtx = this.cvacuum.getContext("2d");
+  this.cvacuum.width = config.vacuum.size.x;
+  this.cvacuum.height = config.vacuum.size.y;
+};
+
+Game.prototype.loop = function(){
+  //console.log(Time.frameTime + "( " + Time.deltaTime + " ) / " + Time.time);
+  this.manager.update();
+  this.manager.draw(this.viewCtx, this.worldCtx, this.vacuumCtx);
+};
+
+Game.prototype.start = function(){
+  this.paused = false;
+  Controls.enable();
+  this.gameRun();
+};
+
+Game.prototype.stop = function(){
+  this.paused = true;
+  Controls.disable();
+  window.cancelAnimationFrame(this.tLoop);
+};
+
+Game.prototype.gameRun = function(){
+  if (Time.tick()) { this.loop(); }
+  this.tLoop = window.requestAnimationFrame(this.boundGameRun);
+};
+
+},{"./Manager":12}],10:[function(require,module,exports){
+// Manages the ticks for a Game Loop
+
+var GameTime = module.exports = function(){
+  this.lastTime = Date.now();
+  this.frameTime = 0;
+  this.deltaTime = 0;
+  this.typicalFrameTime = 20;
+  this.minFrameTime = 12; 
+  this.time = 0;
+};
+
+// move the clock one tick. 
+// return true if new frame, false otherwise.
+GameTime.prototype.tick = function() {
+  var now = Date.now();
+  var delta = now - this.lastTime;
+
+  if (delta < this.minFrameTime ) {
+    return false;
+  }
+
+  if (delta > 2 * this.typicalFrameTime) { // +1 frame if too much time elapsed
+    this.frameTime = this.typicalFrameTime;
+  } else {  
+    this.frameTime = delta;      
+  }
+
+  this.deltaTime = this.frameTime/1000;
+  this.time += this.frameTime;
+  this.lastTime = now;
+
+  return true;
+};
+
+GameTime.prototype.reset = function() {
+  this.lastTime = Date.now();
+  this.frameTime = 0;
+  this.deltaTime = 0;
+  this.typicalFrameTime = 20;
+  this.minFrameTime = 12; 
+  this.time = 0;
+};
+},{}],11:[function(require,module,exports){
+
+module.exports = Entity.extend({
+
+  pos: { x: 0, y: 0 },
+  to: { x: 0, y: 0 },
+
+  size: 1,
+  color: Color.white,
+  
+  initialize: function(){},
+
+  update: function(){ },
+
+  draw: function(ctx){
+
+    Renderer.drawLine(ctx, {
+      from: this.pos,
+      to: this.to,
+      size: this.size,
+      color: Color.toRGBA(this.color)
+    });
+
+  },
+
+});
+
+
+},{}],12:[function(require,module,exports){
+
+var Nodes = require("./Nodes");
+var Paths = require("./Paths");
+var Cursor = require("./Cursor");
+var Spiders = require("./Spiders");
+var Target = require("./Target");
+var Vacuum = require("./Vacuum");
+var Stats = require("./Stats");
+var Elements = require("./Elements");
+
+var Manager = module.exports = function(){
+
+  this.cursor = new Cursor();
+  this.nodes = new Nodes();
+  this.paths = new Paths();
+  this.target = new Target();
+  this.vacuum = new Vacuum(this.target);
+  this.elements = new Elements();
+  this.spiders = new Spiders(this.nodes);
+  this.stats = new Stats();
+
+  this.target.setNodesInside(this.nodes.GetNodes());
+};
+
+Manager.prototype.update = function(){
+  
+  this.cursor.update();
+
+  window.blowing = this.cursor.blowing;
+  this.elements.current = this.cursor.element;
+  this.elements.active = this.cursor.active;
+
+  if (this.cursor.active){
+    this.nodes.applyPos = this.cursor.pos;
+    this.nodes.applyRatio = this.cursor.radius;
+    this.nodes.element = this.cursor.element;
+  }
+  else {
+    this.nodes.applyPos = null;
+  }
+
+  this.nodes.update();
+  this.spiders.update();
+  this.target.update(this.spiders.spiders);
+  this.vacuum.update();
+  this.stats.update(this.spiders.stats);
+
+  this.elements.update();
+
+  //Particles.update();
+};
+
+Manager.prototype.draw = function(viewCtx, worldCtx, vacuumCtx){
+  var s = config.size;
+  var vs = config.vacuum.size;
+
+  viewCtx.clearRect(0, 0, s.x, s.y);
+  worldCtx.clearRect(0, 0, s.x, s.y);
+  vacuumCtx.clearRect(0, 0, vs.x, vs.y);
+
+  this.cursor.draw(viewCtx);
+  this.nodes.draw(worldCtx);
+  this.spiders.draw(worldCtx);
+  this.target.draw(worldCtx);
+
+  this.vacuum.draw(vacuumCtx);
+  this.stats.draw(viewCtx);
+  this.elements.draw(viewCtx);
+
+  //Particles.draw(viewCtx);
+};
+},{"./Cursor":6,"./Elements":7,"./Nodes":15,"./Paths":17,"./Spiders":22,"./Stats":23,"./Target":24,"./Vacuum":26}],13:[function(require,module,exports){
+
+var Mathf = {};
+
+Mathf.rnd = function(min, max){
+  return Math.floor(Math.random() * (max - min + 1) + min);
+};
+
+Mathf.rnd11 = function(){
+  return Math.round(Math.random());
+};
+
+Mathf.rnd01 = function(){
+  return Math.random();
+};
+
+Mathf.rndAngle = function(){
+  return Math.random() * Math.PI * 2;
+};
+
+Mathf.rndInCircle = function(radius){
+  var angle = Mathf.rndAngle();
+  var rad = Mathf.rnd(0, radius);
+
+  return {
+    x: Math.cos(angle) * rad,
+    y: Math.sin(angle) * rad
+  };
+};
+
+Mathf.lerp = function(a, b, u) {
+  return (1 - u) * a + u * b;
+};
+
+Mathf.polygonPoints = function(center, radius, sides) {
+  var points = [];
+  var angle = (Math.PI * 2) / sides;
+
+  for (var i = 0; i < sides; i++) {
+    points.push({
+      x: center.x + radius * Math.cos(i * angle),
+      y: center.y + radius * Math.sin(i * angle)
+    });
+  }
+
+  return points;
+};
+
+module.exports = Mathf;
+
+},{}],14:[function(require,module,exports){
+
+
+module.exports = Circle.extend({
+
+  radius: 3,
+  color: Color.white,
+
+  nears: null,
+  selected: false,
+
+  temp: 0,
+  incTemp: 0,
+  incTempSize: 0,
+
+  burned: false,
+  shaked: false,
+  originalPos: null,
+  hasEarth: false,
+
+  insideTarget: false,
+  blowing: false,
+  blowingEnd: 0,
+
+  initialize: function(){
+    this.id = _.guid("nodes"); //TODO: remove this id and change by BaseId (cid)
+    this.nears = [];
+  },
+
+  addNear: function(node){
+    this.nears.push(node);
+  },
+
+  randomBurn: function(){
+    
+    var oneBurned = this.nears.some(function(node){
+      return node.burned;
+    });
+
+    if (!oneBurned && Mathf.rnd01() < 0.15){
+      this.setBurned();
+    }
+  },
+
+  getNearBurned: function(){
+    
+    var burned;
+    this.nears.some(function(node){
+      if (node.burned){
+        burned = node;
+        return true;
+      }
+    });
+
+    return burned;
+  },
+
+  shake: function(){
+    if (this.originalPos){
+      this.pos = this.originalPos;
+    }
+    else {
+      this.originalPos = this.pos;
+    }
+    
+    this.shaked = true;
+    this.pos = Vector.round(Vector.add(this.pos, Mathf.rndInCircle(0.2)));
+  },
+
+  endShake: function(){
+    if (this.originalPos){
+      this.pos = this.originalPos;
+    }
+    this.shaked = false;
+  },
+
+  revive: function(){
+    if (this.burned){
+      this.resetTemp();
+      this.burned = false;
+    }
+  },
+
+  burn: function(){
+    if (!this.burned){
+      this.incTemp = 1;
+    }
+  },
+
+  cool: function(){
+    if (!this.burned){
+      this.incTemp = -1;
+      this.incTempSize = 0.5;
+    }
+  },
+
+  applyEarth: function(){
+    if (!this.burned){
+      this.hasEarth = true;
+    }
+  },
+
+  applyAir: function(){
+    if (!this.burned){
+      this.blowing = true;
+      this.hasEarth = false;
+      this.blowingEnd = Time.time + 500;
+    }
+  },
+
+  getRandomNear: function(excludeId){
+    var ns = [];
+
+    this.nears.forEach(function(n){
+      if (n.id !== excludeId && !n.burned && n.temp < 0.5){
+        ns.push(n);
+      }
+    });
+
+    if (ns.length > 0){
+      var idx = Mathf.rnd(0, ns.length-1);
+      return ns[idx];
+    }
+
+    return null;
+  },
+
+  resetTemp: function(){
+    this.temp = 0;
+    this.incTemp = 0;
+    this.incTempSize = 0;
+  },
+
+  setBurned: function(){
+    this.burned = true;
+    this.color = config.nodes.colors.burned;
+    this.resetTemp();
+  },
+
+  update: function(){
+
+    if (this.burned){
+      return;
+    }
+
+    if (this.blowing && Time.time > this.blowingEnd){
+      this.blowing = false;
+    }
+
+    if (this.hasEarth){
+      this.color = config.nodes.colors.earth;
+      this.resetTemp();
+      return;
+    }
+
+    var isAlone = this.nears.every(function(n){
+      return n.burned;
+    });
+
+    if (isAlone){
+      this.setBurned();
+      return;
+    }
+
+    if (this.incTemp > 0){ // is burning
+      if (this.blowing) {    
+        this.incTempSize = 0.2; 
+      }
+      else {
+        this.incTempSize = 0.1; 
+      }
+    }
+
+    if (this.blowing || this.insideTarget) {
+      this.shake();
+    }
+    else if (this.shaked){
+      this.endShake();
+    }
+
+    this.temp += this.incTemp * this.incTempSize * Time.deltaTime;
+
+    if (this.temp <= 0){
+      this.resetTemp();
+    }
+
+    this.color = Color.lerp(config.nodes.colors.cold, config.nodes.colors.burn, this.temp);
+
+    if (this.temp > 1){
+      this.setBurned();
+      this.resetTemp();
+      return;
+    }
+
+  }
+
+});
+
+},{}],15:[function(require,module,exports){
+/*jslint -W083 */
+
+var Node = require("./Node")
+  , Paths = require("./Paths");
+
+var Nodes = module.exports = Collection.extend({
+
+  paths: null,
+
+  applyPos: null,
+  applyRatio: 0,
+  element: null,
+
+  initialize: function(){
+    this.paths = new Paths();
+
+    var marginW = config.world.margin.x;
+    var marginH = config.world.margin.y;
+    
+    // Full-screen
+    var radius = Vector.divide(config.size, 2);
+
+    // Full-screen with margin
+    radius.x -= marginW;
+    radius.y -= marginH;
+
+    // Center of Screen
+    var center = Vector.center(Vector.zero, config.size);
+
+    this.createWeb(center, radius);
+  },
+
+  createWeb: function(center, rad){
+
+    var ringsAm = 0
+      , ringsGap = 30
+      , rndRadius = ringsGap/5
+      , nodesByRing = 6
+      , duplicateBy = 3
+      , increaseBy = 2
+      , maxNodesByRing = nodesByRing * 8 // 8 times increase max
+      , boundMin = Vector.add(center, Vector.multiply(rad, -1))
+      , boundMax = Vector.add(center, rad)
+      , rings = [];
+   
+    var cNode = new Node({ pos: center });
+    this.entities.push(cNode);
+
+    var start = 10;
+    var i = 1;
+    var aNodeInside;
+
+    var countNodes = 0;
+
+    do {
+      aNodeInside = false;
+
+      if (i % duplicateBy === 0){
+        nodesByRing *= increaseBy;
+      }
+      if (nodesByRing > maxNodesByRing){
+        nodesByRing = maxNodesByRing;
+      }
+
+      var ps = Mathf.polygonPoints(center, (i*ringsGap) + start, nodesByRing);
+      countNodes += ps.length;
+      var cRing = [];
+
+      if (i === 10 || i === 20){
+        rndRadius += 0.1;
+      }
+
+      ps.forEach(function(p){
+
+        var np = Vector.round(Vector.add(p, Mathf.rndInCircle(rndRadius)));
+        var node = new Node({ pos: np });
+        
+        if (Vector.isOut(np, boundMin, boundMax)) {
+          node.out = true;
+        }
+        else {
+          aNodeInside = true;
+          this.entities.push(node);
+        }
+        
+        cRing.push(node);
+
+      }, this);
+
+      rings[i-1] = cRing;
+      i++;
+
+    } while(aNodeInside);
+
+    ringsAm = i-2;
+
+    
+    // path from center to first ring
+    rings[0].forEach(function(rNode){
+      this.paths.addOne(cNode, rNode);
+    }, this);
+
+    var j, k, l1, l2;
+
+    // Paths connections between rings
+    for (j=0; j<ringsAm; j++){
+      var currRing = rings[j];
+      var max = currRing.length;
+
+      for (k=0; k<max; k++){
+
+        l1 = k+1;
+        l2 = k*increaseBy;
+        if (l1 > max-1){
+          l1 = 0;
+        }
+
+        if (l2 > (max*increaseBy)-duplicateBy){
+          l2 = -increaseBy;
+        }
+
+        var currNode = rings[j][l1];
+        if (currNode.out){
+          continue;
+        }
+
+        var nextRing = rings[j+1];
+        var rSiblingA = nextRing[l1];
+
+        if (nextRing.length > currRing.length) {
+           rSiblingA = nextRing[l2+increaseBy]; 
+        }
+        
+        if (j < ringsAm-1){
+          if (rSiblingA && !rSiblingA.out){
+            this.paths.addOne(currNode, rSiblingA);
+          }
+        }
+
+        var sibling = rings[j][k];
+        if (!sibling.out){
+          this.paths.addOne(currNode, sibling);
+        }
+
+      }
+    }
+
+    // burn some nodes randomly
+    this.entities.forEach(function(node){
+      node.randomBurn();
+    });
+
+  },
+
+  elements: ["fire", "water", "earth", "air"],
+  applyMethods: ["burn", "cool", "applyEarth", "applyAir"],
+
+  findNodeByCollider: function(){
+    this.entities.forEach(function (node) {
+      if (this.applyPos && Vector.pointInCircle(this.applyPos, node.pos, this.applyRatio)) {
+        var methodIdx = this.elements.indexOf(this.element);
+        var method = this.applyMethods[methodIdx];
+        node[method]();
+      }
+    }, this);
+  },
+
+  GetNodes: function(){
+    return this.entities;
+  },
+
+  update: function(){
+
+    if (this.applyPos){
+      this.findNodeByCollider();
+    }
+
+    this.paths.update();
+    Nodes._super.update.apply(this);
+  },
+
+  draw: function(ctx){
+    this.paths.draw(ctx);
+    Nodes._super.draw.apply(this, arguments);
+  }
+
+});
+
+},{"./Node":14,"./Paths":17}],16:[function(require,module,exports){
+
+var Path = module.exports = Line.extend({
+
+  pos: { x: 0, y: 0 },
+  to: { x: 0, y: 0 },
+
+  size: 2,
+  color: Color.white,
+
+  tBurn: 0.5,
+  burned: false,
+  heat: null,
+
+  na: null,
+  nb: null,
+/*
+  initialize: function(){
+    //TODO: check Heat Line if it should be created as another line or not.
+  },
+*/
+  setHeat: function(from, to, t){
+    this.heat = {
+      from: from.pos,
+      to: Vector.round(Vector.lerp(from.pos, to.pos, t * 2 > 1 ? 1 : t * 2 ))
+    };
+  },
+
+  update: function(){
+    var na = this.na
+      , nb = this.nb
+      , naT = na.temp
+      , nbT = nb.temp
+      , naC = na.color
+      , nbC = this.nb.color;
+
+    if (naT > 0){
+      this.setHeat(na, nb, naT);
+    }
+    else if (nbT > 0){
+      this.setHeat(nb, na, nbT);
+    }
+
+    if (naT > this.tBurn && nbT === 0){
+      nb.burn();
+    }
+    else if (nbT > this.tBurn && naT === 0){
+      na.burn();
+    }
+
+    if (Color.eql(naC,  nbC)){
+      this.color = naC;
+    }
+    else {
+      this.color = Color.lerp(naC, nbC, this.tBurn);
+    }
+
+    if (na.burned || nb.burned) {
+      this.heat = null;
+      this.burned = true;
+      this.color = config.nodes.colors.burned;
+    }
+
+    this.pos = this.na.pos;
+    this.to = this.nb.pos;
+  },
+
+  draw: function(ctx){
+    Path._super.draw.apply(this, arguments);
+
+    if (this.heat){
+      Renderer.drawLine(ctx, {
+        from: this.heat.from,
+        to: this.heat.to,
+        size: 5,
+        color: "rgba(255,0,0,0.4)"
+      });
+    }
+
+  },
+
+});
+
+},{}],17:[function(require,module,exports){
+
+var Path = require("./Path");
+
+module.exports = Collection.extend({
+
+  hasOne: function(naId, nbId){
+    return this.entities.some(function(path){
+      var pa = path.na.id, pb = path.nb.id;
+      return (naId === pa || naId === pb) && (nbId === pa || nbId === pb);
+    });
+  },
+
+  addOne: function(nA, nB){
+    if (nB && !this.hasOne(nA.id, nB.id)){
+      
+      nA.addNear(nB);
+      nB.addNear(nA);
+
+      this.entities.push(new Path({
+        na: nA, 
+        nb: nB
+      }));
+    }
+  }
+
+});
+
+},{"./Path":16}],18:[function(require,module,exports){
+
+var Renderer = {};
+
+function fill(ctx, ps){
+  if (ps.hasOwnProperty("fill")){
+    ctx.fillStyle = ps.fill;
+    ctx.fill();
+  }
+}
+
+function stroke(ctx, ps){
+  if (ps.hasOwnProperty("stroke")){
+    ctx.lineWidth = ps.strokeWidth || 1;
+    ctx.strokeStyle = ps.stroke;
+    ctx.stroke();
+  }
+}
+
+Renderer.drawCircle = function(ctx, ps){
+  ctx.beginPath();
+  ctx.arc(ps.pos.x, ps.pos.y, ps.radius, 0, 2 * Math.PI, false);
+
+  ctx.fillStyle = ps.color;
+  ctx.fill();
+
+  if (ps.stroke){
+    ctx.lineWidth = ps.stroke.size || 1;
+    ctx.strokeStyle = ps.stroke.color || "#000";
+    ctx.stroke();
+  }
+};
+
+Renderer.drawLine = function(ctx, ps){
+  var a = ps.from
+    , b = ps.to;
+
+  ctx.beginPath();
+
+  ctx.lineCap = 'round';
+
+  ctx.moveTo(a.x, a.y);
+  ctx.lineTo(b.x, b.y);
+
+  ctx.lineWidth = ps.size;
+  ctx.strokeStyle = ps.color;
+  ctx.stroke();
+};
+
+Renderer.drawSprite = function(ctx, ps){
+  var img = Repo[ps.resource]
+    , x = ps.pos.x
+    , y = ps.pos.y
+    , w = ps.size.x
+    , h = ps.size.y
+    , sp = ps.sp;
+
+  function draw(){
+    if (sp){
+      ctx.drawImage(img, sp.x, sp.y, sp.w, sp.h, x, y, w, h);
+    }
+    else {
+      ctx.drawImage(img, x, y, w, h);
+    }
+  }
+
+  if (ps.hasOwnProperty("angle")){
+    ctx.save();
+
+    ctx.translate(x + w/2, y + h/2);
+    x = -w/2;
+    y = -h/2;
+    ctx.rotate(ps.angle);
+
+    draw();
+
+    ctx.restore();
+    return;
+  }
+
+  draw();
+};
+
+Renderer.drawText = function(ctx, ps){
+  ctx.font = ps.size + 'pt Arial';
+  ctx.textBaseline = ps.baseline || 'middle';
+  ctx.fillStyle = ps.color;
+  ctx.fillText(ps.text, ps.pos.x, ps.pos.y);
+};
+
+function drawRect(ctx, ps){
+  ctx.beginPath();
+  ctx.rect(ps.pos.x, ps.pos.y, ps.size.x, ps.size.y);
+  fill(ctx, ps);
+  stroke(ctx, ps);
+}
+
+Renderer.drawRect = function(ctx, ps){
+  var x = ps.pos.x
+    , y = ps.pos.y
+    , w = ps.size.x
+    , h = ps.size.y;
+
+  if (!ps.hasOwnProperty("corner")){
+    drawRect(ctx, ps);
+    return;
+  }
+
+  var c = ps.corner;
+
+  ctx.beginPath();
+  ctx.moveTo(x + c, y);
+  ctx.lineTo(x + w - c, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + c);
+  ctx.lineTo(x + w, y + h - c);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - c, y + h);
+  ctx.lineTo(x + c, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - c);
+  ctx.lineTo(x, y + c);
+  ctx.quadraticCurveTo(x, y, x + c, y);
+  ctx.closePath();
+  
+  fill(ctx, ps);
+  stroke(ctx, ps);
+};
+
+module.exports = Renderer;
+
+},{}],19:[function(require,module,exports){
+
+module.exports = (function(){
+  var resources = {}
+    , loaded = 0
+    , getCount = function(){
+        return Object.keys(resources).length;
+      };
+  
+  var events = {
+      complete: function(){}
+    , report: function(){}
+    , error: function(){}
+  };
+
+  var imageLoaded = function() {
+    var current = getCount();
+    var prg = (++loaded * 100) / current;
+
+    if (loaded <= current){
+      events.report(prg);
+
+      if (prg >= 100) { 
+        events.complete();
+      }
+    }
+  };
+  
+  var imageFailed = function(evt, etc){
+    events.error(evt, etc);       
+  };
+
+  return {
+    on: function(eventName, callback){
+      if (events[eventName]) {
+        events[eventName] = callback;
+      }
+      return this;
+    },
+    
+    load: function(){
+      loaded = 0;
+      for (var img in resources) {
+        this[img] = new window.Image();
+        this[img].onload = imageLoaded;
+        this[img].onerror = imageFailed;
+        this[img].src = resources[img];
+      }
+      return this;
+    },
+    
+    addResources: function(newResources){
+      for(var r in newResources){
+        resources[r] = newResources[r];
+      }
+      return this;
+    }
+    
+  };
+  
+})();
+},{}],20:[function(require,module,exports){
+
+module.exports = {
+
+  world: {
+    margin: { x: 150, y: 20 }
+  },
+
+  nodes: {
+      size: 3
+    , colors: {
+        cold: [255,255,255,1]
+      , burn: [255,0,0,1]
+      , burned: [0,0,0,0.2]
+      , earth: [190,160,40,1]
+    }
+  },
+
+  paths: {
+    size: 2
+  },
+
+  spiders: {
+      size: 32
+    , quantity: 50
+    , color: [115,255,0]
+    , speed: 0.05
+    , speedAlert: 0.1
+    , behaviour: {
+        alertTemp: 0
+      , tStayA: 3000
+      , tStayB: 10000
+    }
+    , sprites: {
+        move: [
+          { x: 0, y: 0, w: 32, h: 32 }, 
+          { x: 32, y: 0, w: 32, h: 32 }, 
+          { x: 64, y: 0, w: 32, h: 32 }, 
+          { x: 96, y: 0, w: 32, h: 32 }
+        ]
+    }
+  },
+
+  target: {
+      size: 180
+    , suckForce: 3
+  },
+
+  stats: {
+    pos: { x: 1, y: 0 },
+    colors: {
+      kills: [255,0,0,1],
+      alives: [0,255,0,1]
+    }
+  },
+
+  vacuum: {
+    size: { x: 300, y: 500 }
+  },
+
+  elements: {
+    sprites: {
+      fire: { x: 0, y: 0, w: 32, h: 32 }, 
+      water: { x: 32, y: 0, w: 32, h: 32 }, 
+      earth: { x: 64, y: 0, w: 32, h: 32 }, 
+      air: { x: 96, y: 0, w: 32, h: 32 }
+    }
+  },
+
+  images: {  
+      "spider": "images/spider.png"
+    , "elements": "images/elements.png"
+  }
+
+};
+
+},{}],21:[function(require,module,exports){
+
+var Spider = module.exports = function(pos, onDead){
+  this.id = _.guid("spiders");
+
+  var cfg = config.spiders;
+
+  this.pos = Vector.round(pos);
+  this.onDead = onDead;
+
+  this.size = cfg.size;
+  this.color = cfg.color;
+  this.speed = cfg.speed;
+
+  this.nFrom = null;
+  this.nTo = null;
+  this.journeyLength = null;
+
+  this.traveling = false;
+  this.isDead = false;
+
+  this.temp = 0;
+  this.staying = false;
+
+  this.t_stay = 2000;
+  this.t_startStay = 0;
+  this.t_nextStay = 0;
+
+  this.t_startMove = 0;
+
+  this.building = false;
+
+  this.spSize = Vector.multiply(Vector.one, this.size);
+  this.spPos = Vector.origin(this.pos, this.spSize);
+
+  this.angle = 0;
+  this.spriteIndex = 0;
+
+  this.animTime = 3;
+  this.lastFrameTime = 0;
+  this.exited = false;
+};
+
+Spider.prototype.setNode = function(nFrom, nTo){
+  this.nFrom = nFrom;
+  this.nTo = nTo;
+
+  this.t_startMove = Time.time;
+  this.journeyLength = Vector.length(nFrom.pos, nTo.pos);
+  this.traveling = true;
+
+  this.angle = Vector.angleTo(this.pos, this.nTo.pos);
+};
+
+Spider.prototype.setDead = function(){
+  if (!this.isDead){
+    this.isDead = true;
+    this.onDead();
+  }
+};
+
+Spider.prototype.animate = function(){
+
+  if (!this.staying){
+    this.lastFrameTime -= Time.frameTime;
+
+    if (this.lastFrameTime <= 0){
+      this.spriteIndex++;
+      if (this.spriteIndex > 3){
+        this.spriteIndex = 0;
+      }
+
+      this.lastFrameTime = this.animTime / this.speed;
+    }
+  }
+
+};
+
+Spider.prototype.updateTemp = function(){
+  var nfromT = this.nFrom.temp;
+  var ntoT = this.nTo.temp;
+
+  if (nfromT === 0 && ntoT === 0){
+    this.temp = 0;
+    return;
+  }
+
+  if (nfromT > ntoT){
+    this.temp = nfromT;
+    return;
+  }
+
+  if (ntoT > nfromT){
+    this.temp = ntoT;
+  }
+};
+
+Spider.prototype.canMove = function(){
+  return !this.staying && !this.traveling && !this.building;
+};
+
+Spider.prototype.updateState = function(){
+  var cfg = config.spiders
+    , tm = Time.time
+    , cfgTm = cfg.behaviour
+    , tstart = this.t_startStay
+    , tstay = this.t_stay;
+
+  if (this.temp > cfgTm.alertTemp){ //alert behaviour!
+    this.speed = cfg.speedAlert;
+    this.staying = false;
+    return;
+  }
+
+  // calm behaviour
+  this.speed = cfg.speed;
+
+  if (this.staying){
+    if(tm > tstart + tstay) {
+      this.staying = false;
+      this.t_nextStay = tm + tstay / Mathf.rnd(2, 5);
+    }
+  }
+  else if (tm > this.t_nextStay && Mathf.rnd01() < 0.8){
+    this.staying = true;
+    this.t_startStay = tm;
+    this.t_stay = Mathf.rnd(cfgTm.tStayA, cfgTm.tStayB);
+  }
+
+};
+
+// returns true if the travel is ended
+Spider.prototype.updateMove = function(){
+
+  if (!this.building && (this.nFrom.burned || this.nTo.burned)){
+    this.setDead();
+    return;
+  }
+
+  var distCovered = (Time.time - this.t_startMove) * this.speed;
+  var fracJourney = distCovered / this.journeyLength;
+  
+  if (fracJourney > 1) {
+    this.pos = this.nTo.pos;
+    this.nTo.revive();
+
+    this.traveling = false;
+    this.building = false;
+
+    return true;
+  }
+
+  this.pos = Vector.round(Vector.lerp(this.nFrom.pos, this.nTo.pos, fracJourney));
+
+  this.animate();
+  this.spPos = Vector.origin(this.pos, this.spSize);
+};
+
+Spider.prototype.buildWeb = function(from, to){
+  this.building = true;
+  this.traveling = true;
+  this.setNode(from, to);
+};
+
+Spider.prototype.update = function(){
+  this.spPos = Vector.origin(this.pos, this.spSize);
+
+  if (this.isDead || this.exited || this.inVacuum){
+    return;
+  }
+  
+  this.updateTemp();
+
+  if (this.building || this.traveling){
+    var ended = this.updateMove();
+    if (!ended){
+      return;
+    }
+  }
+
+  this.updateState();
+};
+
+Spider.prototype.draw = function(ctx){
+  if (this.isDead){
+    return;
+  }
+
+  if (this.building){
+    Renderer.drawLine(ctx, {
+      from: this.pos,
+      to: this.nFrom.pos,
+      size: config.paths.size,
+      color: Color.toRGBA(config.nodes.colors.cold)
+    });
+  }
+
+  Renderer.drawSprite(ctx, {
+    resource: "spider",
+    pos: this.spPos,
+    size: this.spSize,
+    angle: this.angle,
+    sp: config.spiders.sprites.move[this.spriteIndex]
+  });  
+};
+
+},{}],22:[function(require,module,exports){
+
+var Spider = require("./Spider");
+
+var Spiders = module.exports = function(nodes, onExitSpider){
+  this.nodes = nodes;
+  this.onExitSpider = onExitSpider;
+
+  this.amount = config.spiders.quantity;
+
+  this.spiders = [];
+
+  this.spidersExit = 0;
+  this.spidersKilled = 0;
+
+  this.generateSpiders();
+
+  this.stats = {};
+  this.updateGUI();
+};
+
+Spiders.prototype.updateGUI = function(){
+  this.stats = {
+    saved: this.spidersExit,
+    killed: this.spidersKilled,
+    alives: this.spiders.length - (this.spidersKilled + this.spidersExit),
+    total: this.spiders.length
+  };
+};
+
+Spiders.prototype.onSpiderDead = function(){
+  this.spidersKilled++;
+  this.updateGUI();
+};
+
+Spiders.prototype.generateSpiders = function(){
+  var nodes = this.nodes.GetNodes()
+    , len = nodes.length
+    , nodesIds = []
+    , node
+    , idx
+    , amount = (len < this.amount ? len-2: this.amount);
+
+  do {
+    idx = Mathf.rnd(0, len-1);
+    node = nodes[idx];
+
+    if (!node.burned && nodesIds.indexOf(node.id) === -1){
+      nodesIds.push(node.id);
+      this.spiders.push(new Spider(node.pos, this.onSpiderDead.bind(this)));
+      amount--;
+    }
+  } while(amount);
+};
+
+Spiders.prototype.update = function(){
+
+  function gonnaBuildWeb(node, spider){
+    if (!node.hasEarth && node.temp === 0 && Mathf.rnd01() > 0.7) {
+      var nearBurned = node.getNearBurned();
+      if (nearBurned){
+        spider.buildWeb(node, nearBurned);
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  function gotNearNodeToGo(node, spider){
+    var fromId = (spider.nodeFrom && spider.nodeFrom.id) || -1;
+    var nodeTo = node.getRandomNear(fromId);
+    if (nodeTo){
+      spider.setNode(node, nodeTo);
+      return true;
+    }
+
+    return false;
+  }
+
+  function spiderNodeCollide(spider, node){
+    if (Vector.pointInCircle(spider.pos, node.pos, 5)) {
+     
+      if (!gonnaBuildWeb(node, spider) && !gotNearNodeToGo(node, spider)){
+        if (node.burned){
+          spider.setDead();
+        }
+      }
+    }
+  }
+
+  var nodes = this.nodes.GetNodes();
+
+  var lastExits = this.spidersExit;
+  this.spidersExit = 0;
+  this.spiders.forEach(function (spider) {
+
+    if (spider.exited){
+      this.spidersExit++;
+    }
+    else if (spider.canMove()){
+      nodes.some(function (node) {
+        spiderNodeCollide(spider, node);
+      }, this);
+    }
+  
+    spider.update();
+
+  }, this);
+
+  if (lastExits !== this.spidersExit){
+    this.updateGUI();
+  }
+};
+
+Spiders.prototype.draw = function(ctx){
+  this.spiders.forEach(function (spider) {
+    if (!spider.inVacuum){
+      spider.draw(ctx);
+    }
+  });
+};
+},{"./Spider":21}],23:[function(require,module,exports){
+
+var Stats = module.exports = function(){
+  
+  this.size = 40;
+
+  var marginW = 15;
+  var marginH = 25;
+
+  this.pos = Vector.prod(config.stats.pos, config.size);
+
+  this.kPos = Vector.clone(this.pos);
+  this.kPos.x -= marginW + this.size/2;
+  this.kPos.y += marginH + this.size;
+
+  this.aPos = Vector.clone(this.pos);
+  this.aPos.x -= marginW + this.size/2;
+  this.aPos.y += marginH*3 + this.size;
+  
+  this.kcolor = Color.toRGBA(config.stats.colors.kills);
+  this.acolor = Color.toRGBA(config.stats.colors.alives);
+
+  this.stats = {
+    saved: 0,
+    killed: 0,
+    alives: 0,
+    total: 0
+  };
+
+  this.spSize = Vector.multiply(Vector.one, this.size);
+  this.angle = Math.PI / 2;
+
+  this.oAPos = Vector.origin(this.aPos, this.spSize);
+  this.oKPos = Vector.origin(this.kPos, this.spSize);
+  this.txtSize = 30;
+};
+
+Stats.prototype.update = function(stats){
+  this.stats = stats;
+};
+
+Stats.prototype.draw = function(ctx){
+  this.drawIcons(ctx);
+  this.drawStats(ctx);
+};
+
+Stats.prototype.drawIcons = function(ctx){
+  var spSize = this.spSize;
+  var kPos = this.oKPos;
+  var aPos = this.oAPos;
+
+  Renderer.drawSprite(ctx, {
+    resource: "spider",
+    pos: aPos,
+    size: spSize,
+    angle: this.angle,
+    sp: config.spiders.sprites.move[0]
+  });
+
+  Renderer.drawSprite(ctx, {
+    resource: "spider",
+    pos: kPos,
+    size: spSize,
+    angle: this.angle,
+    sp: config.spiders.sprites.move[0]
+  });
+
+  Renderer.drawLine(ctx, {
+    from: kPos,
+    to: Vector.add(spSize, kPos),
+    size: 2,
+    color: this.kcolor
+  });
+
+  Renderer.drawLine(ctx, {
+    from: { x: kPos.x + spSize.x, y: kPos.y },
+    to: { x: kPos.x, y: kPos.y + spSize.y },
+    size: 2,
+    color: this.kcolor
+  });
+
+};
+
+Stats.prototype.drawStats = function(ctx){
+  var txtSize = this.txtSize;
+
+  Renderer.drawText(ctx, {
+    text: _.pad(this.stats.alives, 3),
+    pos: { x: this.aPos.x - txtSize*3, y: this.aPos.y },
+    size: txtSize,
+    color: this.acolor
+  });
+
+  Renderer.drawText(ctx, {
+    text: _.pad(this.stats.killed, 3),
+    pos: { x: this.kPos.x - txtSize*3, y: this.kPos.y},
+    size: txtSize,
+    color: this.kcolor
+  });
+
+};
+},{}],24:[function(require,module,exports){
+
+var Target = module.exports = function(){
+
+  this.size = config.size.y/6; // config.target.size;
+  this.suckForce = config.target.suckForce;
+
+  var marginW = config.world.margin.x;
+  var marginH = config.world.margin.y;
+
+  this.pos = Vector.prod(Vector.one, config.size);
+  this.pos.x -= marginW + 10;
+  this.pos.y -= marginH + 20;
+  
+  this.saved = [];
+  this.saving = [];
+};
+
+Target.prototype.setNodesInside = function(nodes){
+  nodes.forEach(function(node){
+    if (Vector.pointInCircle(node.pos, this.pos, this.size)){
+      if (node.burned){
+        node.burned = false;
+        node.revive();
+      }
+      node.insideTarget = true;
+    }
+  }, this);
+};
+
+Target.prototype.update = function(spiders){
+
+  spiders.forEach(function(spider){
+    if (!spider.dead && !spider.exited){
+
+      if (Vector.pointInCircle(spider.pos, this.pos, this.size)){
+        spider.building = false;
+        spider.exited = true;
+        spider.vel = { x: 0, y: 0 };
+        this.saving.push(spider);
+      }
+    }
+  }, this);
+
+  var dt = Time.deltaTime
+    , force = dt * this.suckForce
+    , p = this.pos;
+
+  this.saving.forEach(function(spider){
+
+    if (!spider.catched){
+      var sp = spider.pos;
+      var imp = Vector.normal(sp, p);
+      spider.vel = Vector.add(spider.vel, Vector.multiply(imp, force)); 
+      spider.pos = Vector.add(sp, spider.vel);
+      
+      if (Vector.pointInCircle(spider.pos, p, 5)){
+        spider.catched = true;
+        this.saved.push(spider);
+      }
+    }
+
+  }, this); 
+
+};
+
+Target.prototype.draw = function(ctx){
+ 
+  var startAngle = 0.97 * Math.PI;
+  var endAngle = 1.52 * Math.PI;
+
+  ctx.beginPath();
+  ctx.lineCap = 'butt';
+  ctx.arc(this.pos.x, this.pos.y, this.size/2, startAngle, endAngle, false);
+  ctx.lineWidth = this.size;
+  ctx.strokeStyle = "rgba(80,255,85,0.1)";
+  ctx.stroke();
+
+};
+},{}],25:[function(require,module,exports){
+
+var Utils = module.exports = function(){
+  this.lastIds = {
+    nodes: 0,
+    spiders: 0,
+    emitters: 0
+  };
+};
+
+Utils.prototype.guid = function(type){
+  return ++this.lastIds[type];
+};
+
+Utils.prototype.pad = function(num, size) {
+  var s = "0000000" + num;
+  return s.substr(s.length-size);
+};
+
+},{}],26:[function(require,module,exports){
+
+var Vacuum = module.exports = function(target){
+  this.target = target;
+  this.size = config.vacuum.size;
+
+  // Text
+  this.txtColor = "#fff";
+  this.txtSize = 20;
+  this.txtPos = { x: 180, y: 30 };
+
+  this.targetLen = 20;
+  this.current = 0;
+
+  this.offx = 30;
+  this.offy = 10;
+
+  this.recipePos = { x: this.offx + 165, y: this.offy + 65 };
+  this.recipeSize = { x: 80, y: 300 };
+};
+
+Vacuum.prototype.update = function(){
+  this.current = this.target.saved.length;
+
+  var p = this.recipePos
+    , s = this.recipeSize
+    , centerY = p.y + (s.y/2)
+    , centerX = p.x + (s.x/2)
+    , sinTime = Time.time * 2 * Math.PI;
+
+  this.target.saved.forEach(function(spider){
+
+    if (!spider.inVacuum){
+      spider.inVacuum = true;
+      
+      spider.vacuum = {
+        ampY: Mathf.rnd(10, centerY/2),
+        velY: Mathf.rnd(600, 1000),
+        ampX: Mathf.rnd(5, 20),
+        velX: Mathf.rnd(2000, 6000),
+        rot: Mathf.rnd(1, 5)/10
+      };
+
+      spider.pos = { 
+        x: centerX,
+        y: centerY
+      };
+    }
+    else {
+      spider.animate();
+
+      var v = spider.vacuum;
+
+      spider.pos = {
+        x: v.ampX * Math.sin(sinTime / v.velX) + centerX,
+        y: v.ampY * Math.sin(sinTime / v.velY) + centerY
+      };
+
+      spider.angle += v.rot;
+    }
+
+  }, this);
+  
+};
+
+Vacuum.prototype.draw = function(ctx){
+  this.drawBG(ctx);
+  this.drawContent(ctx);
+  this.drawStats(ctx);
+};
+
+Vacuum.prototype.drawContent = function(ctx){
+
+  var cPos = this.recipePos;
+  var recSize = this.recipeSize;
+
+  Renderer.drawRect(ctx, {
+    pos: cPos,
+    size: recSize,
+    corner: 6,
+    fill: "#ffffff",
+    strokeWidth: 2
+  });
+
+  this.drawSpiders(ctx);
+
+  Renderer.drawRect(ctx, {
+    pos: cPos,
+    size: recSize,
+    corner: 6,
+    stroke: "#bbbbf9",
+    fill: "rgba(0,0,255,0.5)",
+    strokeWidth: 2
+  });
+};
+
+Vacuum.prototype.drawSpiders = function(ctx){
+  this.target.saved.forEach(function(spider){
+    spider.draw(ctx);
+  });
+};
+
+Vacuum.prototype.drawStats = function(ctx){
+  var txtSize = this.txtSize;
+
+  Renderer.drawText(ctx, {
+    text: _.pad(this.current, 3) + " / " + _.pad(this.targetLen, 3),
+    pos: this.txtPos,
+    size: txtSize,
+    color: this.txtColor
+  });
+
+};
+
+Vacuum.prototype.drawBG = function(ctx){
+  
+  var offx = this.offx
+    , offy = this.offy
+    , tube = [ [70,460], [120,400], [160,445], [195,450, 185,380], [225,380], [230,510, 145,475] ];
+
+  function drawPath(path, fill, stroke){
+    ctx.beginPath();
+
+    var first = path[0];
+    ctx.moveTo(offx + first[0], offy + first[1]);
+
+    for (var i=1; i<path.length; i++){
+      var p = path[i];
+      if (p.length === 4){
+        ctx.quadraticCurveTo(offx + p[0], offy + p[1], offx + p[2], offy + p[3]);
+      }
+      else {
+        ctx.lineTo(offx + p[0], offy + p[1]);
+      }
+    }
+
+    ctx.lineTo(offx + first[0], offy + first[1]);
+
+    if (fill){
+      ctx.fillStyle = fill;
+      ctx.fill();
+    }
+
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = stroke;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+
+    ctx.closePath();
+  }
+
+  drawPath(tube, '#9e9e9e', '#474747');
+
+  var cPos = { x: offx + 150, y: offy + 50 };
+  Renderer.drawRect(ctx, {
+    pos: cPos,
+    size: { x: 110, y: 330 },
+    corner: 6,
+    fill: "#9e9e9e",
+    stroke: "#474747",
+    strokeWidth: 2
+  });
+
+};
+},{}],27:[function(require,module,exports){
+
+var Vector = {};
+
+Vector.zero = { x: 0, y: 0 };
+Vector.one = { x: 1, y: 1 };
+
+Vector.clone = function(v){
+  return { x: v.x, y: v.y };
+};
+
+Vector.prod = function(a, b){
+  return { x: a.x * b.x, y: a.y * b.y };
+};
+
+Vector.multiply = function(vector, delta){
+  return { x: vector.x * delta, y: vector.y * delta };
+};
+
+Vector.divide = function(vector, delta){
+  return { x: vector.x / delta, y: vector.y / delta };
+};
+
+Vector.add = function(a, b){
+  return { x: a.x + b.x, y: a.y + b.y };
+};
+
+Vector.dif = function(from, to){
+  return { x: to.x - from.x, y: to.y - from.y };
+};
+
+// get "which" part of a point between 2 (i.e. 4th part)
+Vector.part = function(from, to, which){
+  return Vector.lerp(from, to, which/10);
+};
+
+Vector.angleTo = function(from, to){
+  var p = Vector.dif(from, to);
+  return Math.atan2(p.y, p.x);
+};
+
+// get mid point between 2
+Vector.mid = function(from, to){
+  return Vector.divide(Vector.add(from, to), 2);
+};
+
+Vector.eql = function(a, b){
+  return (a.x === b.x && a.y === b.y);
+};
+
+Vector.normal = function(from, to){
+  var d = Vector.dif(from, to);
+  var l = Vector.length(from, to);
+
+  return {
+      x: d.x / l || 0
+    , y: d.y / l || 0
+  };
+};
+
+Vector.origin = function(pos, size){
+  return {
+      x: pos.x - size.x/2,
+      y: pos.y - size.y/2,
+  };
+};
+
+Vector.center = function(pos, size){
+  return {
+      x: pos.x + size.x/2,
+      y: pos.y + size.y/2,
+  };
+};
+
+Vector.length = function(a, b){
+  var dif = Vector.dif(a, b);
+  return Math.sqrt(dif.x*dif.x + dif.y*dif.y);
+};
+
+Vector.pointInCircle = function(p, pos, radius){
+  return Vector.length(p, pos) < radius;
+};
+/*
+Vector.circleCollide = function(c1, c2){
+  var dx = c1.x - c2.x
+    , dy = c1.y - c2.y
+    , dist = c1.r + c2.r;
+ 
+  return (dx * dx + dy * dy <= dist * dist);
+};
+*/
+Vector.lerp = function(from, to, t){
+
+  return {
+    x: from.x + (to.x - from.x) * t,
+    y: from.y + (to.y - from.y) * t
+  };
+
+};
+
+Vector.round = function(v){
+  v.x = Math.round(v.x);
+  v.y = Math.round(v.y);
+  return v;
+};
+
+Vector.isOut = function(p, min, max){
+  return (p.x < min.x || p.x > max.x || p.y < min.y || p.y > max.y);
+};
+
+Vector.debug = function(vec){
+  console.log(vec.x + " : " + vec.y);
+};
+
+module.exports = Vector;
+
+},{}],28:[function(require,module,exports){
+var w = window;
+var doc = w.document;
+
+w.DEBUG = true;
+
+require("./reqAnimFrame");
+
+w.Base = require("./Base");
+
+w.Mathf = require("./Mathf");
+w.Color = require("./Color");
+w.Vector = require("./Vector");
+w.Renderer = require("./Renderer");
+w.Repo = require("./Repo");
+
+w.Entity = require("./Entity");
+w.Collection = require("./Collection");
+
+w.Circle = require("./Circle");
+w.Line = require("./Line");
+
+var Game = require("./Game");
+var GameTime = require("./GameTime");
+var Utils = require("./Utils");
+var Controls = require("./Controls");
+//var Particles = require("./Particles");
+
+function configGame(){
+  var cfg = require("./Settings")
+    , ele = doc.documentElement
+    , body = doc.body;
+
+  function getSize(which){
+    return Math.max(
+      ele["client" + which], 
+      body["scroll" + which], 
+      ele["scroll" + which], 
+      body["offset" + which], 
+      ele["offset" + which]
+    );
+  }
+
+  cfg.size = {
+    x: getSize("Width"),
+    y: getSize("Height")
+  };
+
+  w.config = cfg;
+}
+
+function initGame(){
+  var cviewport = doc.getElementById("game-viewport");
+  var cworld = doc.getElementById("game-world");
+  var cvacuum = doc.getElementById("vacuum");
+
+  w._ = new Utils();  
+  w.Time = new GameTime();
+
+  //w.Particles = new Particles();
+
+  w.Controls = new Controls({
+    container: cviewport
+  });
+
+  w.game = new Game({
+    viewport: cviewport,
+    world: cworld,
+    vacuum: cvacuum
+  });
+
+  function pauseGame(){
+    if (game.paused){
+      game.start();
+    }
+    else {
+      game.stop(); 
+    }
+  }
+
+  w.Controls.on('pause', pauseGame);
+}
+
+function onDocLoad(){
+  configGame();
+
+  w.Repo.addResources(w.config.images)
+    .on('complete', function(){
+      initGame();
+      w.game.start();
+    })
+    .load();
+}
+
+w.onload = onDocLoad;
+
+},{"./Base":1,"./Circle":2,"./Collection":3,"./Color":4,"./Controls":5,"./Entity":8,"./Game":9,"./GameTime":10,"./Line":11,"./Mathf":13,"./Renderer":18,"./Repo":19,"./Settings":20,"./Utils":25,"./Vector":27,"./reqAnimFrame":29}],29:[function(require,module,exports){
+// http://paulirish.com/2011/requestanimationframe-for-smart-animating/
+// http://my.opera.com/emoller/blog/2011/12/20/requestanimationframe-for-smart-er-animating
+
+// requestAnimationFrame polyfill by Erik Möller. fixes from Paul Irish and Tino Zijdel
+
+// MIT license
+
+(function() {
+  var lastTime = 0;
+  var vendors = ['ms', 'moz', 'webkit', 'o'];
+  for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
+    window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
+    window.cancelAnimationFrame = window[vendors[x]+'CancelAnimationFrame'] || window[vendors[x]+'CancelRequestAnimationFrame'];
+  }
+
+  if (!window.requestAnimationFrame) {
+    window.requestAnimationFrame = function(callback) {
+      var currTime = new Date().getTime();
+      var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+      var id = window.setTimeout(function() { callback(currTime + timeToCall); }, timeToCall);
+      lastTime = currTime + timeToCall;
+      return id;
+    };
+  }
+
+  if (!window.cancelAnimationFrame) {
+    window.cancelAnimationFrame = function(id) { window.clearTimeout(id); };
+  }
+}());
+},{}]},{},[28]);

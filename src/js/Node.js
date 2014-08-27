@@ -1,218 +1,196 @@
 
-var Node = module.exports = function(pos){
-  
-  this.id = _.guid("nodes");
 
-  this.pos = pos;
-  this.size = config.nodes.size;
+module.exports = Circle.extend({
 
-  this.color = config.nodes.colors.cold;
-  this.dColor = Color.toRGBA(this.color);
+  radius: 3,
+  color: Color.white,
 
-  this.nears = [];
-  this.selected = false;
+  nears: null,
+  selected: false,
 
-  this.temp = 0;
-  this.incTemp = 0;
-  this.incTempSize = 0;
+  temp: 0,
+  incTemp: 0,
+  incTempSize: 0,
 
-  this.burned = false;
-  this.shaked = false;
-  this.originalPos = null;
-  this.hasEarth = false;
+  burned: false,
+  shaked: false,
+  originalPos: null,
+  hasEarth: false,
 
-  this.insideTarget = false;
-  this.blowing = false;
-  this.blowingEnd = 0;
+  insideTarget: false,
+  blowing: false,
+  blowingEnd: 0,
 
-/*
-  Particles.createEmitter(this, {
-    max: 3,
-    type: "circle",
+  initialize: function(){
+    this.id = _.guid("nodes"); //TODO: remove this id and change by BaseId (cid)
+    this.nears = [];
+  },
 
-    g: { x: 0, y: -1 },
-    d: { x: 0, y: -1 },
+  addNear: function(node){
+    this.nears.push(node);
+  },
+
+  randomBurn: function(){
     
-    colorFrom: [255,0,0,1],
-    colorTo: [0,0,0,0.2],
+    var oneBurned = this.nears.some(function(node){
+      return node.burned;
+    });
 
-    life: 2,
-    size: 1
-  });
-*/
-};
-
-Node.prototype.addNear = function(node){
-  this.nears.push(node);
-};
-
-Node.prototype.randomBurn = function(){
-  
-  var oneBurned = this.nears.some(function(node){
-    return node.burned;
-  });
-
-  if (!oneBurned && Mathf.rnd01() < 0.15){
-    this.setBurned();
-  }
-};
-
-Node.prototype.getNearBurned = function(){
-  
-  var burned;
-  this.nears.some(function(node){
-    if (node.burned){
-      burned = node;
-      return true;
+    if (!oneBurned && Mathf.rnd01() < 0.15){
+      this.setBurned();
     }
-  });
+  },
 
-  return burned;
-};
+  getNearBurned: function(){
+    
+    var burned;
+    this.nears.some(function(node){
+      if (node.burned){
+        burned = node;
+        return true;
+      }
+    });
 
-Node.prototype.shake = function(){
-  if (this.originalPos){
-    this.pos = this.originalPos;
-  }
-  else {
-    this.originalPos = this.pos;
-  }
-  
-  this.shaked = true;
-  this.pos = Vector.round(Vector.add(this.pos, Mathf.rndInCircle(0.2)));
-};
+    return burned;
+  },
 
-Node.prototype.endShake = function(){
-  if (this.originalPos){
-    this.pos = this.originalPos;
-  }
-  this.shaked = false;
-};
-
-Node.prototype.revive = function(){
-  if (this.burned){
-    this.resetTemp();
-    this.burned = false;
-  }
-};
-
-Node.prototype.burn = function(){
-  if (!this.burned){
-    this.incTemp = 1;
-  }
-};
-
-Node.prototype.cool = function(){
-  if (!this.burned){
-    this.incTemp = -1;
-    this.incTempSize = 0.5;
-  }
-};
-
-Node.prototype.applyEarth = function(){
-  if (!this.burned){
-    this.hasEarth = true;
-  }
-};
-
-Node.prototype.applyAir = function(){
-  if (!this.burned){
-    this.blowing = true;
-    this.hasEarth = false;
-    this.blowingEnd = Time.time + 500;
-  }
-};
-
-Node.prototype.getRandomNear = function(excludeId){
-  var ns = [];
-
-  this.nears.forEach(function(n){
-    if (n.id !== excludeId && !n.burned && n.temp < 0.5){
-      ns.push(n);
-    }
-  });
-
-  if (ns.length > 0){
-    var idx = Mathf.rnd(0, ns.length-1);
-    return ns[idx];
-  }
-
-  return null;
-};
-
-Node.prototype.resetTemp = function(){
-  this.temp = 0;
-  this.incTemp = 0;
-  this.incTempSize = 0;
-};
-
-Node.prototype.setBurned = function(){
-  this.burned = true;
-  this.color = config.nodes.colors.burned;
-  this.dColor = Color.toRGBA(this.color);
-  this.resetTemp();
-};
-
-Node.prototype.update = function(){
-
-  if (this.blowing && Time.time > this.blowingEnd){
-    this.blowing = false;
-  }
-
-  if (this.hasEarth){
-    this.dColor = Color.toRGBA(config.nodes.colors.earth);
-    this.resetTemp();
-    return;
-  }
-
-  var isAlone = this.nears.every(function(n){
-    return n.burned;
-  });
-
-  if (isAlone){
-    this.setBurned();
-    return;
-  }
-
-  if (this.incTemp > 0){ // is burning
-    if (this.blowing) {    
-      this.incTempSize = 0.2; 
+  shake: function(){
+    if (this.originalPos){
+      this.pos = this.originalPos;
     }
     else {
-      this.incTempSize = 0.1; 
+      this.originalPos = this.pos;
     }
-  }
+    
+    this.shaked = true;
+    this.pos = Vector.round(Vector.add(this.pos, Mathf.rndInCircle(0.2)));
+  },
 
-  if (this.blowing || this.insideTarget) {
-    this.shake();
-  }
-  else if (this.shaked){
-    this.endShake();
-  }
+  endShake: function(){
+    if (this.originalPos){
+      this.pos = this.originalPos;
+    }
+    this.shaked = false;
+  },
 
-  this.temp += this.incTemp * this.incTempSize * Time.deltaTime;
+  revive: function(){
+    if (this.burned){
+      this.resetTemp();
+      this.burned = false;
+    }
+  },
 
-  if (this.temp <= 0){
+  burn: function(){
+    if (!this.burned){
+      this.incTemp = 1;
+    }
+  },
+
+  cool: function(){
+    if (!this.burned){
+      this.incTemp = -1;
+      this.incTempSize = 0.5;
+    }
+  },
+
+  applyEarth: function(){
+    if (!this.burned){
+      this.hasEarth = true;
+    }
+  },
+
+  applyAir: function(){
+    if (!this.burned){
+      this.blowing = true;
+      this.hasEarth = false;
+      this.blowingEnd = Time.time + 500;
+    }
+  },
+
+  getRandomNear: function(excludeId){
+    var ns = [];
+
+    this.nears.forEach(function(n){
+      if (n.id !== excludeId && !n.burned && n.temp < 0.5){
+        ns.push(n);
+      }
+    });
+
+    if (ns.length > 0){
+      var idx = Mathf.rnd(0, ns.length-1);
+      return ns[idx];
+    }
+
+    return null;
+  },
+
+  resetTemp: function(){
+    this.temp = 0;
+    this.incTemp = 0;
+    this.incTempSize = 0;
+  },
+
+  setBurned: function(){
+    this.burned = true;
+    this.color = config.nodes.colors.burned;
     this.resetTemp();
+  },
+
+  update: function(){
+
+    if (this.burned){
+      return;
+    }
+
+    if (this.blowing && Time.time > this.blowingEnd){
+      this.blowing = false;
+    }
+
+    if (this.hasEarth){
+      this.color = config.nodes.colors.earth;
+      this.resetTemp();
+      return;
+    }
+
+    var isAlone = this.nears.every(function(n){
+      return n.burned;
+    });
+
+    if (isAlone){
+      this.setBurned();
+      return;
+    }
+
+    if (this.incTemp > 0){ // is burning
+      if (this.blowing) {    
+        this.incTempSize = 0.2; 
+      }
+      else {
+        this.incTempSize = 0.1; 
+      }
+    }
+
+    if (this.blowing || this.insideTarget) {
+      this.shake();
+    }
+    else if (this.shaked){
+      this.endShake();
+    }
+
+    this.temp += this.incTemp * this.incTempSize * Time.deltaTime;
+
+    if (this.temp <= 0){
+      this.resetTemp();
+    }
+
+    this.color = Color.lerp(config.nodes.colors.cold, config.nodes.colors.burn, this.temp);
+
+    if (this.temp > 1){
+      this.setBurned();
+      this.resetTemp();
+      return;
+    }
+
   }
 
-  this.color = Color.lerp(config.nodes.colors.cold, config.nodes.colors.burn, this.temp);
-  this.dColor = Color.toRGBA(this.color);
-
-  if (this.temp > 1){
-    this.setBurned();
-    this.resetTemp();
-    return;
-  }
-
-};
-
-Node.prototype.draw = function(ctx){
-  
-  Renderer.drawCircle(ctx, {
-    pos: this.pos,
-    radius: this.size,
-    color: this.dColor
-  });
-
-};
+});

@@ -1,74 +1,81 @@
 
-var Path = module.exports = function(na, nb){
-  this.na = na;
-  this.nb = nb;
+var Path = module.exports = Line.extend({
 
-  this.size = config.paths.size;
-  this.tBurn = 0.5;
+  pos: { x: 0, y: 0 },
+  to: { x: 0, y: 0 },
 
-  this.burned = false;
-  this.heat = null;
-};
+  size: 2,
+  color: Color.white,
 
-Path.prototype.update = function(){
-  var na = this.na
-    , nb = this.nb
-    , naT = na.temp
-    , nbT = nb.temp
-    , naC = na.color
-    , nbC = this.nb.color;
+  tBurn: 0.5,
+  burned: false,
+  heat: null,
 
-  if (naT > 0){
+  na: null,
+  nb: null,
+/*
+  initialize: function(){
+    //TODO: check Heat Line if it should be created as another line or not.
+  },
+*/
+  setHeat: function(from, to, t){
     this.heat = {
-      from: na.pos,
-      to: Vector.round(Vector.lerp(na.pos, nb.pos, naT * 2 > 1 ? 1 : naT * 2 ))
+      from: from.pos,
+      to: Vector.round(Vector.lerp(from.pos, to.pos, t * 2 > 1 ? 1 : t * 2 ))
     };
-  }
-  else if (nbT > 0){
-    this.heat = {
-      from: nb.pos,
-      to: Vector.round(Vector.lerp(nb.pos, na.pos, nbT * 2 > 1 ? 1 : nbT * 2))
-    };
-  }
+  },
 
-  if (naT > this.tBurn && nbT === 0){
-    nb.burn();
-  }
-  else if (nbT > this.tBurn && naT === 0){
-    na.burn();
-  }
+  update: function(){
+    var na = this.na
+      , nb = this.nb
+      , naT = na.temp
+      , nbT = nb.temp
+      , naC = na.color
+      , nbC = this.nb.color;
 
-  if (Color.eql(naC,  nbC)){
-    this.color = Color.toRGBA(naC);
-  }
-  else {
-    this.color = Color.toRGBA(Color.lerp(naC, nbC, this.tBurn));
-  }
+    if (naT > 0){
+      this.setHeat(na, nb, naT);
+    }
+    else if (nbT > 0){
+      this.setHeat(nb, na, nbT);
+    }
 
-  if (na.burned || nb.burned) {
-    this.heat = null;
-    this.burned = true;
-    this.color = Color.toRGBA(config.nodes.colors.burned);
-  }
+    if (naT > this.tBurn && nbT === 0){
+      nb.burn();
+    }
+    else if (nbT > this.tBurn && naT === 0){
+      na.burn();
+    }
 
-};
+    if (Color.eql(naC,  nbC)){
+      this.color = naC;
+    }
+    else {
+      this.color = Color.lerp(naC, nbC, this.tBurn);
+    }
 
-Path.prototype.draw = function(ctx){
-  Renderer.drawLine(ctx, {
-    from: this.na.pos,
-    to: this.nb.pos,
-    size: this.size,
-    color: this.color
-  });
+    if (na.burned || nb.burned) {
+      this.heat = null;
+      this.burned = true;
+      this.color = config.nodes.colors.burned;
+    }
 
-  if (this.heat){
-    Renderer.drawLine(ctx, {
-      from: this.heat.from,
-      to: this.heat.to,
-      size: 5,
-      color: "rgba(255,0,0,0.4)"
-    });
-  }
-  
+    this.pos = this.na.pos;
+    this.to = this.nb.pos;
+  },
 
-};
+  draw: function(ctx){
+    Path._super.draw.apply(this, arguments);
+
+    if (this.heat){
+      Renderer.drawLine(ctx, {
+        from: this.heat.from,
+        to: this.heat.to,
+        size: 5,
+        color: "rgba(255,0,0,0.4)"
+      });
+    }
+
+  },
+
+});

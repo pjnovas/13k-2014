@@ -32,7 +32,7 @@ Manager.prototype.update = function(){
 
   if (this.cursor.active){
     this.nodes.applyPos = this.cursor.pos;
-    this.nodes.applyRatio = this.cursor.size;
+    this.nodes.applyRatio = this.cursor.radius;
     this.nodes.element = this.cursor.element;
   }
   else {

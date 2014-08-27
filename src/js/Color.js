@@ -1,6 +1,8 @@
 
 var Color = {};
 
+Color.white = [255,255,255,1];
+
 Color.toRGBA = function(arr){
   return "rgba(" + arr[0] + "," + arr[1] + "," + arr[2] + "," + (arr[3] || 1) + ")";
 };

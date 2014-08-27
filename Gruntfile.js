@@ -91,6 +91,13 @@ module.exports = function(grunt) {
             ,Renderer: true
             ,config: true
             ,_: true
+            
+            ,Base: true
+            ,Entity: true
+            ,Collection: true
+            ,Circle: true
+            ,Line: true
+
             ,Controls: true
             ,Color: true
             ,Repo: true
