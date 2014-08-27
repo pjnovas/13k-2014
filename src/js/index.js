@@ -5,7 +5,7 @@ w.DEBUG = true;
 
 require("./reqAnimFrame");
 
-w.Base = require("./Base");
+w.Base = require("./Base/Base");
 
 w.Mathf = require("./Mathf");
 w.Color = require("./Color");
@@ -13,16 +13,16 @@ w.Vector = require("./Vector");
 w.Renderer = require("./Renderer");
 w.Repo = require("./Repo");
 
-w.Entity = require("./Entity");
-w.Collection = require("./Collection");
+w.Entity = require("./Base/Entity");
+w.Collection = require("./Base/Collection");
 
-w.Circle = require("./Circle");
-w.Line = require("./Line");
+w.Circle = require("./Base/Circle");
+w.Line = require("./Base/Line");
 
 var Game = require("./Game");
 var GameTime = require("./GameTime");
 var Utils = require("./Utils");
-var Controls = require("./Controls");
+var Controls = require("./prefabs/Controls");
 //var Particles = require("./Particles");
 
 function configGame(){

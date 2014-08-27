@@ -121,6 +121,48 @@ module.exports = Base.extend({
 
 },{}],4:[function(require,module,exports){
 
+module.exports = Base.extend({
+
+  pos: { x: 0, y: 0 },
+
+  initialize: function(){},
+
+  update: function(){ },
+
+  draw: function(/*ctx*/){ },
+
+});
+
+},{}],5:[function(require,module,exports){
+
+module.exports = Entity.extend({
+
+  pos: { x: 0, y: 0 },
+  to: { x: 0, y: 0 },
+
+  size: 1,
+  color: Color.white,
+  
+  initialize: function(){},
+
+  update: function(){ },
+
+  draw: function(ctx){
+
+    Renderer.drawLine(ctx, {
+      from: this.pos,
+      to: this.to,
+      size: this.size,
+      color: Color.toRGBA(this.color)
+    });
+
+  },
+
+});
+
+
+},{}],6:[function(require,module,exports){
+
 var Color = {};
 
 Color.white = [255,255,255,1];
@@ -155,7 +197,731 @@ Color.eql = function(a, b){
 
 module.exports = Color;
 
-},{}],5:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
+
+var Manager = require("./Manager");
+
+var Game = module.exports = function(opts){
+  this.cview = opts.viewport;
+  this.cworld = opts.world;
+  this.cvacuum = opts.vacuum;
+
+  this.viewCtx = null;
+  this.worldCtx = null;
+  this.vacuumCtx = null;
+
+  this.tLoop = null;
+  this.paused = false;
+  this.boundGameRun = this.gameRun.bind(this);
+
+  this.manager = new Manager();
+  this.initialize();
+};
+
+Game.prototype.initialize = function(){
+  var size = config.size;
+
+  if (this.cview.getContext){
+    this.cview.width = size.x;
+    this.cview.height = size.y;
+    this.viewCtx = this.cview.getContext("2d");
+  }
+  else { throw "canvas not supported!"; }
+
+  this.worldCtx = this.cworld.getContext("2d");
+  this.cworld.width = size.x;
+  this.cworld.height = size.y;
+
+  this.vacuumCtx = this.cvacuum.getContext("2d");
+  this.cvacuum.width = config.vacuum.size.x;
+  this.cvacuum.height = config.vacuum.size.y;
+};
+
+Game.prototype.loop = function(){
+  //console.log(Time.frameTime + "( " + Time.deltaTime + " ) / " + Time.time);
+  this.manager.update();
+  this.manager.draw(this.viewCtx, this.worldCtx, this.vacuumCtx);
+};
+
+Game.prototype.start = function(){
+  this.paused = false;
+  Controls.enable();
+  this.gameRun();
+};
+
+Game.prototype.stop = function(){
+  this.paused = true;
+  Controls.disable();
+  window.cancelAnimationFrame(this.tLoop);
+};
+
+Game.prototype.gameRun = function(){
+  if (Time.tick()) { this.loop(); }
+  this.tLoop = window.requestAnimationFrame(this.boundGameRun);
+};
+
+},{"./Manager":9}],8:[function(require,module,exports){
+// Manages the ticks for a Game Loop
+
+var GameTime = module.exports = function(){
+  this.lastTime = Date.now();
+  this.frameTime = 0;
+  this.deltaTime = 0;
+  this.typicalFrameTime = 20;
+  this.minFrameTime = 12; 
+  this.time = 0;
+};
+
+// move the clock one tick. 
+// return true if new frame, false otherwise.
+GameTime.prototype.tick = function() {
+  var now = Date.now();
+  var delta = now - this.lastTime;
+
+  if (delta < this.minFrameTime ) {
+    return false;
+  }
+
+  if (delta > 2 * this.typicalFrameTime) { // +1 frame if too much time elapsed
+    this.frameTime = this.typicalFrameTime;
+  } else {  
+    this.frameTime = delta;      
+  }
+
+  this.deltaTime = this.frameTime/1000;
+  this.time += this.frameTime;
+  this.lastTime = now;
+
+  return true;
+};
+
+GameTime.prototype.reset = function() {
+  this.lastTime = Date.now();
+  this.frameTime = 0;
+  this.deltaTime = 0;
+  this.typicalFrameTime = 20;
+  this.minFrameTime = 12; 
+  this.time = 0;
+};
+},{}],9:[function(require,module,exports){
+
+var Nodes = require("./prefabs/Nodes");
+var Paths = require("./prefabs/Paths");
+var Cursor = require("./prefabs/Cursor");
+var Spiders = require("./prefabs/Spiders");
+var Target = require("./prefabs/Target");
+var Vacuum = require("./prefabs/Vacuum");
+var Stats = require("./prefabs/Stats");
+var Elements = require("./prefabs/Elements");
+
+var Manager = module.exports = function(){
+
+  this.cursor = new Cursor();
+  this.nodes = new Nodes();
+  this.paths = new Paths();
+  this.target = new Target();
+  this.vacuum = new Vacuum(this.target);
+  this.elements = new Elements();
+  this.spiders = new Spiders(this.nodes);
+  this.stats = new Stats();
+
+  this.target.setNodesInside(this.nodes.GetNodes());
+};
+
+Manager.prototype.update = function(){
+  
+  this.cursor.update();
+
+  window.blowing = this.cursor.blowing;
+  this.elements.current = this.cursor.element;
+  this.elements.active = this.cursor.active;
+
+  if (this.cursor.active){
+    this.nodes.applyPos = this.cursor.pos;
+    this.nodes.applyRatio = this.cursor.radius;
+    this.nodes.element = this.cursor.element;
+  }
+  else {
+    this.nodes.applyPos = null;
+  }
+
+  this.nodes.update();
+  this.spiders.update();
+  this.target.update(this.spiders.spiders);
+  this.vacuum.update();
+  this.stats.update(this.spiders.stats);
+
+  this.elements.update();
+
+  //Particles.update();
+};
+
+Manager.prototype.draw = function(viewCtx, worldCtx, vacuumCtx){
+  var s = config.size;
+  var vs = config.vacuum.size;
+
+  viewCtx.clearRect(0, 0, s.x, s.y);
+  worldCtx.clearRect(0, 0, s.x, s.y);
+  vacuumCtx.clearRect(0, 0, vs.x, vs.y);
+
+  this.cursor.draw(viewCtx);
+  this.nodes.draw(worldCtx);
+  this.spiders.draw(worldCtx);
+  this.target.draw(worldCtx);
+
+  this.vacuum.draw(vacuumCtx);
+  this.stats.draw(viewCtx);
+  this.elements.draw(viewCtx);
+
+  //Particles.draw(viewCtx);
+};
+},{"./prefabs/Cursor":18,"./prefabs/Elements":19,"./prefabs/Nodes":21,"./prefabs/Paths":23,"./prefabs/Spiders":25,"./prefabs/Stats":26,"./prefabs/Target":27,"./prefabs/Vacuum":28}],10:[function(require,module,exports){
+
+var Mathf = {};
+
+Mathf.rnd = function(min, max){
+  return Math.floor(Math.random() * (max - min + 1) + min);
+};
+
+Mathf.rnd11 = function(){
+  return Math.round(Math.random());
+};
+
+Mathf.rnd01 = function(){
+  return Math.random();
+};
+
+Mathf.rndAngle = function(){
+  return Math.random() * Math.PI * 2;
+};
+
+Mathf.rndInCircle = function(radius){
+  var angle = Mathf.rndAngle();
+  var rad = Mathf.rnd(0, radius);
+
+  return {
+    x: Math.cos(angle) * rad,
+    y: Math.sin(angle) * rad
+  };
+};
+
+Mathf.lerp = function(a, b, u) {
+  return (1 - u) * a + u * b;
+};
+
+Mathf.polygonPoints = function(center, radius, sides) {
+  var points = [];
+  var angle = (Math.PI * 2) / sides;
+
+  for (var i = 0; i < sides; i++) {
+    points.push({
+      x: center.x + radius * Math.cos(i * angle),
+      y: center.y + radius * Math.sin(i * angle)
+    });
+  }
+
+  return points;
+};
+
+module.exports = Mathf;
+
+},{}],11:[function(require,module,exports){
+
+var Renderer = {};
+
+function fill(ctx, ps){
+  if (ps.hasOwnProperty("fill")){
+    ctx.fillStyle = ps.fill;
+    ctx.fill();
+  }
+}
+
+function stroke(ctx, ps){
+  if (ps.hasOwnProperty("stroke")){
+    ctx.lineWidth = ps.strokeWidth || 1;
+    ctx.strokeStyle = ps.stroke;
+    ctx.stroke();
+  }
+}
+
+Renderer.drawCircle = function(ctx, ps){
+  ctx.beginPath();
+  ctx.arc(ps.pos.x, ps.pos.y, ps.radius, 0, 2 * Math.PI, false);
+
+  ctx.fillStyle = ps.color;
+  ctx.fill();
+
+  if (ps.stroke){
+    ctx.lineWidth = ps.stroke.size || 1;
+    ctx.strokeStyle = ps.stroke.color || "#000";
+    ctx.stroke();
+  }
+};
+
+Renderer.drawLine = function(ctx, ps){
+  var a = ps.from
+    , b = ps.to;
+
+  ctx.beginPath();
+
+  ctx.lineCap = 'round';
+
+  ctx.moveTo(a.x, a.y);
+  ctx.lineTo(b.x, b.y);
+
+  ctx.lineWidth = ps.size;
+  ctx.strokeStyle = ps.color;
+  ctx.stroke();
+};
+
+Renderer.drawSprite = function(ctx, ps){
+  var img = Repo[ps.resource]
+    , x = ps.pos.x
+    , y = ps.pos.y
+    , w = ps.size.x
+    , h = ps.size.y
+    , sp = ps.sp;
+
+  function draw(){
+    if (sp){
+      ctx.drawImage(img, sp.x, sp.y, sp.w, sp.h, x, y, w, h);
+    }
+    else {
+      ctx.drawImage(img, x, y, w, h);
+    }
+  }
+
+  if (ps.hasOwnProperty("angle")){
+    ctx.save();
+
+    ctx.translate(x + w/2, y + h/2);
+    x = -w/2;
+    y = -h/2;
+    ctx.rotate(ps.angle);
+
+    draw();
+
+    ctx.restore();
+    return;
+  }
+
+  draw();
+};
+
+Renderer.drawText = function(ctx, ps){
+  ctx.font = ps.size + 'pt Arial';
+  ctx.textBaseline = ps.baseline || 'middle';
+  ctx.fillStyle = ps.color;
+  ctx.fillText(ps.text, ps.pos.x, ps.pos.y);
+};
+
+function drawRect(ctx, ps){
+  ctx.beginPath();
+  ctx.rect(ps.pos.x, ps.pos.y, ps.size.x, ps.size.y);
+  fill(ctx, ps);
+  stroke(ctx, ps);
+}
+
+Renderer.drawRect = function(ctx, ps){
+  var x = ps.pos.x
+    , y = ps.pos.y
+    , w = ps.size.x
+    , h = ps.size.y;
+
+  if (!ps.hasOwnProperty("corner")){
+    drawRect(ctx, ps);
+    return;
+  }
+
+  var c = ps.corner;
+
+  ctx.beginPath();
+  ctx.moveTo(x + c, y);
+  ctx.lineTo(x + w - c, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + c);
+  ctx.lineTo(x + w, y + h - c);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - c, y + h);
+  ctx.lineTo(x + c, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - c);
+  ctx.lineTo(x, y + c);
+  ctx.quadraticCurveTo(x, y, x + c, y);
+  ctx.closePath();
+  
+  fill(ctx, ps);
+  stroke(ctx, ps);
+};
+
+module.exports = Renderer;
+
+},{}],12:[function(require,module,exports){
+
+module.exports = (function(){
+  var resources = {}
+    , loaded = 0
+    , getCount = function(){
+        return Object.keys(resources).length;
+      };
+  
+  var events = {
+      complete: function(){}
+    , report: function(){}
+    , error: function(){}
+  };
+
+  var imageLoaded = function() {
+    var current = getCount();
+    var prg = (++loaded * 100) / current;
+
+    if (loaded <= current){
+      events.report(prg);
+
+      if (prg >= 100) { 
+        events.complete();
+      }
+    }
+  };
+  
+  var imageFailed = function(evt, etc){
+    events.error(evt, etc);       
+  };
+
+  return {
+    on: function(eventName, callback){
+      if (events[eventName]) {
+        events[eventName] = callback;
+      }
+      return this;
+    },
+    
+    load: function(){
+      loaded = 0;
+      for (var img in resources) {
+        this[img] = new window.Image();
+        this[img].onload = imageLoaded;
+        this[img].onerror = imageFailed;
+        this[img].src = resources[img];
+      }
+      return this;
+    },
+    
+    addResources: function(newResources){
+      for(var r in newResources){
+        resources[r] = newResources[r];
+      }
+      return this;
+    }
+    
+  };
+  
+})();
+},{}],13:[function(require,module,exports){
+
+module.exports = {
+
+  world: {
+    margin: { x: 150, y: 20 }
+  },
+
+  nodes: {
+      size: 3
+    , colors: {
+        cold: [255,255,255,1]
+      , burn: [255,0,0,1]
+      , burned: [0,0,0,0.2]
+      , earth: [190,160,40,1]
+    }
+  },
+
+  paths: {
+    size: 2
+  },
+
+  spiders: {
+      size: 32
+    , quantity: 50
+    , color: [115,255,0]
+    , speed: 0.05
+    , speedAlert: 0.1
+    , behaviour: {
+        alertTemp: 0
+      , tStayA: 3000
+      , tStayB: 10000
+    }
+    , sprites: {
+        move: [
+          { x: 0, y: 0, w: 32, h: 32 }, 
+          { x: 32, y: 0, w: 32, h: 32 }, 
+          { x: 64, y: 0, w: 32, h: 32 }, 
+          { x: 96, y: 0, w: 32, h: 32 }
+        ]
+    }
+  },
+
+  target: {
+      size: 180
+    , suckForce: 3
+  },
+
+  stats: {
+    pos: { x: 1, y: 0 },
+    colors: {
+      kills: [255,0,0,1],
+      alives: [0,255,0,1]
+    }
+  },
+
+  vacuum: {
+    size: { x: 300, y: 500 }
+  },
+
+  elements: {
+    sprites: {
+      fire: { x: 0, y: 0, w: 32, h: 32 }, 
+      water: { x: 32, y: 0, w: 32, h: 32 }, 
+      earth: { x: 64, y: 0, w: 32, h: 32 }, 
+      air: { x: 96, y: 0, w: 32, h: 32 }
+    }
+  },
+
+  images: {  
+      "spider": "images/spider.png"
+    , "elements": "images/elements.png"
+  }
+
+};
+
+},{}],14:[function(require,module,exports){
+
+var Utils = module.exports = function(){
+  this.lastIds = {
+    nodes: 0,
+    spiders: 0,
+    emitters: 0
+  };
+};
+
+Utils.prototype.guid = function(type){
+  return ++this.lastIds[type];
+};
+
+Utils.prototype.pad = function(num, size) {
+  var s = "0000000" + num;
+  return s.substr(s.length-size);
+};
+
+},{}],15:[function(require,module,exports){
+
+var Vector = {};
+
+Vector.zero = { x: 0, y: 0 };
+Vector.one = { x: 1, y: 1 };
+
+Vector.clone = function(v){
+  return { x: v.x, y: v.y };
+};
+
+Vector.prod = function(a, b){
+  return { x: a.x * b.x, y: a.y * b.y };
+};
+
+Vector.multiply = function(vector, delta){
+  return { x: vector.x * delta, y: vector.y * delta };
+};
+
+Vector.divide = function(vector, delta){
+  return { x: vector.x / delta, y: vector.y / delta };
+};
+
+Vector.add = function(a, b){
+  return { x: a.x + b.x, y: a.y + b.y };
+};
+
+Vector.dif = function(from, to){
+  return { x: to.x - from.x, y: to.y - from.y };
+};
+
+// get "which" part of a point between 2 (i.e. 4th part)
+Vector.part = function(from, to, which){
+  return Vector.lerp(from, to, which/10);
+};
+
+Vector.angleTo = function(from, to){
+  var p = Vector.dif(from, to);
+  return Math.atan2(p.y, p.x);
+};
+
+// get mid point between 2
+Vector.mid = function(from, to){
+  return Vector.divide(Vector.add(from, to), 2);
+};
+
+Vector.eql = function(a, b){
+  return (a.x === b.x && a.y === b.y);
+};
+
+Vector.normal = function(from, to){
+  var d = Vector.dif(from, to);
+  var l = Vector.length(from, to);
+
+  return {
+      x: d.x / l || 0
+    , y: d.y / l || 0
+  };
+};
+
+Vector.origin = function(pos, size){
+  return {
+      x: pos.x - size.x/2,
+      y: pos.y - size.y/2,
+  };
+};
+
+Vector.center = function(pos, size){
+  return {
+      x: pos.x + size.x/2,
+      y: pos.y + size.y/2,
+  };
+};
+
+Vector.length = function(a, b){
+  var dif = Vector.dif(a, b);
+  return Math.sqrt(dif.x*dif.x + dif.y*dif.y);
+};
+
+Vector.pointInCircle = function(p, pos, radius){
+  return Vector.length(p, pos) < radius;
+};
+/*
+Vector.circleCollide = function(c1, c2){
+  var dx = c1.x - c2.x
+    , dy = c1.y - c2.y
+    , dist = c1.r + c2.r;
+ 
+  return (dx * dx + dy * dy <= dist * dist);
+};
+*/
+Vector.lerp = function(from, to, t){
+
+  return {
+    x: from.x + (to.x - from.x) * t,
+    y: from.y + (to.y - from.y) * t
+  };
+
+};
+
+Vector.round = function(v){
+  v.x = Math.round(v.x);
+  v.y = Math.round(v.y);
+  return v;
+};
+
+Vector.isOut = function(p, min, max){
+  return (p.x < min.x || p.x > max.x || p.y < min.y || p.y > max.y);
+};
+
+Vector.debug = function(vec){
+  console.log(vec.x + " : " + vec.y);
+};
+
+module.exports = Vector;
+
+},{}],16:[function(require,module,exports){
+var w = window;
+var doc = w.document;
+
+w.DEBUG = true;
+
+require("./reqAnimFrame");
+
+w.Base = require("./Base/Base");
+
+w.Mathf = require("./Mathf");
+w.Color = require("./Color");
+w.Vector = require("./Vector");
+w.Renderer = require("./Renderer");
+w.Repo = require("./Repo");
+
+w.Entity = require("./Base/Entity");
+w.Collection = require("./Base/Collection");
+
+w.Circle = require("./Base/Circle");
+w.Line = require("./Base/Line");
+
+var Game = require("./Game");
+var GameTime = require("./GameTime");
+var Utils = require("./Utils");
+var Controls = require("./prefabs/Controls");
+//var Particles = require("./Particles");
+
+function configGame(){
+  var cfg = require("./Settings")
+    , ele = doc.documentElement
+    , body = doc.body;
+
+  function getSize(which){
+    return Math.max(
+      ele["client" + which], 
+      body["scroll" + which], 
+      ele["scroll" + which], 
+      body["offset" + which], 
+      ele["offset" + which]
+    );
+  }
+
+  cfg.size = {
+    x: getSize("Width"),
+    y: getSize("Height")
+  };
+
+  w.config = cfg;
+}
+
+function initGame(){
+  var cviewport = doc.getElementById("game-viewport");
+  var cworld = doc.getElementById("game-world");
+  var cvacuum = doc.getElementById("vacuum");
+
+  w._ = new Utils();  
+  w.Time = new GameTime();
+
+  //w.Particles = new Particles();
+
+  w.Controls = new Controls({
+    container: cviewport
+  });
+
+  w.game = new Game({
+    viewport: cviewport,
+    world: cworld,
+    vacuum: cvacuum
+  });
+
+  function pauseGame(){
+    if (game.paused){
+      game.start();
+    }
+    else {
+      game.stop(); 
+    }
+  }
+
+  w.Controls.on('pause', pauseGame);
+}
+
+function onDocLoad(){
+  configGame();
+
+  w.Repo.addResources(w.config.images)
+    .on('complete', function(){
+      initGame();
+      w.game.start();
+    })
+    .load();
+}
+
+w.onload = onDocLoad;
+
+},{"./Base/Base":1,"./Base/Circle":2,"./Base/Collection":3,"./Base/Entity":4,"./Base/Line":5,"./Color":6,"./Game":7,"./GameTime":8,"./Mathf":10,"./Renderer":11,"./Repo":12,"./Settings":13,"./Utils":14,"./Vector":15,"./prefabs/Controls":17,"./reqAnimFrame":29}],17:[function(require,module,exports){
 
 function getCoordsEvent(e, canvas){
   var x, y
@@ -288,7 +1054,7 @@ module.exports = Base.extend({
 
 });
 
-},{}],6:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 
 module.exports = Circle.extend({
 
@@ -344,7 +1110,7 @@ module.exports = Circle.extend({
 
 });
 
-},{}],7:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 
 var Elements = module.exports = function(){
   this.size = 96;
@@ -424,277 +1190,7 @@ Elements.prototype.draw = function(ctx){
 
 };
 
-},{}],8:[function(require,module,exports){
-
-module.exports = Base.extend({
-
-  pos: { x: 0, y: 0 },
-
-  initialize: function(){},
-
-  update: function(){ },
-
-  draw: function(/*ctx*/){ },
-
-});
-
-},{}],9:[function(require,module,exports){
-
-var Manager = require("./Manager");
-
-var Game = module.exports = function(opts){
-  this.cview = opts.viewport;
-  this.cworld = opts.world;
-  this.cvacuum = opts.vacuum;
-
-  this.viewCtx = null;
-  this.worldCtx = null;
-  this.vacuumCtx = null;
-
-  this.tLoop = null;
-  this.paused = false;
-  this.boundGameRun = this.gameRun.bind(this);
-
-  this.manager = new Manager();
-  this.initialize();
-};
-
-Game.prototype.initialize = function(){
-  var size = config.size;
-
-  if (this.cview.getContext){
-    this.cview.width = size.x;
-    this.cview.height = size.y;
-    this.viewCtx = this.cview.getContext("2d");
-  }
-  else { throw "canvas not supported!"; }
-
-  this.worldCtx = this.cworld.getContext("2d");
-  this.cworld.width = size.x;
-  this.cworld.height = size.y;
-
-  this.vacuumCtx = this.cvacuum.getContext("2d");
-  this.cvacuum.width = config.vacuum.size.x;
-  this.cvacuum.height = config.vacuum.size.y;
-};
-
-Game.prototype.loop = function(){
-  //console.log(Time.frameTime + "( " + Time.deltaTime + " ) / " + Time.time);
-  this.manager.update();
-  this.manager.draw(this.viewCtx, this.worldCtx, this.vacuumCtx);
-};
-
-Game.prototype.start = function(){
-  this.paused = false;
-  Controls.enable();
-  this.gameRun();
-};
-
-Game.prototype.stop = function(){
-  this.paused = true;
-  Controls.disable();
-  window.cancelAnimationFrame(this.tLoop);
-};
-
-Game.prototype.gameRun = function(){
-  if (Time.tick()) { this.loop(); }
-  this.tLoop = window.requestAnimationFrame(this.boundGameRun);
-};
-
-},{"./Manager":12}],10:[function(require,module,exports){
-// Manages the ticks for a Game Loop
-
-var GameTime = module.exports = function(){
-  this.lastTime = Date.now();
-  this.frameTime = 0;
-  this.deltaTime = 0;
-  this.typicalFrameTime = 20;
-  this.minFrameTime = 12; 
-  this.time = 0;
-};
-
-// move the clock one tick. 
-// return true if new frame, false otherwise.
-GameTime.prototype.tick = function() {
-  var now = Date.now();
-  var delta = now - this.lastTime;
-
-  if (delta < this.minFrameTime ) {
-    return false;
-  }
-
-  if (delta > 2 * this.typicalFrameTime) { // +1 frame if too much time elapsed
-    this.frameTime = this.typicalFrameTime;
-  } else {  
-    this.frameTime = delta;      
-  }
-
-  this.deltaTime = this.frameTime/1000;
-  this.time += this.frameTime;
-  this.lastTime = now;
-
-  return true;
-};
-
-GameTime.prototype.reset = function() {
-  this.lastTime = Date.now();
-  this.frameTime = 0;
-  this.deltaTime = 0;
-  this.typicalFrameTime = 20;
-  this.minFrameTime = 12; 
-  this.time = 0;
-};
-},{}],11:[function(require,module,exports){
-
-module.exports = Entity.extend({
-
-  pos: { x: 0, y: 0 },
-  to: { x: 0, y: 0 },
-
-  size: 1,
-  color: Color.white,
-  
-  initialize: function(){},
-
-  update: function(){ },
-
-  draw: function(ctx){
-
-    Renderer.drawLine(ctx, {
-      from: this.pos,
-      to: this.to,
-      size: this.size,
-      color: Color.toRGBA(this.color)
-    });
-
-  },
-
-});
-
-
-},{}],12:[function(require,module,exports){
-
-var Nodes = require("./Nodes");
-var Paths = require("./Paths");
-var Cursor = require("./Cursor");
-var Spiders = require("./Spiders");
-var Target = require("./Target");
-var Vacuum = require("./Vacuum");
-var Stats = require("./Stats");
-var Elements = require("./Elements");
-
-var Manager = module.exports = function(){
-
-  this.cursor = new Cursor();
-  this.nodes = new Nodes();
-  this.paths = new Paths();
-  this.target = new Target();
-  this.vacuum = new Vacuum(this.target);
-  this.elements = new Elements();
-  this.spiders = new Spiders(this.nodes);
-  this.stats = new Stats();
-
-  this.target.setNodesInside(this.nodes.GetNodes());
-};
-
-Manager.prototype.update = function(){
-  
-  this.cursor.update();
-
-  window.blowing = this.cursor.blowing;
-  this.elements.current = this.cursor.element;
-  this.elements.active = this.cursor.active;
-
-  if (this.cursor.active){
-    this.nodes.applyPos = this.cursor.pos;
-    this.nodes.applyRatio = this.cursor.radius;
-    this.nodes.element = this.cursor.element;
-  }
-  else {
-    this.nodes.applyPos = null;
-  }
-
-  this.nodes.update();
-  this.spiders.update();
-  this.target.update(this.spiders.spiders);
-  this.vacuum.update();
-  this.stats.update(this.spiders.stats);
-
-  this.elements.update();
-
-  //Particles.update();
-};
-
-Manager.prototype.draw = function(viewCtx, worldCtx, vacuumCtx){
-  var s = config.size;
-  var vs = config.vacuum.size;
-
-  viewCtx.clearRect(0, 0, s.x, s.y);
-  worldCtx.clearRect(0, 0, s.x, s.y);
-  vacuumCtx.clearRect(0, 0, vs.x, vs.y);
-
-  this.cursor.draw(viewCtx);
-  this.nodes.draw(worldCtx);
-  this.spiders.draw(worldCtx);
-  this.target.draw(worldCtx);
-
-  this.vacuum.draw(vacuumCtx);
-  this.stats.draw(viewCtx);
-  this.elements.draw(viewCtx);
-
-  //Particles.draw(viewCtx);
-};
-},{"./Cursor":6,"./Elements":7,"./Nodes":15,"./Paths":17,"./Spiders":22,"./Stats":23,"./Target":24,"./Vacuum":26}],13:[function(require,module,exports){
-
-var Mathf = {};
-
-Mathf.rnd = function(min, max){
-  return Math.floor(Math.random() * (max - min + 1) + min);
-};
-
-Mathf.rnd11 = function(){
-  return Math.round(Math.random());
-};
-
-Mathf.rnd01 = function(){
-  return Math.random();
-};
-
-Mathf.rndAngle = function(){
-  return Math.random() * Math.PI * 2;
-};
-
-Mathf.rndInCircle = function(radius){
-  var angle = Mathf.rndAngle();
-  var rad = Mathf.rnd(0, radius);
-
-  return {
-    x: Math.cos(angle) * rad,
-    y: Math.sin(angle) * rad
-  };
-};
-
-Mathf.lerp = function(a, b, u) {
-  return (1 - u) * a + u * b;
-};
-
-Mathf.polygonPoints = function(center, radius, sides) {
-  var points = [];
-  var angle = (Math.PI * 2) / sides;
-
-  for (var i = 0; i < sides; i++) {
-    points.push({
-      x: center.x + radius * Math.cos(i * angle),
-      y: center.y + radius * Math.sin(i * angle)
-    });
-  }
-
-  return points;
-};
-
-module.exports = Mathf;
-
-},{}],14:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 
 
 module.exports = Circle.extend({
@@ -892,7 +1388,7 @@ module.exports = Circle.extend({
 
 });
 
-},{}],15:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 /*jslint -W083 */
 
 var Node = require("./Node")
@@ -1081,7 +1577,7 @@ var Nodes = module.exports = Collection.extend({
 
 });
 
-},{"./Node":14,"./Paths":17}],16:[function(require,module,exports){
+},{"./Node":20,"./Paths":23}],22:[function(require,module,exports){
 
 var Path = module.exports = Line.extend({
 
@@ -1164,7 +1660,7 @@ var Path = module.exports = Line.extend({
 
 });
 
-},{}],17:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 
 var Path = require("./Path");
 
@@ -1192,272 +1688,7 @@ module.exports = Collection.extend({
 
 });
 
-},{"./Path":16}],18:[function(require,module,exports){
-
-var Renderer = {};
-
-function fill(ctx, ps){
-  if (ps.hasOwnProperty("fill")){
-    ctx.fillStyle = ps.fill;
-    ctx.fill();
-  }
-}
-
-function stroke(ctx, ps){
-  if (ps.hasOwnProperty("stroke")){
-    ctx.lineWidth = ps.strokeWidth || 1;
-    ctx.strokeStyle = ps.stroke;
-    ctx.stroke();
-  }
-}
-
-Renderer.drawCircle = function(ctx, ps){
-  ctx.beginPath();
-  ctx.arc(ps.pos.x, ps.pos.y, ps.radius, 0, 2 * Math.PI, false);
-
-  ctx.fillStyle = ps.color;
-  ctx.fill();
-
-  if (ps.stroke){
-    ctx.lineWidth = ps.stroke.size || 1;
-    ctx.strokeStyle = ps.stroke.color || "#000";
-    ctx.stroke();
-  }
-};
-
-Renderer.drawLine = function(ctx, ps){
-  var a = ps.from
-    , b = ps.to;
-
-  ctx.beginPath();
-
-  ctx.lineCap = 'round';
-
-  ctx.moveTo(a.x, a.y);
-  ctx.lineTo(b.x, b.y);
-
-  ctx.lineWidth = ps.size;
-  ctx.strokeStyle = ps.color;
-  ctx.stroke();
-};
-
-Renderer.drawSprite = function(ctx, ps){
-  var img = Repo[ps.resource]
-    , x = ps.pos.x
-    , y = ps.pos.y
-    , w = ps.size.x
-    , h = ps.size.y
-    , sp = ps.sp;
-
-  function draw(){
-    if (sp){
-      ctx.drawImage(img, sp.x, sp.y, sp.w, sp.h, x, y, w, h);
-    }
-    else {
-      ctx.drawImage(img, x, y, w, h);
-    }
-  }
-
-  if (ps.hasOwnProperty("angle")){
-    ctx.save();
-
-    ctx.translate(x + w/2, y + h/2);
-    x = -w/2;
-    y = -h/2;
-    ctx.rotate(ps.angle);
-
-    draw();
-
-    ctx.restore();
-    return;
-  }
-
-  draw();
-};
-
-Renderer.drawText = function(ctx, ps){
-  ctx.font = ps.size + 'pt Arial';
-  ctx.textBaseline = ps.baseline || 'middle';
-  ctx.fillStyle = ps.color;
-  ctx.fillText(ps.text, ps.pos.x, ps.pos.y);
-};
-
-function drawRect(ctx, ps){
-  ctx.beginPath();
-  ctx.rect(ps.pos.x, ps.pos.y, ps.size.x, ps.size.y);
-  fill(ctx, ps);
-  stroke(ctx, ps);
-}
-
-Renderer.drawRect = function(ctx, ps){
-  var x = ps.pos.x
-    , y = ps.pos.y
-    , w = ps.size.x
-    , h = ps.size.y;
-
-  if (!ps.hasOwnProperty("corner")){
-    drawRect(ctx, ps);
-    return;
-  }
-
-  var c = ps.corner;
-
-  ctx.beginPath();
-  ctx.moveTo(x + c, y);
-  ctx.lineTo(x + w - c, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + c);
-  ctx.lineTo(x + w, y + h - c);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - c, y + h);
-  ctx.lineTo(x + c, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - c);
-  ctx.lineTo(x, y + c);
-  ctx.quadraticCurveTo(x, y, x + c, y);
-  ctx.closePath();
-  
-  fill(ctx, ps);
-  stroke(ctx, ps);
-};
-
-module.exports = Renderer;
-
-},{}],19:[function(require,module,exports){
-
-module.exports = (function(){
-  var resources = {}
-    , loaded = 0
-    , getCount = function(){
-        return Object.keys(resources).length;
-      };
-  
-  var events = {
-      complete: function(){}
-    , report: function(){}
-    , error: function(){}
-  };
-
-  var imageLoaded = function() {
-    var current = getCount();
-    var prg = (++loaded * 100) / current;
-
-    if (loaded <= current){
-      events.report(prg);
-
-      if (prg >= 100) { 
-        events.complete();
-      }
-    }
-  };
-  
-  var imageFailed = function(evt, etc){
-    events.error(evt, etc);       
-  };
-
-  return {
-    on: function(eventName, callback){
-      if (events[eventName]) {
-        events[eventName] = callback;
-      }
-      return this;
-    },
-    
-    load: function(){
-      loaded = 0;
-      for (var img in resources) {
-        this[img] = new window.Image();
-        this[img].onload = imageLoaded;
-        this[img].onerror = imageFailed;
-        this[img].src = resources[img];
-      }
-      return this;
-    },
-    
-    addResources: function(newResources){
-      for(var r in newResources){
-        resources[r] = newResources[r];
-      }
-      return this;
-    }
-    
-  };
-  
-})();
-},{}],20:[function(require,module,exports){
-
-module.exports = {
-
-  world: {
-    margin: { x: 150, y: 20 }
-  },
-
-  nodes: {
-      size: 3
-    , colors: {
-        cold: [255,255,255,1]
-      , burn: [255,0,0,1]
-      , burned: [0,0,0,0.2]
-      , earth: [190,160,40,1]
-    }
-  },
-
-  paths: {
-    size: 2
-  },
-
-  spiders: {
-      size: 32
-    , quantity: 50
-    , color: [115,255,0]
-    , speed: 0.05
-    , speedAlert: 0.1
-    , behaviour: {
-        alertTemp: 0
-      , tStayA: 3000
-      , tStayB: 10000
-    }
-    , sprites: {
-        move: [
-          { x: 0, y: 0, w: 32, h: 32 }, 
-          { x: 32, y: 0, w: 32, h: 32 }, 
-          { x: 64, y: 0, w: 32, h: 32 }, 
-          { x: 96, y: 0, w: 32, h: 32 }
-        ]
-    }
-  },
-
-  target: {
-      size: 180
-    , suckForce: 3
-  },
-
-  stats: {
-    pos: { x: 1, y: 0 },
-    colors: {
-      kills: [255,0,0,1],
-      alives: [0,255,0,1]
-    }
-  },
-
-  vacuum: {
-    size: { x: 300, y: 500 }
-  },
-
-  elements: {
-    sprites: {
-      fire: { x: 0, y: 0, w: 32, h: 32 }, 
-      water: { x: 32, y: 0, w: 32, h: 32 }, 
-      earth: { x: 64, y: 0, w: 32, h: 32 }, 
-      air: { x: 96, y: 0, w: 32, h: 32 }
-    }
-  },
-
-  images: {  
-      "spider": "images/spider.png"
-    , "elements": "images/elements.png"
-  }
-
-};
-
-},{}],21:[function(require,module,exports){
+},{"./Path":22}],24:[function(require,module,exports){
 
 var Spider = module.exports = function(pos, onDead){
   this.id = _.guid("spiders");
@@ -1663,7 +1894,7 @@ Spider.prototype.draw = function(ctx){
   });  
 };
 
-},{}],22:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 
 var Spider = require("./Spider");
 
@@ -1785,7 +2016,7 @@ Spiders.prototype.draw = function(ctx){
     }
   });
 };
-},{"./Spider":21}],23:[function(require,module,exports){
+},{"./Spider":24}],26:[function(require,module,exports){
 
 var Stats = module.exports = function(){
   
@@ -1886,7 +2117,7 @@ Stats.prototype.drawStats = function(ctx){
   });
 
 };
-},{}],24:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 
 var Target = module.exports = function(){
 
@@ -1965,26 +2196,7 @@ Target.prototype.draw = function(ctx){
   ctx.stroke();
 
 };
-},{}],25:[function(require,module,exports){
-
-var Utils = module.exports = function(){
-  this.lastIds = {
-    nodes: 0,
-    spiders: 0,
-    emitters: 0
-  };
-};
-
-Utils.prototype.guid = function(type){
-  return ++this.lastIds[type];
-};
-
-Utils.prototype.pad = function(num, size) {
-  var s = "0000000" + num;
-  return s.substr(s.length-size);
-};
-
-},{}],26:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 
 var Vacuum = module.exports = function(target){
   this.target = target;
@@ -2148,219 +2360,7 @@ Vacuum.prototype.drawBG = function(ctx){
   });
 
 };
-},{}],27:[function(require,module,exports){
-
-var Vector = {};
-
-Vector.zero = { x: 0, y: 0 };
-Vector.one = { x: 1, y: 1 };
-
-Vector.clone = function(v){
-  return { x: v.x, y: v.y };
-};
-
-Vector.prod = function(a, b){
-  return { x: a.x * b.x, y: a.y * b.y };
-};
-
-Vector.multiply = function(vector, delta){
-  return { x: vector.x * delta, y: vector.y * delta };
-};
-
-Vector.divide = function(vector, delta){
-  return { x: vector.x / delta, y: vector.y / delta };
-};
-
-Vector.add = function(a, b){
-  return { x: a.x + b.x, y: a.y + b.y };
-};
-
-Vector.dif = function(from, to){
-  return { x: to.x - from.x, y: to.y - from.y };
-};
-
-// get "which" part of a point between 2 (i.e. 4th part)
-Vector.part = function(from, to, which){
-  return Vector.lerp(from, to, which/10);
-};
-
-Vector.angleTo = function(from, to){
-  var p = Vector.dif(from, to);
-  return Math.atan2(p.y, p.x);
-};
-
-// get mid point between 2
-Vector.mid = function(from, to){
-  return Vector.divide(Vector.add(from, to), 2);
-};
-
-Vector.eql = function(a, b){
-  return (a.x === b.x && a.y === b.y);
-};
-
-Vector.normal = function(from, to){
-  var d = Vector.dif(from, to);
-  var l = Vector.length(from, to);
-
-  return {
-      x: d.x / l || 0
-    , y: d.y / l || 0
-  };
-};
-
-Vector.origin = function(pos, size){
-  return {
-      x: pos.x - size.x/2,
-      y: pos.y - size.y/2,
-  };
-};
-
-Vector.center = function(pos, size){
-  return {
-      x: pos.x + size.x/2,
-      y: pos.y + size.y/2,
-  };
-};
-
-Vector.length = function(a, b){
-  var dif = Vector.dif(a, b);
-  return Math.sqrt(dif.x*dif.x + dif.y*dif.y);
-};
-
-Vector.pointInCircle = function(p, pos, radius){
-  return Vector.length(p, pos) < radius;
-};
-/*
-Vector.circleCollide = function(c1, c2){
-  var dx = c1.x - c2.x
-    , dy = c1.y - c2.y
-    , dist = c1.r + c2.r;
- 
-  return (dx * dx + dy * dy <= dist * dist);
-};
-*/
-Vector.lerp = function(from, to, t){
-
-  return {
-    x: from.x + (to.x - from.x) * t,
-    y: from.y + (to.y - from.y) * t
-  };
-
-};
-
-Vector.round = function(v){
-  v.x = Math.round(v.x);
-  v.y = Math.round(v.y);
-  return v;
-};
-
-Vector.isOut = function(p, min, max){
-  return (p.x < min.x || p.x > max.x || p.y < min.y || p.y > max.y);
-};
-
-Vector.debug = function(vec){
-  console.log(vec.x + " : " + vec.y);
-};
-
-module.exports = Vector;
-
-},{}],28:[function(require,module,exports){
-var w = window;
-var doc = w.document;
-
-w.DEBUG = true;
-
-require("./reqAnimFrame");
-
-w.Base = require("./Base");
-
-w.Mathf = require("./Mathf");
-w.Color = require("./Color");
-w.Vector = require("./Vector");
-w.Renderer = require("./Renderer");
-w.Repo = require("./Repo");
-
-w.Entity = require("./Entity");
-w.Collection = require("./Collection");
-
-w.Circle = require("./Circle");
-w.Line = require("./Line");
-
-var Game = require("./Game");
-var GameTime = require("./GameTime");
-var Utils = require("./Utils");
-var Controls = require("./Controls");
-//var Particles = require("./Particles");
-
-function configGame(){
-  var cfg = require("./Settings")
-    , ele = doc.documentElement
-    , body = doc.body;
-
-  function getSize(which){
-    return Math.max(
-      ele["client" + which], 
-      body["scroll" + which], 
-      ele["scroll" + which], 
-      body["offset" + which], 
-      ele["offset" + which]
-    );
-  }
-
-  cfg.size = {
-    x: getSize("Width"),
-    y: getSize("Height")
-  };
-
-  w.config = cfg;
-}
-
-function initGame(){
-  var cviewport = doc.getElementById("game-viewport");
-  var cworld = doc.getElementById("game-world");
-  var cvacuum = doc.getElementById("vacuum");
-
-  w._ = new Utils();  
-  w.Time = new GameTime();
-
-  //w.Particles = new Particles();
-
-  w.Controls = new Controls({
-    container: cviewport
-  });
-
-  w.game = new Game({
-    viewport: cviewport,
-    world: cworld,
-    vacuum: cvacuum
-  });
-
-  function pauseGame(){
-    if (game.paused){
-      game.start();
-    }
-    else {
-      game.stop(); 
-    }
-  }
-
-  w.Controls.on('pause', pauseGame);
-}
-
-function onDocLoad(){
-  configGame();
-
-  w.Repo.addResources(w.config.images)
-    .on('complete', function(){
-      initGame();
-      w.game.start();
-    })
-    .load();
-}
-
-w.onload = onDocLoad;
-
-},{"./Base":1,"./Circle":2,"./Collection":3,"./Color":4,"./Controls":5,"./Entity":8,"./Game":9,"./GameTime":10,"./Line":11,"./Mathf":13,"./Renderer":18,"./Repo":19,"./Settings":20,"./Utils":25,"./Vector":27,"./reqAnimFrame":29}],29:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 // http://paulirish.com/2011/requestanimationframe-for-smart-animating/
 // http://my.opera.com/emoller/blog/2011/12/20/requestanimationframe-for-smart-er-animating
 
@@ -2390,4 +2390,4 @@ w.onload = onDocLoad;
     window.cancelAnimationFrame = function(id) { window.clearTimeout(id); };
   }
 }());
-},{}]},{},[28]);
+},{}]},{},[16]);

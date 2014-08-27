@@ -1,12 +1,12 @@
 
-var Nodes = require("./Nodes");
-var Paths = require("./Paths");
-var Cursor = require("./Cursor");
-var Spiders = require("./Spiders");
-var Target = require("./Target");
-var Vacuum = require("./Vacuum");
-var Stats = require("./Stats");
-var Elements = require("./Elements");
+var Nodes = require("./prefabs/Nodes");
+var Paths = require("./prefabs/Paths");
+var Cursor = require("./prefabs/Cursor");
+var Spiders = require("./prefabs/Spiders");
+var Target = require("./prefabs/Target");
+var Vacuum = require("./prefabs/Vacuum");
+var Stats = require("./prefabs/Stats");
+var Elements = require("./prefabs/Elements");
 
 var Manager = module.exports = function(){
 
