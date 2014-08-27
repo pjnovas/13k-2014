@@ -29,8 +29,7 @@ var Controls = require("./prefabs/Controls");
 //var Particles = require("./Particles");
 
 function configGame(){
-  var cfg = require("./Settings")
-    , ele = doc.documentElement
+  var ele = doc.documentElement
     , body = doc.body;
 
   function getSize(which){
@@ -43,12 +42,22 @@ function configGame(){
     );
   }
 
-  cfg.size = {
-    x: getSize("Width"),
-    y: getSize("Height")
+  w.config = {
+    size: {
+      x: getSize("Width"),
+      y: getSize("Height")
+    },
+    world: {
+      margin: { x: 150, y: 20 }
+    },
+    vacuum: {
+      size: { x: 300, y: 500 }
+    },
+    images: {  
+        "spider": "images/spider.png"
+      , "elements": "images/elements.png"
+    }
   };
-
-  w.config = cfg;
 }
 
 function initGame(){
@@ -87,7 +96,7 @@ function onDocLoad(){
   configGame();
 
   w.Repo.addResources(w.config.images)
-    .on('complete', function(){
+    .onComplete(function(){
       initGame();
       w.game.start();
     })

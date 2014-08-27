@@ -14,7 +14,9 @@ var Manager = module.exports = function(){
   this.nodes = new Nodes();
   this.paths = new Paths();
   this.target = new Target();
-  this.vacuum = new Vacuum(this.target);
+  this.vacuum = new Vacuum({
+    target: this.target
+  });
   this.elements = new Elements();
   this.spiders = new Spiders({
     nodes: this.nodes

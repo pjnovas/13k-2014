@@ -429,7 +429,9 @@ var Manager = module.exports = function(){
   this.nodes = new Nodes();
   this.paths = new Paths();
   this.target = new Target();
-  this.vacuum = new Vacuum(this.target);
+  this.vacuum = new Vacuum({
+    target: this.target
+  });
   this.elements = new Elements();
   this.spiders = new Spiders({
     nodes: this.nodes
@@ -486,7 +488,7 @@ Manager.prototype.draw = function(viewCtx, worldCtx, vacuumCtx){
 
   //Particles.draw(viewCtx);
 };
-},{"./prefabs/Cursor":21,"./prefabs/Elements":23,"./prefabs/Nodes":25,"./prefabs/Paths":27,"./prefabs/Spiders":29,"./prefabs/Stats":30,"./prefabs/Target":31,"./prefabs/Vacuum":32}],13:[function(require,module,exports){
+},{"./prefabs/Cursor":20,"./prefabs/Elements":22,"./prefabs/Nodes":24,"./prefabs/Paths":26,"./prefabs/Spiders":28,"./prefabs/Stats":29,"./prefabs/Target":30,"./prefabs/Vacuum":31}],13:[function(require,module,exports){
 
 var Mathf = {};
 
@@ -676,36 +678,21 @@ module.exports = (function(){
     , loaded = 0
     , getCount = function(){
         return Object.keys(resources).length;
-      };
-  
-  var events = {
-      complete: function(){}
-    , report: function(){}
-    , error: function(){}
-  };
+      }
+    , complete = function(){};
 
   var imageLoaded = function() {
     var current = getCount();
     var prg = (++loaded * 100) / current;
 
-    if (loaded <= current){
-      events.report(prg);
-
-      if (prg >= 100) { 
-        events.complete();
-      }
+    if (loaded <= current && prg >= 100){
+      complete();
     }
   };
   
-  var imageFailed = function(evt, etc){
-    events.error(evt, etc);       
-  };
-
   return {
-    on: function(eventName, callback){
-      if (events[eventName]) {
-        events[eventName] = callback;
-      }
+    onComplete: function(callback){
+      complete = callback;
       return this;
     },
     
@@ -714,7 +701,6 @@ module.exports = (function(){
       for (var img in resources) {
         this[img] = new window.Image();
         this[img].onload = imageLoaded;
-        this[img].onerror = imageFailed;
         this[img].src = resources[img];
       }
       return this;
@@ -731,38 +717,6 @@ module.exports = (function(){
   
 })();
 },{}],16:[function(require,module,exports){
-
-module.exports = {
-
-  world: {
-    margin: { x: 150, y: 20 }
-  },
-
-  paths: {
-    size: 2
-  },
-
-  vacuum: {
-    size: { x: 300, y: 500 }
-  },
-
-  elements: {
-    sprites: {
-      fire: { x: 0, y: 0, w: 32, h: 32 }, 
-      water: { x: 32, y: 0, w: 32, h: 32 }, 
-      earth: { x: 64, y: 0, w: 32, h: 32 }, 
-      air: { x: 96, y: 0, w: 32, h: 32 }
-    }
-  },
-
-  images: {  
-      "spider": "images/spider.png"
-    , "elements": "images/elements.png"
-  }
-
-};
-
-},{}],17:[function(require,module,exports){
 
 var Utils = module.exports = function(){
   this.lastIds = {
@@ -781,7 +735,7 @@ Utils.prototype.pad = function(num, size) {
   return s.substr(s.length-size);
 };
 
-},{}],18:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 
 var Vector = {};
 
@@ -897,7 +851,7 @@ Vector.debug = function(vec){
 
 module.exports = Vector;
 
-},{}],19:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 var w = window;
 var doc = w.document;
 
@@ -929,8 +883,7 @@ var Controls = require("./prefabs/Controls");
 //var Particles = require("./Particles");
 
 function configGame(){
-  var cfg = require("./Settings")
-    , ele = doc.documentElement
+  var ele = doc.documentElement
     , body = doc.body;
 
   function getSize(which){
@@ -943,12 +896,22 @@ function configGame(){
     );
   }
 
-  cfg.size = {
-    x: getSize("Width"),
-    y: getSize("Height")
+  w.config = {
+    size: {
+      x: getSize("Width"),
+      y: getSize("Height")
+    },
+    world: {
+      margin: { x: 150, y: 20 }
+    },
+    vacuum: {
+      size: { x: 300, y: 500 }
+    },
+    images: {  
+        "spider": "images/spider.png"
+      , "elements": "images/elements.png"
+    }
   };
-
-  w.config = cfg;
 }
 
 function initGame(){
@@ -987,7 +950,7 @@ function onDocLoad(){
   configGame();
 
   w.Repo.addResources(w.config.images)
-    .on('complete', function(){
+    .onComplete(function(){
       initGame();
       w.game.start();
     })
@@ -996,7 +959,7 @@ function onDocLoad(){
 
 w.onload = onDocLoad;
 
-},{"./Base/Base":1,"./Base/Circle":2,"./Base/Collection":3,"./Base/Entity":4,"./Base/Line":5,"./Base/Rect":6,"./Base/Sprite":7,"./Base/Text":8,"./Color":9,"./Game":10,"./GameTime":11,"./Mathf":13,"./Renderer":14,"./Repo":15,"./Settings":16,"./Utils":17,"./Vector":18,"./prefabs/Controls":20,"./reqAnimFrame":33}],20:[function(require,module,exports){
+},{"./Base/Base":1,"./Base/Circle":2,"./Base/Collection":3,"./Base/Entity":4,"./Base/Line":5,"./Base/Rect":6,"./Base/Sprite":7,"./Base/Text":8,"./Color":9,"./Game":10,"./GameTime":11,"./Mathf":13,"./Renderer":14,"./Repo":15,"./Utils":16,"./Vector":17,"./prefabs/Controls":19,"./reqAnimFrame":32}],19:[function(require,module,exports){
 
 function getCoordsEvent(e, canvas){
   var x, y
@@ -1129,7 +1092,7 @@ module.exports = Base.extend({
 
 });
 
-},{}],21:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 
 module.exports = Circle.extend({
 
@@ -1185,7 +1148,7 @@ module.exports = Circle.extend({
 
 });
 
-},{}],22:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 
 module.exports = Collection.extend({
 
@@ -1252,7 +1215,7 @@ module.exports = Collection.extend({
 
 });
 
-},{}],23:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 
 var Element = require("./Element");
 
@@ -1269,6 +1232,11 @@ module.exports = Collection.extend({
     this.keys = ["Q", "W", "E", "R"];
     this.elements = ["fire", "water", "earth", "air"];
 
+    this.sprites = {};
+    for(var i=0;i<4;i++){
+      this.sprites[this.elements[i]] = { x: i*32, y: 0, w: 32, h: 32 };
+    }
+
     this.createElements();
   },
 
@@ -1282,7 +1250,7 @@ module.exports = Collection.extend({
         pos: { x: this.pos.x, y: this.pos.y + (i * (size + gap)) },
         name: ele,
         key: this.keys[i],
-        sprite: config.elements.sprites[ele]
+        sprite: this.sprites[ele]
       }));
 
     }, this);
@@ -1293,8 +1261,7 @@ module.exports = Collection.extend({
       , current = this.current;
 
     this.entities.forEach(function(e){
-      e.current = false;
-      e.active = false;
+      e.active = e.current = false;
       if (e.name === current){
         e.current = true;
         e.active = isActive;
@@ -1306,7 +1273,7 @@ module.exports = Collection.extend({
 
 });
 
-},{"./Element":22}],24:[function(require,module,exports){
+},{"./Element":21}],23:[function(require,module,exports){
 
 
 module.exports = Circle.extend({
@@ -1510,7 +1477,7 @@ module.exports = Circle.extend({
 
 });
 
-},{}],25:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 /*jslint -W083 */
 
 var Node = require("./Node")
@@ -1699,7 +1666,7 @@ var Nodes = module.exports = Collection.extend({
 
 });
 
-},{"./Node":24,"./Paths":27}],26:[function(require,module,exports){
+},{"./Node":23,"./Paths":26}],25:[function(require,module,exports){
 
 var Path = module.exports = Line.extend({
 
@@ -1782,7 +1749,7 @@ var Path = module.exports = Line.extend({
 
 });
 
-},{}],27:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 
 var Path = require("./Path");
 
@@ -1810,7 +1777,7 @@ module.exports = Collection.extend({
 
 });
 
-},{"./Path":26}],28:[function(require,module,exports){
+},{"./Path":25}],27:[function(require,module,exports){
 
 var Spider = module.exports = Sprite.extend({
 
@@ -1850,18 +1817,17 @@ var Spider = module.exports = Sprite.extend({
     , tStayB: 10000
   },
 
-  move: [
-    { x: 0, y: 0, w: 32, h: 32 }, 
-    { x: 32, y: 0, w: 32, h: 32 }, 
-    { x: 64, y: 0, w: 32, h: 32 }, 
-    { x: 96, y: 0, w: 32, h: 32 }
-  ],
-
-  initialize: function(options){    
+  initialize: function(options){
     this.pos = Vector.round(options.pos);
     this.onDead = options.onDead;
 
     this.speed = this.calmSpeed;
+
+    this.move = [];
+    for(var i=0;i<4;i++){
+      this.move.push({ x: i*32, y: 0, w: 32, h: 32 });
+    }
+
     this.sprite = this.move[0];
   },
 
@@ -2012,7 +1978,7 @@ var Spider = module.exports = Sprite.extend({
       Renderer.drawLine(ctx, {
         from: this.pos,
         to: this.nFrom.pos,
-        size: config.paths.size,
+        size: 2,
         color: Color.toRGBA(Color.white)
       });
     }
@@ -2022,7 +1988,7 @@ var Spider = module.exports = Sprite.extend({
 
 });
 
-},{}],29:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 
 var Spider = require("./Spider");
 
@@ -2157,7 +2123,7 @@ module.exports = Collection.extend({
 
 });
 
-},{"./Spider":28}],30:[function(require,module,exports){
+},{"./Spider":27}],29:[function(require,module,exports){
 
 module.exports = Collection.extend({
 
@@ -2261,7 +2227,7 @@ module.exports = Collection.extend({
 
 });
 
-},{}],31:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 
 
 module.exports = Circle.extend({
@@ -2343,174 +2309,168 @@ module.exports = Circle.extend({
 
 });
 
-},{}],32:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 
+module.exports = Entity.extend({
 
+  initialize: function(options){
+    this.target = options.target;
+    this.size = config.vacuum.size;
 
+    this.targetLen = 20;
+    this.current = 0;
 
-var Vacuum = module.exports = function(target){
-  this.target = target;
-  this.size = config.vacuum.size;
+    this.offx = 30;
+    this.offy = 10;
 
-  // Text
-  this.txtColor = "#fff";
-  this.txtSize = 20;
-  this.txtPos = { x: 180, y: 30 };
+    this.recipePos = { x: this.offx + 165, y: this.offy + 65 };
+    this.recipeSize = { x: 80, y: 300 };
 
-  this.targetLen = 20;
-  this.current = 0;
+    this.createGraphics();
+  },
 
-  this.offx = 30;
-  this.offy = 10;
+  createGraphics: function(){
+    var cPos = { x: this.offx + 150, y: this.offy + 50 };
 
-  this.recipePos = { x: this.offx + 165, y: this.offy + 65 };
-  this.recipeSize = { x: 80, y: 300 };
-};
+    this.bgBack = new Rect({
+      pos: cPos,
+      size: { x: 110, y: 330 },
+      corner: 6,
+      fill: [158,158,158],
+      stroke: {
+        color: [71,71,71],
+        size: 2
+      }
+    });
 
-Vacuum.prototype.update = function(){
-  this.current = this.target.saved.length;
+    var c = [187,187,249];
 
-  var p = this.recipePos
-    , s = this.recipeSize
-    , centerY = p.y + (s.y/2)
-    , centerX = p.x + (s.x/2)
-    , sinTime = Time.time * 2 * Math.PI;
+    var opts = {
+      pos: this.recipePos,
+      size: this.recipeSize,
+      corner: 6,
+      fill: Color.white,
+      stroke: {
+        size: 2,
+        color: c
+      }
+    };
 
-  this.target.saved.forEach(function(spider){
+    this.cilinder = new Rect(opts);
 
-    if (!spider.inVacuum){
-      spider.inVacuum = true;
-      
-      spider.vacuum = {
-        ampY: Mathf.rnd(10, centerY/2),
-        velY: Mathf.rnd(600, 1000),
-        ampX: Mathf.rnd(5, 20),
-        velX: Mathf.rnd(2000, 6000),
-        rot: Mathf.rnd(1, 5)/10
-      };
+    opts.fill = [0,0,255,0.5];
+    this.glass = new Rect(opts);
 
-      spider.pos = { 
-        x: centerX,
-        y: centerY
-      };
-    }
-    else {
-      spider.animate();
+    this.stats = new Text({
+      pos: { x: 180, y: 30 },
+      size: 20,
+      color: Color.white
+    });
 
-      var v = spider.vacuum;
+  },
 
-      spider.pos = {
-        x: v.ampX * Math.sin(sinTime / v.velX) + centerX,
-        y: v.ampY * Math.sin(sinTime / v.velY) + centerY
-      };
+  update: function(){
+    this.current = this.target.saved.length;
 
-      spider.angle += v.rot;
-    }
+    var p = this.recipePos
+      , s = this.recipeSize
+      , centerY = p.y + (s.y/2)
+      , centerX = p.x + (s.x/2)
+      , sinTime = Time.time * 2 * Math.PI;
 
-  }, this);
-  
-};
+    this.target.saved.forEach(function(spider){
 
-Vacuum.prototype.draw = function(ctx){
-  this.drawBG(ctx);
-  this.drawContent(ctx);
-  this.drawStats(ctx);
-};
+      if (!spider.inVacuum){
+        spider.inVacuum = true;
+        
+        spider.vacuum = {
+          ampY: Mathf.rnd(10, centerY/2),
+          velY: Mathf.rnd(600, 1000),
+          ampX: Mathf.rnd(5, 20),
+          velX: Mathf.rnd(2000, 6000),
+          rot: Mathf.rnd(1, 5)/10
+        };
 
-Vacuum.prototype.drawContent = function(ctx){
-
-  var cPos = this.recipePos;
-  var recSize = this.recipeSize;
-
-  Renderer.drawRect(ctx, {
-    pos: cPos,
-    size: recSize,
-    corner: 6,
-    fill: "#ffffff",
-    strokeWidth: 2
-  });
-
-  this.drawSpiders(ctx);
-
-  Renderer.drawRect(ctx, {
-    pos: cPos,
-    size: recSize,
-    corner: 6,
-    stroke: "#bbbbf9",
-    fill: "rgba(0,0,255,0.5)",
-    strokeWidth: 2
-  });
-};
-
-Vacuum.prototype.drawSpiders = function(ctx){
-  this.target.saved.forEach(function(spider){
-    spider.draw(ctx);
-  });
-};
-
-Vacuum.prototype.drawStats = function(ctx){
-  var txtSize = this.txtSize;
-
-  Renderer.drawText(ctx, {
-    text: _.pad(this.current, 3) + " / " + _.pad(this.targetLen, 3),
-    pos: this.txtPos,
-    size: txtSize,
-    color: this.txtColor
-  });
-
-};
-
-Vacuum.prototype.drawBG = function(ctx){
-  
-  var offx = this.offx
-    , offy = this.offy
-    , tube = [ [70,460], [120,400], [160,445], [195,450, 185,380], [225,380], [230,510, 145,475] ];
-
-  function drawPath(path, fill, stroke){
-    ctx.beginPath();
-
-    var first = path[0];
-    ctx.moveTo(offx + first[0], offy + first[1]);
-
-    for (var i=1; i<path.length; i++){
-      var p = path[i];
-      if (p.length === 4){
-        ctx.quadraticCurveTo(offx + p[0], offy + p[1], offx + p[2], offy + p[3]);
+        spider.pos = { 
+          x: centerX,
+          y: centerY
+        };
       }
       else {
-        ctx.lineTo(offx + p[0], offy + p[1]);
+        spider.animate();
+
+        var v = spider.vacuum;
+
+        spider.pos = {
+          x: v.ampX * Math.sin(sinTime / v.velX) + centerX,
+          y: v.ampY * Math.sin(sinTime / v.velY) + centerY
+        };
+
+        spider.angle += v.rot;
       }
+
+    }, this);
+    
+    this.stats.text = _.pad(this.current, 3) + " / " + _.pad(this.targetLen, 3);
+  },
+
+  draw: function(ctx){
+    this.drawBG(ctx);
+    
+    this.cilinder.draw(ctx);
+    
+    this.target.saved.forEach(function(spider){
+      spider.draw(ctx);
+    });
+
+    this.glass.draw(ctx);
+    this.stats.draw(ctx);
+  },
+
+  drawBG: function(ctx){
+    
+    var offx = this.offx
+      , offy = this.offy
+      , tube = [ [70,460], [120,400], [160,445], [195,450, 185,380], [225,380], [230,510, 145,475] ];
+
+    function drawPath(path, fill, stroke){
+      ctx.beginPath();
+
+      var first = path[0];
+      ctx.moveTo(offx + first[0], offy + first[1]);
+
+      for (var i=1; i<path.length; i++){
+        var p = path[i];
+        if (p.length === 4){
+          ctx.quadraticCurveTo(offx + p[0], offy + p[1], offx + p[2], offy + p[3]);
+        }
+        else {
+          ctx.lineTo(offx + p[0], offy + p[1]);
+        }
+      }
+
+      ctx.lineTo(offx + first[0], offy + first[1]);
+
+      if (fill){
+        ctx.fillStyle = fill;
+        ctx.fill();
+      }
+
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = stroke;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+
+      ctx.closePath();
     }
 
-    ctx.lineTo(offx + first[0], offy + first[1]);
-
-    if (fill){
-      ctx.fillStyle = fill;
-      ctx.fill();
-    }
-
-    ctx.lineWidth = 3;
-    ctx.strokeStyle = stroke;
-    ctx.lineCap = 'round';
-    ctx.stroke();
-
-    ctx.closePath();
+    drawPath(tube, '#9e9e9e', '#474747');
+    this.bgBack.draw(ctx);
   }
 
-  drawPath(tube, '#9e9e9e', '#474747');
+});
 
-  var cPos = { x: offx + 150, y: offy + 50 };
-  Renderer.drawRect(ctx, {
-    pos: cPos,
-    size: { x: 110, y: 330 },
-    corner: 6,
-    fill: "#9e9e9e",
-    stroke: "#474747",
-    strokeWidth: 2
-  });
-
-};
-},{}],33:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 // http://paulirish.com/2011/requestanimationframe-for-smart-animating/
 // http://my.opera.com/emoller/blog/2011/12/20/requestanimationframe-for-smart-er-animating
 
@@ -2540,4 +2500,4 @@ Vacuum.prototype.drawBG = function(ctx){
     window.cancelAnimationFrame = function(id) { window.clearTimeout(id); };
   }
 }());
-},{}]},{},[19]);
+},{}]},{},[18]);

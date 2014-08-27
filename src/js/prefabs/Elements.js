@@ -14,6 +14,11 @@ module.exports = Collection.extend({
     this.keys = ["Q", "W", "E", "R"];
     this.elements = ["fire", "water", "earth", "air"];
 
+    this.sprites = {};
+    for(var i=0;i<4;i++){
+      this.sprites[this.elements[i]] = { x: i*32, y: 0, w: 32, h: 32 };
+    }
+
     this.createElements();
   },
 
@@ -27,7 +32,7 @@ module.exports = Collection.extend({
         pos: { x: this.pos.x, y: this.pos.y + (i * (size + gap)) },
         name: ele,
         key: this.keys[i],
-        sprite: config.elements.sprites[ele]
+        sprite: this.sprites[ele]
       }));
 
     }, this);
@@ -38,8 +43,7 @@ module.exports = Collection.extend({
       , current = this.current;
 
     this.entities.forEach(function(e){
-      e.current = false;
-      e.active = false;
+      e.active = e.current = false;
       if (e.name === current){
         e.current = true;
         e.active = isActive;

@@ -37,18 +37,17 @@ var Spider = module.exports = Sprite.extend({
     , tStayB: 10000
   },
 
-  move: [
-    { x: 0, y: 0, w: 32, h: 32 }, 
-    { x: 32, y: 0, w: 32, h: 32 }, 
-    { x: 64, y: 0, w: 32, h: 32 }, 
-    { x: 96, y: 0, w: 32, h: 32 }
-  ],
-
-  initialize: function(options){    
+  initialize: function(options){
     this.pos = Vector.round(options.pos);
     this.onDead = options.onDead;
 
     this.speed = this.calmSpeed;
+
+    this.move = [];
+    for(var i=0;i<4;i++){
+      this.move.push({ x: i*32, y: 0, w: 32, h: 32 });
+    }
+
     this.sprite = this.move[0];
   },
 
@@ -199,7 +198,7 @@ var Spider = module.exports = Sprite.extend({
       Renderer.drawLine(ctx, {
         from: this.pos,
         to: this.nFrom.pos,
-        size: config.paths.size,
+        size: 2,
         color: Color.toRGBA(Color.white)
       });
     }

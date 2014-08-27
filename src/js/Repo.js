@@ -4,36 +4,21 @@ module.exports = (function(){
     , loaded = 0
     , getCount = function(){
         return Object.keys(resources).length;
-      };
-  
-  var events = {
-      complete: function(){}
-    , report: function(){}
-    , error: function(){}
-  };
+      }
+    , complete = function(){};
 
   var imageLoaded = function() {
     var current = getCount();
     var prg = (++loaded * 100) / current;
 
-    if (loaded <= current){
-      events.report(prg);
-
-      if (prg >= 100) { 
-        events.complete();
-      }
+    if (loaded <= current && prg >= 100){
+      complete();
     }
   };
   
-  var imageFailed = function(evt, etc){
-    events.error(evt, etc);       
-  };
-
   return {
-    on: function(eventName, callback){
-      if (events[eventName]) {
-        events[eventName] = callback;
-      }
+    onComplete: function(callback){
+      complete = callback;
       return this;
     },
     
@@ -42,7 +27,6 @@ module.exports = (function(){
       for (var img in resources) {
         this[img] = new window.Image();
         this[img].onload = imageLoaded;
-        this[img].onerror = imageFailed;
         this[img].src = resources[img];
       }
       return this;
