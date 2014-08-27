@@ -3,7 +3,6 @@ module.exports = Entity.extend({
 
   pos: { x: 0, y: 0 },
   radius: 5,
-  color: Color.white,
   stroke: null,
 
   initialize: function(){},
@@ -12,13 +11,25 @@ module.exports = Entity.extend({
 
   draw: function(ctx){
 
-    Renderer.drawCircle(ctx, {
+    var opts = {
       pos: this.pos,
       radius: this.radius,
-      color: Color.toRGBA(this.color),
-      stroke: this.stroke
-    });
+      lineCap: this.lineCap || 'butt'
+    };
 
+    if (this.color){
+      opts.fill = Color.toRGBA(this.color);
+    }
+
+    if (this.stroke){
+      opts.stroke = this.stroke;
+    }
+
+    if (this.angles){
+      opts.angles = this.angles;
+    }
+
+    Renderer.drawCircle(ctx, opts);
   },
 
 });

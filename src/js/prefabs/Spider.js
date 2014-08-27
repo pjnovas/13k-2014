@@ -200,7 +200,7 @@ var Spider = module.exports = Sprite.extend({
         from: this.pos,
         to: this.nFrom.pos,
         size: config.paths.size,
-        color: Color.toRGBA(config.nodes.colors.cold)
+        color: Color.toRGBA(Color.white)
       });
     }
 

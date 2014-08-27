@@ -57,7 +57,7 @@ var Path = module.exports = Line.extend({
     if (na.burned || nb.burned) {
       this.heat = null;
       this.burned = true;
-      this.color = config.nodes.colors.burned;
+      this.color = [0,0,0,0.2];
     }
 
     this.pos = this.na.pos;

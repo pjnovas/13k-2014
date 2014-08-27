@@ -21,6 +21,13 @@ module.exports = Circle.extend({
   blowing: false,
   blowingEnd: 0,
 
+  colors: {
+      cold: [255,255,255,1]
+    , burn: [255,0,0,1]
+    , burned: [0,0,0,0.2]
+    , earth: [190,160,40,1]
+  },
+
   initialize: function(){
     this.nears = [];
   },
@@ -131,7 +138,7 @@ module.exports = Circle.extend({
 
   setBurned: function(){
     this.burned = true;
-    this.color = config.nodes.colors.burned;
+    this.fill = this.color = this.colors.burned;
     this.resetTemp();
   },
 
@@ -146,7 +153,7 @@ module.exports = Circle.extend({
     }
 
     if (this.hasEarth){
-      this.color = config.nodes.colors.earth;
+      this.fill = this.color = this.colors.earth;
       this.resetTemp();
       return;
     }
@@ -182,7 +189,7 @@ module.exports = Circle.extend({
       this.resetTemp();
     }
 
-    this.color = Color.lerp(config.nodes.colors.cold, config.nodes.colors.burn, this.temp);
+    this.fill = this.color = Color.lerp(this.colors.cold, this.colors.burn, this.temp);
 
     if (this.temp > 1){
       this.setBurned();

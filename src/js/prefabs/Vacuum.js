@@ -1,4 +1,7 @@
 
+
+
+
 var Vacuum = module.exports = function(target){
   this.target = target;
   this.size = config.vacuum.size;

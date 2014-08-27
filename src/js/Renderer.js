@@ -11,23 +11,27 @@ function fill(ctx, ps){
 function stroke(ctx, ps){
   if (ps.hasOwnProperty("stroke")){
     ctx.lineWidth = ps.strokeWidth || ps.stroke.size || 1;
-    ctx.strokeStyle = ps.stroke.color || ps.stroke || "#000";
+
+    var strokeColor = ps.stroke.color || ps.stroke || "#000";
+    ctx.strokeStyle = Array.isArray(strokeColor) ? Color.toRGBA(strokeColor) : strokeColor;
     ctx.stroke();
   }
 }
 
 Renderer.drawCircle = function(ctx, ps){
+  var start = (ps.angles && ps.angles.start) || 0,
+    end = (ps.angles && ps.angles.end) || 2 * Math.PI;
+
   ctx.beginPath();
-  ctx.arc(ps.pos.x, ps.pos.y, ps.radius, 0, 2 * Math.PI, false);
 
-  ctx.fillStyle = ps.color;
-  ctx.fill();
-
-  if (ps.stroke){
-    ctx.lineWidth = ps.stroke.size || 1;
-    ctx.strokeStyle = ps.stroke.color || "#000";
-    ctx.stroke();
+  if (ps.lineCap){
+    ctx.lineCap = ps.lineCap;
   }
+
+  ctx.arc(ps.pos.x, ps.pos.y, ps.radius, start, end, false);
+
+  fill(ctx, ps);
+  stroke(ctx, ps);
 };
 
 Renderer.drawLine = function(ctx, ps){

@@ -1,11 +1,19 @@
 
-module.exports = Entity.extend({
+module.exports = Collection.extend({
+
+  pos: { x: 1, y: 0 },
 
   marginW: 40,
   marginH: 40,
 
+  colors: {
+    kills: [255,0,0,1],
+    alives: [0,255,0,1]
+  },
+
   initialize: function(){
-    this.pos = Vector.prod(config.stats.pos, config.size);
+    this.entities = [];
+    this.pos = Vector.prod(this.pos, config.size);
 
     this.stats = {
       saved: 0,
@@ -38,6 +46,7 @@ module.exports = Entity.extend({
     };
 
     this.iconAlives = new Sprite(spider);
+    this.entities.push(this.iconAlives);
 
     spider.pos = {
       x: this.pos.x - mW,
@@ -45,20 +54,23 @@ module.exports = Entity.extend({
     };
 
     this.iconKills = new Sprite(spider);
+    this.entities.push(this.iconKills);
     
     this.lineAKills = new Line({
       pos: Vector.origin(spider.pos, spSize),
       to: Vector.add(hSpSize, spider.pos),
       size: 3,
-      color: config.stats.colors.kills
+      color: this.colors.kills
     });
+    this.entities.push(this.lineAKills);
 
     this.lineBKills = new Line({
       pos: { x: spider.pos.x + hSpSize.x, y: spider.pos.y - hSpSize.y },
       to: { x: spider.pos.x - hSpSize.x, y: spider.pos.y + hSpSize.y },
       size: 3,
-      color: config.stats.colors.kills
+      color: this.colors.kills
     });
+    this.entities.push(this.lineBKills);
   },
 
   createText: function(){
@@ -67,14 +79,16 @@ module.exports = Entity.extend({
     this.textKills = new Text({
       pos: { x: this.iconKills.pos.x - txtSize*3, y: this.iconKills.pos.y },
       size: txtSize,
-      color: config.stats.colors.kills
+      color: this.colors.kills
     });
+    this.entities.push(this.textKills);
 
     this.textAlives = new Text({
       pos: { x: this.iconAlives.pos.x - txtSize*3, y: this.iconAlives.pos.y },
       size: txtSize,
-      color: config.stats.colors.alives
+      color: this.colors.alives
     });
+    this.entities.push(this.textAlives);
 
   },
 
@@ -84,16 +98,5 @@ module.exports = Entity.extend({
     this.textKills.text = _.pad(this.stats.killed, 3);
     this.textAlives.text = _.pad(this.stats.alives, 3);
   },
-
-  draw: function(ctx){
-    this.iconAlives.draw(ctx);
-
-    this.iconKills.draw(ctx);
-    this.lineAKills.draw(ctx);
-    this.lineBKills.draw(ctx);
-
-    this.textAlives.draw(ctx);
-    this.textKills.draw(ctx);
-  }
 
 });

@@ -75,7 +75,6 @@ module.exports = Entity.extend({
 
   pos: { x: 0, y: 0 },
   radius: 5,
-  color: Color.white,
   stroke: null,
 
   initialize: function(){},
@@ -84,13 +83,25 @@ module.exports = Entity.extend({
 
   draw: function(ctx){
 
-    Renderer.drawCircle(ctx, {
+    var opts = {
       pos: this.pos,
       radius: this.radius,
-      color: Color.toRGBA(this.color),
-      stroke: this.stroke
-    });
+      lineCap: this.lineCap || 'butt'
+    };
 
+    if (this.color){
+      opts.fill = Color.toRGBA(this.color);
+    }
+
+    if (this.stroke){
+      opts.stroke = this.stroke;
+    }
+
+    if (this.angles){
+      opts.angles = this.angles;
+    }
+
+    Renderer.drawCircle(ctx, opts);
   },
 
 });
@@ -539,23 +550,27 @@ function fill(ctx, ps){
 function stroke(ctx, ps){
   if (ps.hasOwnProperty("stroke")){
     ctx.lineWidth = ps.strokeWidth || ps.stroke.size || 1;
-    ctx.strokeStyle = ps.stroke.color || ps.stroke || "#000";
+
+    var strokeColor = ps.stroke.color || ps.stroke || "#000";
+    ctx.strokeStyle = Array.isArray(strokeColor) ? Color.toRGBA(strokeColor) : strokeColor;
     ctx.stroke();
   }
 }
 
 Renderer.drawCircle = function(ctx, ps){
+  var start = (ps.angles && ps.angles.start) || 0,
+    end = (ps.angles && ps.angles.end) || 2 * Math.PI;
+
   ctx.beginPath();
-  ctx.arc(ps.pos.x, ps.pos.y, ps.radius, 0, 2 * Math.PI, false);
 
-  ctx.fillStyle = ps.color;
-  ctx.fill();
-
-  if (ps.stroke){
-    ctx.lineWidth = ps.stroke.size || 1;
-    ctx.strokeStyle = ps.stroke.color || "#000";
-    ctx.stroke();
+  if (ps.lineCap){
+    ctx.lineCap = ps.lineCap;
   }
+
+  ctx.arc(ps.pos.x, ps.pos.y, ps.radius, start, end, false);
+
+  fill(ctx, ps);
+  stroke(ctx, ps);
 };
 
 Renderer.drawLine = function(ctx, ps){
@@ -723,52 +738,8 @@ module.exports = {
     margin: { x: 150, y: 20 }
   },
 
-  nodes: {
-      size: 3
-    , colors: {
-        cold: [255,255,255,1]
-      , burn: [255,0,0,1]
-      , burned: [0,0,0,0.2]
-      , earth: [190,160,40,1]
-    }
-  },
-
   paths: {
     size: 2
-  },
-
-  spiders: {
-      size: 32
-    , quantity: 50
-    , color: [115,255,0]
-    , speed: 0.05
-    , speedAlert: 0.1
-    , behaviour: {
-        alertTemp: 0
-      , tStayA: 3000
-      , tStayB: 10000
-    }
-    , sprites: {
-        move: [
-          { x: 0, y: 0, w: 32, h: 32 }, 
-          { x: 32, y: 0, w: 32, h: 32 }, 
-          { x: 64, y: 0, w: 32, h: 32 }, 
-          { x: 96, y: 0, w: 32, h: 32 }
-        ]
-    }
-  },
-
-  target: {
-      size: 180
-    , suckForce: 3
-  },
-
-  stats: {
-    pos: { x: 1, y: 0 },
-    colors: {
-      kills: [255,0,0,1],
-      alives: [0,255,0,1]
-    }
   },
 
   vacuum: {
@@ -1216,11 +1187,13 @@ module.exports = Circle.extend({
 
 },{}],22:[function(require,module,exports){
 
-module.exports = Entity.extend({
+module.exports = Collection.extend({
 
   size: { x: 96, y: 96 },
 
   initialize: function(options){
+    this.entities = [];
+
     this.name = options.name;
     this.key = options.key;
     this.color = [255,255,255,1];
@@ -1241,6 +1214,7 @@ module.exports = Entity.extend({
       stroke: { size: 4, color: [30,30,30,1] },
       corner: 8
     });
+    this.entities.push(this.bg);
 
     this.icon = new Sprite({
       resource: "elements",
@@ -1249,6 +1223,7 @@ module.exports = Entity.extend({
       angle: 0,
       sprite: this.sprite
     });
+    this.entities.push(this.icon);
 
     var txtPos = { x: this.pos.x, y: this.pos.y + this.size.y * 1.1 };
     var txtSize = 20;
@@ -1259,6 +1234,7 @@ module.exports = Entity.extend({
       fill: [0,0,0,1],
       corner: 4
     });
+    this.entities.push(this.ctrlKey);
 
     this.txtKey = new Text({
       text: this.key,
@@ -1266,18 +1242,12 @@ module.exports = Entity.extend({
       size: txtSize,
       color: [255,255,255,1]
     });
+    this.entities.push(this.txtKey);
   },
 
   update: function(){
     this.bg.fill = this.active ? [255,255,255,1] : [255,255,255, 0.1];
     this.bg.stroke.color = this.current ? [255,255,255,1] : [0,0,0,1];
-  },
-
-  draw: function(ctx){
-    this.bg.draw(ctx);
-    this.icon.draw(ctx);
-    this.ctrlKey.draw(ctx);
-    this.txtKey.draw(ctx);
   },
 
 });
@@ -1359,6 +1329,13 @@ module.exports = Circle.extend({
   insideTarget: false,
   blowing: false,
   blowingEnd: 0,
+
+  colors: {
+      cold: [255,255,255,1]
+    , burn: [255,0,0,1]
+    , burned: [0,0,0,0.2]
+    , earth: [190,160,40,1]
+  },
 
   initialize: function(){
     this.nears = [];
@@ -1470,7 +1447,7 @@ module.exports = Circle.extend({
 
   setBurned: function(){
     this.burned = true;
-    this.color = config.nodes.colors.burned;
+    this.fill = this.color = this.colors.burned;
     this.resetTemp();
   },
 
@@ -1485,7 +1462,7 @@ module.exports = Circle.extend({
     }
 
     if (this.hasEarth){
-      this.color = config.nodes.colors.earth;
+      this.fill = this.color = this.colors.earth;
       this.resetTemp();
       return;
     }
@@ -1521,7 +1498,7 @@ module.exports = Circle.extend({
       this.resetTemp();
     }
 
-    this.color = Color.lerp(config.nodes.colors.cold, config.nodes.colors.burn, this.temp);
+    this.fill = this.color = Color.lerp(this.colors.cold, this.colors.burn, this.temp);
 
     if (this.temp > 1){
       this.setBurned();
@@ -1782,7 +1759,7 @@ var Path = module.exports = Line.extend({
     if (na.burned || nb.burned) {
       this.heat = null;
       this.burned = true;
-      this.color = config.nodes.colors.burned;
+      this.color = [0,0,0,0.2];
     }
 
     this.pos = this.na.pos;
@@ -2036,7 +2013,7 @@ var Spider = module.exports = Sprite.extend({
         from: this.pos,
         to: this.nFrom.pos,
         size: config.paths.size,
-        color: Color.toRGBA(config.nodes.colors.cold)
+        color: Color.toRGBA(Color.white)
       });
     }
 
@@ -2182,13 +2159,21 @@ module.exports = Collection.extend({
 
 },{"./Spider":28}],30:[function(require,module,exports){
 
-module.exports = Entity.extend({
+module.exports = Collection.extend({
+
+  pos: { x: 1, y: 0 },
 
   marginW: 40,
   marginH: 40,
 
+  colors: {
+    kills: [255,0,0,1],
+    alives: [0,255,0,1]
+  },
+
   initialize: function(){
-    this.pos = Vector.prod(config.stats.pos, config.size);
+    this.entities = [];
+    this.pos = Vector.prod(this.pos, config.size);
 
     this.stats = {
       saved: 0,
@@ -2221,6 +2206,7 @@ module.exports = Entity.extend({
     };
 
     this.iconAlives = new Sprite(spider);
+    this.entities.push(this.iconAlives);
 
     spider.pos = {
       x: this.pos.x - mW,
@@ -2228,20 +2214,23 @@ module.exports = Entity.extend({
     };
 
     this.iconKills = new Sprite(spider);
+    this.entities.push(this.iconKills);
     
     this.lineAKills = new Line({
       pos: Vector.origin(spider.pos, spSize),
       to: Vector.add(hSpSize, spider.pos),
       size: 3,
-      color: config.stats.colors.kills
+      color: this.colors.kills
     });
+    this.entities.push(this.lineAKills);
 
     this.lineBKills = new Line({
       pos: { x: spider.pos.x + hSpSize.x, y: spider.pos.y - hSpSize.y },
       to: { x: spider.pos.x - hSpSize.x, y: spider.pos.y + hSpSize.y },
       size: 3,
-      color: config.stats.colors.kills
+      color: this.colors.kills
     });
+    this.entities.push(this.lineBKills);
   },
 
   createText: function(){
@@ -2250,14 +2239,16 @@ module.exports = Entity.extend({
     this.textKills = new Text({
       pos: { x: this.iconKills.pos.x - txtSize*3, y: this.iconKills.pos.y },
       size: txtSize,
-      color: config.stats.colors.kills
+      color: this.colors.kills
     });
+    this.entities.push(this.textKills);
 
     this.textAlives = new Text({
       pos: { x: this.iconAlives.pos.x - txtSize*3, y: this.iconAlives.pos.y },
       size: txtSize,
-      color: config.stats.colors.alives
+      color: this.colors.alives
     });
+    this.entities.push(this.textAlives);
 
   },
 
@@ -2268,99 +2259,94 @@ module.exports = Entity.extend({
     this.textAlives.text = _.pad(this.stats.alives, 3);
   },
 
-  draw: function(ctx){
-    this.iconAlives.draw(ctx);
-
-    this.iconKills.draw(ctx);
-    this.lineAKills.draw(ctx);
-    this.lineBKills.draw(ctx);
-
-    this.textAlives.draw(ctx);
-    this.textKills.draw(ctx);
-  }
-
 });
 
 },{}],31:[function(require,module,exports){
 
-var Target = module.exports = function(){
 
-  this.size = config.size.y/6; // config.target.size;
-  this.suckForce = config.target.suckForce;
+module.exports = Circle.extend({
 
-  var marginW = config.world.margin.x;
-  var marginH = config.world.margin.y;
-
-  this.pos = Vector.prod(Vector.one, config.size);
-  this.pos.x -= marginW + 10;
-  this.pos.y -= marginH + 20;
+  stroke: {
+    color: [80,255,85,0.1]
+  },
+  angles: {
+    start: 0.97 * Math.PI,
+    end: 1.52 * Math.PI
+  },
+  lineCap: 'butt',
   
-  this.saved = [];
-  this.saving = [];
-};
+  suckForce: 3,
 
-Target.prototype.setNodesInside = function(nodes){
-  nodes.forEach(function(node){
-    if (Vector.pointInCircle(node.pos, this.pos, this.size)){
-      if (node.burned){
-        node.burned = false;
-        node.revive();
+  initialize: function(){
+    var cfg = config
+      , cfgm = cfg.world.margin;
+
+    this.size = cfg.size.y/6;
+    this.radius = this.size/2;
+    this.stroke.size = this.size;
+
+    this.pos = Vector.prod(Vector.one, cfg.size);
+    this.pos.x -= cfgm.x + 10;
+    this.pos.y -= cfgm.y + 20;
+    
+    this.saved = [];
+    this.saving = [];
+  },
+
+  setNodesInside: function(nodes){
+    nodes.forEach(function(node){
+      if (Vector.pointInCircle(node.pos, this.pos, this.size)){
+        if (node.burned){
+          node.burned = false;
+          node.revive();
+        }
+        node.insideTarget = true;
       }
-      node.insideTarget = true;
-    }
-  }, this);
-};
+    }, this);
+  },
 
-Target.prototype.update = function(spiders){
+  update: function(spiders){
 
-  spiders.forEach(function(spider){
-    if (!spider.dead && !spider.exited){
+    spiders.forEach(function(spider){
+      if (!spider.dead && !spider.exited){
 
-      if (Vector.pointInCircle(spider.pos, this.pos, this.size)){
-        spider.building = false;
-        spider.exited = true;
-        spider.vel = { x: 0, y: 0 };
-        this.saving.push(spider);
+        if (Vector.pointInCircle(spider.pos, this.pos, this.size)){
+          spider.building = false;
+          spider.exited = true;
+          spider.vel = { x: 0, y: 0 };
+          this.saving.push(spider);
+        }
       }
-    }
-  }, this);
+    }, this);
 
-  var dt = Time.deltaTime
-    , force = dt * this.suckForce
-    , p = this.pos;
+    var dt = Time.deltaTime
+      , force = dt * this.suckForce
+      , p = this.pos;
 
-  this.saving.forEach(function(spider){
+    this.saving.forEach(function(spider){
 
-    if (!spider.catched){
-      var sp = spider.pos;
-      var imp = Vector.normal(sp, p);
-      spider.vel = Vector.add(spider.vel, Vector.multiply(imp, force)); 
-      spider.pos = Vector.add(sp, spider.vel);
-      
-      if (Vector.pointInCircle(spider.pos, p, 5)){
-        spider.catched = true;
-        this.saved.push(spider);
+      if (!spider.catched){
+        var sp = spider.pos;
+        var imp = Vector.normal(sp, p);
+        spider.vel = Vector.add(spider.vel, Vector.multiply(imp, force)); 
+        spider.pos = Vector.add(sp, spider.vel);
+        
+        if (Vector.pointInCircle(spider.pos, p, 5)){
+          spider.catched = true;
+          this.saved.push(spider);
+        }
       }
-    }
 
-  }, this); 
+    }, this); 
 
-};
+  }
 
-Target.prototype.draw = function(ctx){
- 
-  var startAngle = 0.97 * Math.PI;
-  var endAngle = 1.52 * Math.PI;
+});
 
-  ctx.beginPath();
-  ctx.lineCap = 'butt';
-  ctx.arc(this.pos.x, this.pos.y, this.size/2, startAngle, endAngle, false);
-  ctx.lineWidth = this.size;
-  ctx.strokeStyle = "rgba(80,255,85,0.1)";
-  ctx.stroke();
-
-};
 },{}],32:[function(require,module,exports){
+
+
+
 
 var Vacuum = module.exports = function(target){
   this.target = target;
