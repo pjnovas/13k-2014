@@ -24,7 +24,6 @@ w.Sprite = require("./Base/Sprite");
 
 var Game = require("./Game");
 var GameTime = require("./GameTime");
-var Utils = require("./Utils");
 var Controls = require("./prefabs/Controls");
 //var Particles = require("./Particles");
 
@@ -65,7 +64,13 @@ function initGame(){
   var cworld = doc.getElementById("game-world");
   var cvacuum = doc.getElementById("vacuum");
 
-  w._ = new Utils();  
+  w._ = {
+    pad: function(num, size) {
+      var s = "0000000" + num;
+      return s.substr(s.length-size);
+    }
+  };
+
   w.Time = new GameTime();
 
   //w.Particles = new Particles();

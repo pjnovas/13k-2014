@@ -488,7 +488,7 @@ Manager.prototype.draw = function(viewCtx, worldCtx, vacuumCtx){
 
   //Particles.draw(viewCtx);
 };
-},{"./prefabs/Cursor":20,"./prefabs/Elements":22,"./prefabs/Nodes":24,"./prefabs/Paths":26,"./prefabs/Spiders":28,"./prefabs/Stats":29,"./prefabs/Target":30,"./prefabs/Vacuum":31}],13:[function(require,module,exports){
+},{"./prefabs/Cursor":19,"./prefabs/Elements":21,"./prefabs/Nodes":23,"./prefabs/Paths":25,"./prefabs/Spiders":27,"./prefabs/Stats":28,"./prefabs/Target":29,"./prefabs/Vacuum":30}],13:[function(require,module,exports){
 
 var Mathf = {};
 
@@ -718,140 +718,109 @@ module.exports = (function(){
 })();
 },{}],16:[function(require,module,exports){
 
-var Utils = module.exports = function(){
-  this.lastIds = {
-    nodes: 0,
-    spiders: 0,
-    emitters: 0
-  };
-};
+var Vector = module.exports = Base.extend({ }, {
 
-Utils.prototype.guid = function(type){
-  return ++this.lastIds[type];
-};
+  zero: { x: 0, y: 0 },
+  one: { x: 1, y: 1 },
 
-Utils.prototype.pad = function(num, size) {
-  var s = "0000000" + num;
-  return s.substr(s.length-size);
-};
+  clone: function(v){
+    return { x: v.x, y: v.y };
+  },
+
+  prod: function(a, b){
+    return { x: a.x * b.x, y: a.y * b.y };
+  },
+
+  multiply: function(vector, delta){
+    return { x: vector.x * delta, y: vector.y * delta };
+  },
+
+  divide: function(vector, delta){
+    return { x: vector.x / delta, y: vector.y / delta };
+  },
+
+  add: function(a, b){
+    return { x: a.x + b.x, y: a.y + b.y };
+  },
+
+  dif: function(from, to){
+    return { x: to.x - from.x, y: to.y - from.y };
+  },
+
+  // get "which" part of a point between 2 (i.e. 4th part)
+  part: function(from, to, which){
+    return Vector.lerp(from, to, which/10);
+  },
+
+  angleTo: function(from, to){
+    var p = Vector.dif(from, to);
+    return Math.atan2(p.y, p.x);
+  },
+
+  // get mid point between 2
+  mid: function(from, to){
+    return Vector.divide(Vector.add(from, to), 2);
+  },
+
+  eql: function(a, b){
+    return (a.x === b.x && a.y === b.y);
+  },
+
+  normal: function(from, to){
+    var d = Vector.dif(from, to);
+    var l = Vector.magnitude(from, to);
+
+    return {
+        x: d.x / l || 0
+      , y: d.y / l || 0
+    };
+  },
+
+  origin: function(pos, size){
+    return {
+        x: pos.x - size.x/2,
+        y: pos.y - size.y/2,
+    };
+  },
+
+  center: function(pos, size){
+    return {
+        x: pos.x + size.x/2,
+        y: pos.y + size.y/2,
+    };
+  },
+
+  magnitude: function(a, b){
+    var dif = Vector.dif(a, b);
+    return Math.sqrt(dif.x*dif.x + dif.y*dif.y);
+  },
+
+  pointInCircle: function(p, pos, radius){
+    return Vector.magnitude(p, pos) < radius;
+  },
+  
+  lerp: function(from, to, t){
+
+    return {
+      x: from.x + (to.x - from.x) * t,
+      y: from.y + (to.y - from.y) * t
+    };
+
+  },
+
+  round: function(v){
+    v.x = Math.round(v.x);
+    v.y = Math.round(v.y);
+    return v;
+  },
+
+  isOut: function(p, min, max){
+    return (p.x < min.x || p.x > max.x || p.y < min.y || p.y > max.y);
+  }
+
+});
 
 },{}],17:[function(require,module,exports){
-
-var Vector = {};
-
-Vector.zero = { x: 0, y: 0 };
-Vector.one = { x: 1, y: 1 };
-
-Vector.clone = function(v){
-  return { x: v.x, y: v.y };
-};
-
-Vector.prod = function(a, b){
-  return { x: a.x * b.x, y: a.y * b.y };
-};
-
-Vector.multiply = function(vector, delta){
-  return { x: vector.x * delta, y: vector.y * delta };
-};
-
-Vector.divide = function(vector, delta){
-  return { x: vector.x / delta, y: vector.y / delta };
-};
-
-Vector.add = function(a, b){
-  return { x: a.x + b.x, y: a.y + b.y };
-};
-
-Vector.dif = function(from, to){
-  return { x: to.x - from.x, y: to.y - from.y };
-};
-
-// get "which" part of a point between 2 (i.e. 4th part)
-Vector.part = function(from, to, which){
-  return Vector.lerp(from, to, which/10);
-};
-
-Vector.angleTo = function(from, to){
-  var p = Vector.dif(from, to);
-  return Math.atan2(p.y, p.x);
-};
-
-// get mid point between 2
-Vector.mid = function(from, to){
-  return Vector.divide(Vector.add(from, to), 2);
-};
-
-Vector.eql = function(a, b){
-  return (a.x === b.x && a.y === b.y);
-};
-
-Vector.normal = function(from, to){
-  var d = Vector.dif(from, to);
-  var l = Vector.length(from, to);
-
-  return {
-      x: d.x / l || 0
-    , y: d.y / l || 0
-  };
-};
-
-Vector.origin = function(pos, size){
-  return {
-      x: pos.x - size.x/2,
-      y: pos.y - size.y/2,
-  };
-};
-
-Vector.center = function(pos, size){
-  return {
-      x: pos.x + size.x/2,
-      y: pos.y + size.y/2,
-  };
-};
-
-Vector.length = function(a, b){
-  var dif = Vector.dif(a, b);
-  return Math.sqrt(dif.x*dif.x + dif.y*dif.y);
-};
-
-Vector.pointInCircle = function(p, pos, radius){
-  return Vector.length(p, pos) < radius;
-};
-/*
-Vector.circleCollide = function(c1, c2){
-  var dx = c1.x - c2.x
-    , dy = c1.y - c2.y
-    , dist = c1.r + c2.r;
- 
-  return (dx * dx + dy * dy <= dist * dist);
-};
-*/
-Vector.lerp = function(from, to, t){
-
-  return {
-    x: from.x + (to.x - from.x) * t,
-    y: from.y + (to.y - from.y) * t
-  };
-
-};
-
-Vector.round = function(v){
-  v.x = Math.round(v.x);
-  v.y = Math.round(v.y);
-  return v;
-};
-
-Vector.isOut = function(p, min, max){
-  return (p.x < min.x || p.x > max.x || p.y < min.y || p.y > max.y);
-};
-
-Vector.debug = function(vec){
-  console.log(vec.x + " : " + vec.y);
-};
-
-module.exports = Vector;
-
-},{}],18:[function(require,module,exports){
 var w = window;
 var doc = w.document;
 
@@ -878,7 +847,6 @@ w.Sprite = require("./Base/Sprite");
 
 var Game = require("./Game");
 var GameTime = require("./GameTime");
-var Utils = require("./Utils");
 var Controls = require("./prefabs/Controls");
 //var Particles = require("./Particles");
 
@@ -919,7 +887,13 @@ function initGame(){
   var cworld = doc.getElementById("game-world");
   var cvacuum = doc.getElementById("vacuum");
 
-  w._ = new Utils();  
+  w._ = {
+    pad: function(num, size) {
+      var s = "0000000" + num;
+      return s.substr(s.length-size);
+    }
+  };
+
   w.Time = new GameTime();
 
   //w.Particles = new Particles();
@@ -959,7 +933,7 @@ function onDocLoad(){
 
 w.onload = onDocLoad;
 
-},{"./Base/Base":1,"./Base/Circle":2,"./Base/Collection":3,"./Base/Entity":4,"./Base/Line":5,"./Base/Rect":6,"./Base/Sprite":7,"./Base/Text":8,"./Color":9,"./Game":10,"./GameTime":11,"./Mathf":13,"./Renderer":14,"./Repo":15,"./Utils":16,"./Vector":17,"./prefabs/Controls":19,"./reqAnimFrame":32}],19:[function(require,module,exports){
+},{"./Base/Base":1,"./Base/Circle":2,"./Base/Collection":3,"./Base/Entity":4,"./Base/Line":5,"./Base/Rect":6,"./Base/Sprite":7,"./Base/Text":8,"./Color":9,"./Game":10,"./GameTime":11,"./Mathf":13,"./Renderer":14,"./Repo":15,"./Vector":16,"./prefabs/Controls":18,"./reqAnimFrame":31}],18:[function(require,module,exports){
 
 function getCoordsEvent(e, canvas){
   var x, y
@@ -1092,7 +1066,7 @@ module.exports = Base.extend({
 
 });
 
-},{}],20:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 
 module.exports = Circle.extend({
 
@@ -1148,7 +1122,7 @@ module.exports = Circle.extend({
 
 });
 
-},{}],21:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 
 module.exports = Collection.extend({
 
@@ -1215,7 +1189,7 @@ module.exports = Collection.extend({
 
 });
 
-},{}],22:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 
 var Element = require("./Element");
 
@@ -1273,7 +1247,7 @@ module.exports = Collection.extend({
 
 });
 
-},{"./Element":21}],23:[function(require,module,exports){
+},{"./Element":20}],22:[function(require,module,exports){
 
 
 module.exports = Circle.extend({
@@ -1477,7 +1451,7 @@ module.exports = Circle.extend({
 
 });
 
-},{}],24:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 /*jslint -W083 */
 
 var Node = require("./Node")
@@ -1666,7 +1640,7 @@ var Nodes = module.exports = Collection.extend({
 
 });
 
-},{"./Node":23,"./Paths":26}],25:[function(require,module,exports){
+},{"./Node":22,"./Paths":25}],24:[function(require,module,exports){
 
 var Path = module.exports = Line.extend({
 
@@ -1749,7 +1723,7 @@ var Path = module.exports = Line.extend({
 
 });
 
-},{}],26:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 
 var Path = require("./Path");
 
@@ -1777,7 +1751,7 @@ module.exports = Collection.extend({
 
 });
 
-},{"./Path":25}],27:[function(require,module,exports){
+},{"./Path":24}],26:[function(require,module,exports){
 
 var Spider = module.exports = Sprite.extend({
 
@@ -1836,7 +1810,7 @@ var Spider = module.exports = Sprite.extend({
     this.nTo = nTo;
 
     this.t_startMove = Time.time;
-    this.journeyLength = Vector.length(nFrom.pos, nTo.pos);
+    this.journeyLength = Vector.magnitude(nFrom.pos, nTo.pos);
     this.traveling = true;
 
     this.angle = Vector.angleTo(this.pos, this.nTo.pos);
@@ -1988,7 +1962,7 @@ var Spider = module.exports = Sprite.extend({
 
 });
 
-},{}],28:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 
 var Spider = require("./Spider");
 
@@ -2123,7 +2097,7 @@ module.exports = Collection.extend({
 
 });
 
-},{"./Spider":27}],29:[function(require,module,exports){
+},{"./Spider":26}],28:[function(require,module,exports){
 
 module.exports = Collection.extend({
 
@@ -2227,7 +2201,7 @@ module.exports = Collection.extend({
 
 });
 
-},{}],30:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 
 
 module.exports = Circle.extend({
@@ -2309,7 +2283,7 @@ module.exports = Circle.extend({
 
 });
 
-},{}],31:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 
 module.exports = Entity.extend({
 
@@ -2470,7 +2444,7 @@ module.exports = Entity.extend({
 
 });
 
-},{}],32:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 // http://paulirish.com/2011/requestanimationframe-for-smart-animating/
 // http://my.opera.com/emoller/blog/2011/12/20/requestanimationframe-for-smart-er-animating
 
@@ -2500,4 +2474,4 @@ module.exports = Entity.extend({
     window.cancelAnimationFrame = function(id) { window.clearTimeout(id); };
   }
 }());
-},{}]},{},[18]);
+},{}]},{},[17]);

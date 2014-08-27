@@ -56,7 +56,7 @@ var Spider = module.exports = Sprite.extend({
     this.nTo = nTo;
 
     this.t_startMove = Time.time;
-    this.journeyLength = Vector.length(nFrom.pos, nTo.pos);
+    this.journeyLength = Vector.magnitude(nFrom.pos, nTo.pos);
     this.traveling = true;
 
     this.angle = Vector.angleTo(this.pos, this.nTo.pos);
