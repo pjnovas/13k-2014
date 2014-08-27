@@ -1,78 +1,52 @@
 
-var Elements = module.exports = function(){
-  this.size = 96;
-  this.pos = { x: 20, y: 50};
+var Element = require("./Element");
 
-  this.spSize = Vector.multiply(Vector.one, this.size);
+module.exports = Collection.extend({
 
-  this.current = null;
-  this.active = false;
-  this.selected = {};
+  pos: { x: 20, y: 50},
 
-  this.keys = {
-    fire: "Q",
-    water: "W",
-    earth: "E",
-    air: "R"
-  };
-};
+  initialize: function(){
+    this.entities = [];
 
-Elements.prototype.update = function(){
-  this.selected.air = window.blowing;
-  
-  this.selected.fire = false;
-  this.selected.water = false;
-  this.selected.earth = false;
+    this.current = "fire";
+    this.active = false;
 
-  if (this.current){
-    this.selected[this.current] = true;
-  }
-};
+    this.keys = ["Q", "W", "E", "R"];
+    this.elements = ["fire", "water", "earth", "air"];
 
-Elements.prototype.draw = function(ctx){
-  var elementsSP = config.elements.sprites
-    , gap = 50
-    , i = 0;
+    this.createElements();
+  },
 
-  for (var ele in elementsSP){      
-    var pos = { x: this.pos.x, y: this.pos.y + (i * (this.size + gap)) };
+  createElements: function(){
+    var gap = 50
+      , size = 96;
 
-    Renderer.drawRect(ctx, {
-      pos: pos,
-      size: this.spSize,
-      corner: 8,
-      fill: (this.selected[ele] ? "white" : "transparent"),
-      stroke: (this.active && this.current === ele ? "red" : "gray"),
-      strokeWidth: 5
+    this.elements.forEach(function(ele, i){
+
+      this.entities.push(new Element({
+        pos: { x: this.pos.x, y: this.pos.y + (i * (size + gap)) },
+        name: ele,
+        key: this.keys[i],
+        sprite: config.elements.sprites[ele]
+      }));
+
+    }, this);
+  },
+
+  update: function(){
+    var isActive = this.active
+      , current = this.current;
+
+    this.entities.forEach(function(e){
+      e.current = false;
+      e.active = false;
+      if (e.name === current){
+        e.current = true;
+        e.active = isActive;
+      }
+      
+      e.update();
     });
+  },
 
-    Renderer.drawSprite(ctx, {
-      resource: "elements",
-      pos: pos,
-      size: this.spSize,
-      angle: 0,
-      sp: elementsSP[ele]
-    });
-
-    var txtPos = { x: pos.x, y: pos.y + this.spSize.y * 1.1 };
-    var txtSize = 20;
-
-    Renderer.drawRect(ctx, {
-      pos: { x: txtPos.x - txtSize/2, y: txtPos.y - txtSize},
-      size: Vector.multiply(Vector.one, txtSize*2),
-      corner: 4,
-      fill: "gray",
-      strokeWidth: 2
-    });
-
-    Renderer.drawText(ctx, {
-      text: this.keys[ele],
-      pos: txtPos,
-      size: txtSize,
-      color: "#fff"
-    });
-
-    i++;
-  }
-
-};
+});

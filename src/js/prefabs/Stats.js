@@ -1,100 +1,99 @@
 
-var Stats = module.exports = function(){
-  
-  this.size = 40;
+module.exports = Entity.extend({
 
-  var marginW = 15;
-  var marginH = 25;
+  marginW: 40,
+  marginH: 40,
 
-  this.pos = Vector.prod(config.stats.pos, config.size);
+  initialize: function(){
+    this.pos = Vector.prod(config.stats.pos, config.size);
 
-  this.kPos = Vector.clone(this.pos);
-  this.kPos.x -= marginW + this.size/2;
-  this.kPos.y += marginH + this.size;
+    this.stats = {
+      saved: 0,
+      killed: 0,
+      alives: 0,
+      total: 0
+    };
 
-  this.aPos = Vector.clone(this.pos);
-  this.aPos.x -= marginW + this.size/2;
-  this.aPos.y += marginH*3 + this.size;
-  
-  this.kcolor = Color.toRGBA(config.stats.colors.kills);
-  this.acolor = Color.toRGBA(config.stats.colors.alives);
+    this.createIcons();
+    this.createText();
+  },
 
-  this.stats = {
-    saved: 0,
-    killed: 0,
-    alives: 0,
-    total: 0
-  };
+  createIcons: function(){
+    var size = 40
+      , mW = this.marginW
+      , mH = this.marginH
+      , spSize = { x: size, y: size }
+      , hSpSize = { x: size/2, y: size/2 };
 
-  this.spSize = Vector.multiply(Vector.one, this.size);
-  this.angle = Math.PI / 2;
+    var spider = {
+      resource: "spider",
+      sprite: { x: 0, y: 0, w: 32, h: 32 },
+      size: spSize,
+      angle: Math.PI / 2
+    };
 
-  this.oAPos = Vector.origin(this.aPos, this.spSize);
-  this.oKPos = Vector.origin(this.kPos, this.spSize);
-  this.txtSize = 30;
-};
+    spider.pos = {
+      x: this.pos.x - mW,
+      y: this.pos.y + mH + size*1.5
+    };
 
-Stats.prototype.update = function(stats){
-  this.stats = stats;
-};
+    this.iconAlives = new Sprite(spider);
 
-Stats.prototype.draw = function(ctx){
-  this.drawIcons(ctx);
-  this.drawStats(ctx);
-};
+    spider.pos = {
+      x: this.pos.x - mW,
+      y: this.pos.y + mH
+    };
 
-Stats.prototype.drawIcons = function(ctx){
-  var spSize = this.spSize;
-  var kPos = this.oKPos;
-  var aPos = this.oAPos;
+    this.iconKills = new Sprite(spider);
+    
+    this.lineAKills = new Line({
+      pos: Vector.origin(spider.pos, spSize),
+      to: Vector.add(hSpSize, spider.pos),
+      size: 3,
+      color: config.stats.colors.kills
+    });
 
-  Renderer.drawSprite(ctx, {
-    resource: "spider",
-    pos: aPos,
-    size: spSize,
-    angle: this.angle,
-    sp: config.spiders.sprites.move[0]
-  });
+    this.lineBKills = new Line({
+      pos: { x: spider.pos.x + hSpSize.x, y: spider.pos.y - hSpSize.y },
+      to: { x: spider.pos.x - hSpSize.x, y: spider.pos.y + hSpSize.y },
+      size: 3,
+      color: config.stats.colors.kills
+    });
+  },
 
-  Renderer.drawSprite(ctx, {
-    resource: "spider",
-    pos: kPos,
-    size: spSize,
-    angle: this.angle,
-    sp: config.spiders.sprites.move[0]
-  });
+  createText: function(){
+    var txtSize = 30;
 
-  Renderer.drawLine(ctx, {
-    from: kPos,
-    to: Vector.add(spSize, kPos),
-    size: 2,
-    color: this.kcolor
-  });
+    this.textKills = new Text({
+      pos: { x: this.iconKills.pos.x - txtSize*3, y: this.iconKills.pos.y },
+      size: txtSize,
+      color: config.stats.colors.kills
+    });
 
-  Renderer.drawLine(ctx, {
-    from: { x: kPos.x + spSize.x, y: kPos.y },
-    to: { x: kPos.x, y: kPos.y + spSize.y },
-    size: 2,
-    color: this.kcolor
-  });
+    this.textAlives = new Text({
+      pos: { x: this.iconAlives.pos.x - txtSize*3, y: this.iconAlives.pos.y },
+      size: txtSize,
+      color: config.stats.colors.alives
+    });
 
-};
+  },
 
-Stats.prototype.drawStats = function(ctx){
-  var txtSize = this.txtSize;
+  update: function(stats){
+    this.stats = stats;
 
-  Renderer.drawText(ctx, {
-    text: _.pad(this.stats.alives, 3),
-    pos: { x: this.aPos.x - txtSize*3, y: this.aPos.y },
-    size: txtSize,
-    color: this.acolor
-  });
+    this.textKills.text = _.pad(this.stats.killed, 3);
+    this.textAlives.text = _.pad(this.stats.alives, 3);
+  },
 
-  Renderer.drawText(ctx, {
-    text: _.pad(this.stats.killed, 3),
-    pos: { x: this.kPos.x - txtSize*3, y: this.kPos.y},
-    size: txtSize,
-    color: this.kcolor
-  });
+  draw: function(ctx){
+    this.iconAlives.draw(ctx);
 
-};
+    this.iconKills.draw(ctx);
+    this.lineAKills.draw(ctx);
+    this.lineBKills.draw(ctx);
+
+    this.textAlives.draw(ctx);
+    this.textKills.draw(ctx);
+  }
+
+});

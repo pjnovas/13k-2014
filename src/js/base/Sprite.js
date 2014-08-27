@@ -14,7 +14,7 @@ module.exports = Entity.extend({
   draw: function(ctx){
 
     Renderer.drawSprite(ctx, {
-      resource: "spider",
+      resource: this.resource,
       pos: this.pos,
       size: this.size,
       angle: this.angle,

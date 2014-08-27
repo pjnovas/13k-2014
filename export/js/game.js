@@ -165,6 +165,48 @@ module.exports = Entity.extend({
 
 module.exports = Entity.extend({
 
+  pos: { x: 0, y: 0 },
+  size: { x: 20, y: 20},
+  fill: null,
+  stroke: null,
+  corner: null,
+
+  initialize: function(){},
+
+  update: function(){ },
+
+  draw: function(ctx){
+
+    var opts = {
+      pos: this.pos,
+      size: this.size,
+    };
+
+    if (this.stroke){
+      opts.stroke = this.stroke;
+      if (opts.stroke.color) {
+        opts.stroke.color = Color.toRGBA(opts.stroke.color);
+      }
+    }
+
+    if (this.fill){
+      opts.fill = Color.toRGBA(this.fill);
+    }
+
+    if (this.corner){
+      opts.corner = this.corner;
+    }
+
+    Renderer.drawRect(ctx, opts);
+
+  },
+
+});
+
+},{}],7:[function(require,module,exports){
+
+module.exports = Entity.extend({
+
   resource: "",
   pos: { x: 0, y: 0 },
   sprite: { x: 0, y: 0, w: 20, h: 20 },
@@ -178,7 +220,7 @@ module.exports = Entity.extend({
   draw: function(ctx){
 
     Renderer.drawSprite(ctx, {
-      resource: "spider",
+      resource: this.resource,
       pos: this.pos,
       size: this.size,
       angle: this.angle,
@@ -189,7 +231,35 @@ module.exports = Entity.extend({
 
 });
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
+
+module.exports = Entity.extend({
+
+  pos: { x: 0, y: 0 },
+  text: "",
+
+  size: 1,
+  color: Color.white,
+  
+  initialize: function(){},
+
+  update: function(){ },
+
+  draw: function(ctx){
+
+    Renderer.drawText(ctx, {
+      text: this.text,
+      pos: this.pos,
+      size: this.size,
+      color: Color.toRGBA(this.color)
+    });
+
+  },
+
+});
+
+
+},{}],9:[function(require,module,exports){
 
 var Color = {};
 
@@ -225,7 +295,7 @@ Color.eql = function(a, b){
 
 module.exports = Color;
 
-},{}],8:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 
 var Manager = require("./Manager");
 
@@ -288,7 +358,7 @@ Game.prototype.gameRun = function(){
   this.tLoop = window.requestAnimationFrame(this.boundGameRun);
 };
 
-},{"./Manager":10}],9:[function(require,module,exports){
+},{"./Manager":12}],11:[function(require,module,exports){
 // Manages the ticks for a Game Loop
 
 var GameTime = module.exports = function(){
@@ -331,7 +401,7 @@ GameTime.prototype.reset = function() {
   this.minFrameTime = 12; 
   this.time = 0;
 };
-},{}],10:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 
 var Nodes = require("./prefabs/Nodes");
 var Paths = require("./prefabs/Paths");
@@ -405,7 +475,7 @@ Manager.prototype.draw = function(viewCtx, worldCtx, vacuumCtx){
 
   //Particles.draw(viewCtx);
 };
-},{"./prefabs/Cursor":19,"./prefabs/Elements":20,"./prefabs/Nodes":22,"./prefabs/Paths":24,"./prefabs/Spiders":26,"./prefabs/Stats":27,"./prefabs/Target":28,"./prefabs/Vacuum":29}],11:[function(require,module,exports){
+},{"./prefabs/Cursor":21,"./prefabs/Elements":23,"./prefabs/Nodes":25,"./prefabs/Paths":27,"./prefabs/Spiders":29,"./prefabs/Stats":30,"./prefabs/Target":31,"./prefabs/Vacuum":32}],13:[function(require,module,exports){
 
 var Mathf = {};
 
@@ -455,7 +525,7 @@ Mathf.polygonPoints = function(center, radius, sides) {
 
 module.exports = Mathf;
 
-},{}],12:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 
 var Renderer = {};
 
@@ -468,8 +538,8 @@ function fill(ctx, ps){
 
 function stroke(ctx, ps){
   if (ps.hasOwnProperty("stroke")){
-    ctx.lineWidth = ps.strokeWidth || 1;
-    ctx.strokeStyle = ps.stroke;
+    ctx.lineWidth = ps.strokeWidth || ps.stroke.size || 1;
+    ctx.strokeStyle = ps.stroke.color || ps.stroke || "#000";
     ctx.stroke();
   }
 }
@@ -584,7 +654,7 @@ Renderer.drawRect = function(ctx, ps){
 
 module.exports = Renderer;
 
-},{}],13:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 
 module.exports = (function(){
   var resources = {}
@@ -645,7 +715,7 @@ module.exports = (function(){
   };
   
 })();
-},{}],14:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 
 module.exports = {
 
@@ -721,7 +791,7 @@ module.exports = {
 
 };
 
-},{}],15:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 
 var Utils = module.exports = function(){
   this.lastIds = {
@@ -740,7 +810,7 @@ Utils.prototype.pad = function(num, size) {
   return s.substr(s.length-size);
 };
 
-},{}],16:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 
 var Vector = {};
 
@@ -856,7 +926,7 @@ Vector.debug = function(vec){
 
 module.exports = Vector;
 
-},{}],17:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 var w = window;
 var doc = w.document;
 
@@ -877,6 +947,8 @@ w.Collection = require("./Base/Collection");
 
 w.Circle = require("./Base/Circle");
 w.Line = require("./Base/Line");
+w.Rect = require("./Base/Rect");
+w.Text = require("./Base/Text");
 w.Sprite = require("./Base/Sprite");
 
 var Game = require("./Game");
@@ -953,7 +1025,7 @@ function onDocLoad(){
 
 w.onload = onDocLoad;
 
-},{"./Base/Base":1,"./Base/Circle":2,"./Base/Collection":3,"./Base/Entity":4,"./Base/Line":5,"./Base/Sprite":6,"./Color":7,"./Game":8,"./GameTime":9,"./Mathf":11,"./Renderer":12,"./Repo":13,"./Settings":14,"./Utils":15,"./Vector":16,"./prefabs/Controls":18,"./reqAnimFrame":30}],18:[function(require,module,exports){
+},{"./Base/Base":1,"./Base/Circle":2,"./Base/Collection":3,"./Base/Entity":4,"./Base/Line":5,"./Base/Rect":6,"./Base/Sprite":7,"./Base/Text":8,"./Color":9,"./Game":10,"./GameTime":11,"./Mathf":13,"./Renderer":14,"./Repo":15,"./Settings":16,"./Utils":17,"./Vector":18,"./prefabs/Controls":20,"./reqAnimFrame":33}],20:[function(require,module,exports){
 
 function getCoordsEvent(e, canvas){
   var x, y
@@ -1086,7 +1158,7 @@ module.exports = Base.extend({
 
 });
 
-},{}],19:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 
 module.exports = Circle.extend({
 
@@ -1142,87 +1214,129 @@ module.exports = Circle.extend({
 
 });
 
-},{}],20:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 
-var Elements = module.exports = function(){
-  this.size = 96;
-  this.pos = { x: 20, y: 50};
+module.exports = Entity.extend({
 
-  this.spSize = Vector.multiply(Vector.one, this.size);
+  size: { x: 96, y: 96 },
 
-  this.current = null;
-  this.active = false;
-  this.selected = {};
+  initialize: function(options){
+    this.name = options.name;
+    this.key = options.key;
+    this.color = [255,255,255,1];
+    this.sprite = options.sprite;
 
-  this.keys = {
-    fire: "Q",
-    water: "W",
-    earth: "E",
-    air: "R"
-  };
-};
+    this.active = false;
+    this.current = false;
 
-Elements.prototype.update = function(){
-  this.selected.air = window.blowing;
-  
-  this.selected.fire = false;
-  this.selected.water = false;
-  this.selected.earth = false;
+    this.createElement();
+  },
 
-  if (this.current){
-    this.selected[this.current] = true;
-  }
-};
-
-Elements.prototype.draw = function(ctx){
-  var elementsSP = config.elements.sprites
-    , gap = 50
-    , i = 0;
-
-  for (var ele in elementsSP){      
-    var pos = { x: this.pos.x, y: this.pos.y + (i * (this.size + gap)) };
-
-    Renderer.drawRect(ctx, {
-      pos: pos,
-      size: this.spSize,
-      corner: 8,
-      fill: (this.selected[ele] ? "white" : "transparent"),
-      stroke: (this.active && this.current === ele ? "red" : "gray"),
-      strokeWidth: 5
+  createElement: function(){
+    
+    this.bg = new Rect({
+      pos: this.pos,
+      size: this.size,
+      fill: this.color,
+      stroke: { size: 4, color: [30,30,30,1] },
+      corner: 8
     });
 
-    Renderer.drawSprite(ctx, {
+    this.icon = new Sprite({
       resource: "elements",
-      pos: pos,
-      size: this.spSize,
+      pos: Vector.center(this.pos, this.size),
+      size: this.size,
       angle: 0,
-      sp: elementsSP[ele]
+      sprite: this.sprite
     });
 
-    var txtPos = { x: pos.x, y: pos.y + this.spSize.y * 1.1 };
+    var txtPos = { x: this.pos.x, y: this.pos.y + this.size.y * 1.1 };
     var txtSize = 20;
 
-    Renderer.drawRect(ctx, {
+    this.ctrlKey = new Rect({
       pos: { x: txtPos.x - txtSize/2, y: txtPos.y - txtSize},
       size: Vector.multiply(Vector.one, txtSize*2),
-      corner: 4,
-      fill: "gray",
-      strokeWidth: 2
+      fill: [0,0,0,1],
+      corner: 4
     });
 
-    Renderer.drawText(ctx, {
-      text: this.keys[ele],
+    this.txtKey = new Text({
+      text: this.key,
       pos: txtPos,
       size: txtSize,
-      color: "#fff"
+      color: [255,255,255,1]
     });
+  },
 
-    i++;
-  }
+  update: function(){
+    this.bg.fill = this.active ? [255,255,255,1] : [255,255,255, 0.1];
+    this.bg.stroke.color = this.current ? [255,255,255,1] : [0,0,0,1];
+  },
 
-};
+  draw: function(ctx){
+    this.bg.draw(ctx);
+    this.icon.draw(ctx);
+    this.ctrlKey.draw(ctx);
+    this.txtKey.draw(ctx);
+  },
 
-},{}],21:[function(require,module,exports){
+});
+
+},{}],23:[function(require,module,exports){
+
+var Element = require("./Element");
+
+module.exports = Collection.extend({
+
+  pos: { x: 20, y: 50},
+
+  initialize: function(){
+    this.entities = [];
+
+    this.current = "fire";
+    this.active = false;
+
+    this.keys = ["Q", "W", "E", "R"];
+    this.elements = ["fire", "water", "earth", "air"];
+
+    this.createElements();
+  },
+
+  createElements: function(){
+    var gap = 50
+      , size = 96;
+
+    this.elements.forEach(function(ele, i){
+
+      this.entities.push(new Element({
+        pos: { x: this.pos.x, y: this.pos.y + (i * (size + gap)) },
+        name: ele,
+        key: this.keys[i],
+        sprite: config.elements.sprites[ele]
+      }));
+
+    }, this);
+  },
+
+  update: function(){
+    var isActive = this.active
+      , current = this.current;
+
+    this.entities.forEach(function(e){
+      e.current = false;
+      e.active = false;
+      if (e.name === current){
+        e.current = true;
+        e.active = isActive;
+      }
+      
+      e.update();
+    });
+  },
+
+});
+
+},{"./Element":22}],24:[function(require,module,exports){
 
 
 module.exports = Circle.extend({
@@ -1419,7 +1533,7 @@ module.exports = Circle.extend({
 
 });
 
-},{}],22:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 /*jslint -W083 */
 
 var Node = require("./Node")
@@ -1608,7 +1722,7 @@ var Nodes = module.exports = Collection.extend({
 
 });
 
-},{"./Node":21,"./Paths":24}],23:[function(require,module,exports){
+},{"./Node":24,"./Paths":27}],26:[function(require,module,exports){
 
 var Path = module.exports = Line.extend({
 
@@ -1691,7 +1805,7 @@ var Path = module.exports = Line.extend({
 
 });
 
-},{}],24:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 
 var Path = require("./Path");
 
@@ -1719,7 +1833,7 @@ module.exports = Collection.extend({
 
 });
 
-},{"./Path":23}],25:[function(require,module,exports){
+},{"./Path":26}],28:[function(require,module,exports){
 
 var Spider = module.exports = Sprite.extend({
 
@@ -1931,7 +2045,7 @@ var Spider = module.exports = Sprite.extend({
 
 });
 
-},{}],26:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 
 var Spider = require("./Spider");
 
@@ -2066,108 +2180,108 @@ module.exports = Collection.extend({
 
 });
 
-},{"./Spider":25}],27:[function(require,module,exports){
+},{"./Spider":28}],30:[function(require,module,exports){
 
-var Stats = module.exports = function(){
-  
-  this.size = 40;
+module.exports = Entity.extend({
 
-  var marginW = 15;
-  var marginH = 25;
+  marginW: 40,
+  marginH: 40,
 
-  this.pos = Vector.prod(config.stats.pos, config.size);
+  initialize: function(){
+    this.pos = Vector.prod(config.stats.pos, config.size);
 
-  this.kPos = Vector.clone(this.pos);
-  this.kPos.x -= marginW + this.size/2;
-  this.kPos.y += marginH + this.size;
+    this.stats = {
+      saved: 0,
+      killed: 0,
+      alives: 0,
+      total: 0
+    };
 
-  this.aPos = Vector.clone(this.pos);
-  this.aPos.x -= marginW + this.size/2;
-  this.aPos.y += marginH*3 + this.size;
-  
-  this.kcolor = Color.toRGBA(config.stats.colors.kills);
-  this.acolor = Color.toRGBA(config.stats.colors.alives);
+    this.createIcons();
+    this.createText();
+  },
 
-  this.stats = {
-    saved: 0,
-    killed: 0,
-    alives: 0,
-    total: 0
-  };
+  createIcons: function(){
+    var size = 40
+      , mW = this.marginW
+      , mH = this.marginH
+      , spSize = { x: size, y: size }
+      , hSpSize = { x: size/2, y: size/2 };
 
-  this.spSize = Vector.multiply(Vector.one, this.size);
-  this.angle = Math.PI / 2;
+    var spider = {
+      resource: "spider",
+      sprite: { x: 0, y: 0, w: 32, h: 32 },
+      size: spSize,
+      angle: Math.PI / 2
+    };
 
-  this.oAPos = Vector.origin(this.aPos, this.spSize);
-  this.oKPos = Vector.origin(this.kPos, this.spSize);
-  this.txtSize = 30;
-};
+    spider.pos = {
+      x: this.pos.x - mW,
+      y: this.pos.y + mH + size*1.5
+    };
 
-Stats.prototype.update = function(stats){
-  this.stats = stats;
-};
+    this.iconAlives = new Sprite(spider);
 
-Stats.prototype.draw = function(ctx){
-  this.drawIcons(ctx);
-  this.drawStats(ctx);
-};
+    spider.pos = {
+      x: this.pos.x - mW,
+      y: this.pos.y + mH
+    };
 
-Stats.prototype.drawIcons = function(ctx){
-  var spSize = this.spSize;
-  var kPos = this.oKPos;
-  var aPos = this.oAPos;
+    this.iconKills = new Sprite(spider);
+    
+    this.lineAKills = new Line({
+      pos: Vector.origin(spider.pos, spSize),
+      to: Vector.add(hSpSize, spider.pos),
+      size: 3,
+      color: config.stats.colors.kills
+    });
 
-  Renderer.drawSprite(ctx, {
-    resource: "spider",
-    pos: aPos,
-    size: spSize,
-    angle: this.angle,
-    sp: config.spiders.sprites.move[0]
-  });
+    this.lineBKills = new Line({
+      pos: { x: spider.pos.x + hSpSize.x, y: spider.pos.y - hSpSize.y },
+      to: { x: spider.pos.x - hSpSize.x, y: spider.pos.y + hSpSize.y },
+      size: 3,
+      color: config.stats.colors.kills
+    });
+  },
 
-  Renderer.drawSprite(ctx, {
-    resource: "spider",
-    pos: kPos,
-    size: spSize,
-    angle: this.angle,
-    sp: config.spiders.sprites.move[0]
-  });
+  createText: function(){
+    var txtSize = 30;
 
-  Renderer.drawLine(ctx, {
-    from: kPos,
-    to: Vector.add(spSize, kPos),
-    size: 2,
-    color: this.kcolor
-  });
+    this.textKills = new Text({
+      pos: { x: this.iconKills.pos.x - txtSize*3, y: this.iconKills.pos.y },
+      size: txtSize,
+      color: config.stats.colors.kills
+    });
 
-  Renderer.drawLine(ctx, {
-    from: { x: kPos.x + spSize.x, y: kPos.y },
-    to: { x: kPos.x, y: kPos.y + spSize.y },
-    size: 2,
-    color: this.kcolor
-  });
+    this.textAlives = new Text({
+      pos: { x: this.iconAlives.pos.x - txtSize*3, y: this.iconAlives.pos.y },
+      size: txtSize,
+      color: config.stats.colors.alives
+    });
 
-};
+  },
 
-Stats.prototype.drawStats = function(ctx){
-  var txtSize = this.txtSize;
+  update: function(stats){
+    this.stats = stats;
 
-  Renderer.drawText(ctx, {
-    text: _.pad(this.stats.alives, 3),
-    pos: { x: this.aPos.x - txtSize*3, y: this.aPos.y },
-    size: txtSize,
-    color: this.acolor
-  });
+    this.textKills.text = _.pad(this.stats.killed, 3);
+    this.textAlives.text = _.pad(this.stats.alives, 3);
+  },
 
-  Renderer.drawText(ctx, {
-    text: _.pad(this.stats.killed, 3),
-    pos: { x: this.kPos.x - txtSize*3, y: this.kPos.y},
-    size: txtSize,
-    color: this.kcolor
-  });
+  draw: function(ctx){
+    this.iconAlives.draw(ctx);
 
-};
-},{}],28:[function(require,module,exports){
+    this.iconKills.draw(ctx);
+    this.lineAKills.draw(ctx);
+    this.lineBKills.draw(ctx);
+
+    this.textAlives.draw(ctx);
+    this.textKills.draw(ctx);
+  }
+
+});
+
+},{}],31:[function(require,module,exports){
 
 var Target = module.exports = function(){
 
@@ -2246,7 +2360,7 @@ Target.prototype.draw = function(ctx){
   ctx.stroke();
 
 };
-},{}],29:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 
 var Vacuum = module.exports = function(target){
   this.target = target;
@@ -2410,7 +2524,7 @@ Vacuum.prototype.drawBG = function(ctx){
   });
 
 };
-},{}],30:[function(require,module,exports){
+},{}],33:[function(require,module,exports){
 // http://paulirish.com/2011/requestanimationframe-for-smart-animating/
 // http://my.opera.com/emoller/blog/2011/12/20/requestanimationframe-for-smart-er-animating
 
@@ -2440,4 +2554,4 @@ Vacuum.prototype.drawBG = function(ctx){
     window.cancelAnimationFrame = function(id) { window.clearTimeout(id); };
   }
 }());
-},{}]},{},[17]);
+},{}]},{},[19]);

@@ -10,8 +10,8 @@ function fill(ctx, ps){
 
 function stroke(ctx, ps){
   if (ps.hasOwnProperty("stroke")){
-    ctx.lineWidth = ps.strokeWidth || 1;
-    ctx.strokeStyle = ps.stroke;
+    ctx.lineWidth = ps.strokeWidth || ps.stroke.size || 1;
+    ctx.strokeStyle = ps.stroke.color || ps.stroke || "#000";
     ctx.stroke();
   }
 }
