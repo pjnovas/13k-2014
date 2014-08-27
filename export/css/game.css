@@ -1,1 +1,38 @@
-body,html{overflow:hidden}body{background:#3C3C3C;margin:0}.absoluted{position:absolute;top:0;left:0;width:100%}.game-ctn{height:auto;height:100%}.game-viewport-ctn{z-index:10}.game-world-ctn{z-index:5}#game-viewport,#game-world{margin:0 auto;display:block}#vacuum{position:absolute;right:5px;bottom:5px}
+html, body {overflow:hidden;}
+
+body {
+  background: #3C3C3C;
+  margin: 0;
+}
+
+.absoluted {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
+
+.game-ctn {
+  height: auto;
+  height: 100%;
+}
+
+.game-viewport-ctn {
+  z-index: 10;
+}
+
+.game-world-ctn {
+  z-index: 5;
+}
+
+#game-viewport,
+#game-world {
+  margin: 0 auto;
+  display: block;
+}
+
+#vacuum {
+  position: absolute;
+  right: 5px;
+  bottom: 5px;
+}
