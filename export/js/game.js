@@ -272,138 +272,143 @@ module.exports = Entity.extend({
 
 },{}],9:[function(require,module,exports){
 
-var Color = {};
+module.exports = Base.extend({ }, {
 
-Color.white = [255,255,255,1];
+  white: [255,255,255,1],
 
-Color.toRGBA = function(arr){
-  return "rgba(" + arr[0] + "," + arr[1] + "," + arr[2] + "," + (arr[3] || 1) + ")";
-};
+  toRGBA: function(arr){
+    return "rgba(" + arr[0] + "," + arr[1] + "," + arr[2] + "," + (arr[3] || 1) + ")";
+  },
 
-Color.lerp = function(from, to, t){
+  lerp: function(from, to, t){
 
-  function l(a, b, t, m){
-    m = m ? m : 1;
-    return Math.round(Mathf.lerp(a, b, t) * m) / m;
+    function l(a, b, t, m){
+      m = m ? m : 1;
+      return Math.round(Mathf.lerp(a, b, t) * m) / m;
+    }
+
+    return [
+        l(from[0], to[0], t)
+      , l(from[1], to[1], t)
+      , l(from[2], to[2], t)
+      , l(
+          from[3] >= 0 ? from[3]: 1
+        , to[3] >= 0 ? to[3] : 1
+        , t
+        , 100
+        )
+    ];
+  },
+
+  eql: function(a, b){
+    return a[0] === b[0] && a[1] === b[1] && a[2] === b[2] && a[3] === b[3];
   }
 
-  return [
-      l(from[0], to[0], t)
-    , l(from[1], to[1], t)
-    , l(from[2], to[2], t)
-    , l(
-        from[3] >= 0 ? from[3]: 1
-      , to[3] >= 0 ? to[3] : 1
-      , t
-      , 100
-      )
-  ];
-};
-
-Color.eql = function(a, b){
-  return a[0] === b[0] && a[1] === b[1] && a[2] === b[2] && a[3] === b[3];
-};
-
-module.exports = Color;
+});
 
 },{}],10:[function(require,module,exports){
 
 var Manager = require("./Manager");
 
-var Game = module.exports = function(opts){
-  this.cview = opts.viewport;
-  this.cworld = opts.world;
-  this.cvacuum = opts.vacuum;
+module.exports = Base.extend({
 
-  this.viewCtx = null;
-  this.worldCtx = null;
-  this.vacuumCtx = null;
+  viewCtx:  null,
+  worldCtx:  null,
+  vacuumCtx:  null,
 
-  this.tLoop = null;
-  this.paused = false;
-  this.boundGameRun = this.gameRun.bind(this);
+  tLoop:  null,
+  paused:  false,
 
-  this.manager = new Manager();
-  this.initialize();
-};
+  initialize: function(options){
+    this.cview = options.viewport;
+    this.cworld = options.world;
+    this.cvacuum = options.vacuum;
 
-Game.prototype.initialize = function(){
-  var size = config.size;
+    this.boundGameRun = this.gameRun.bind(this);
+    this.initContexts();
 
-  if (this.cview.getContext){
-    this.cview.width = size.x;
-    this.cview.height = size.y;
-    this.viewCtx = this.cview.getContext("2d");
+    this.manager = new Manager();
+  },
+
+  initContexts: function(){
+    var size = config.size
+      , vsize = config.vacuum.size;
+
+    function getContext(canvas, _size){
+      canvas.width = _size.x;
+      canvas.height = _size.y;
+      return canvas.getContext("2d");
+    }
+
+    this.viewCtx = getContext(this.cview, size);
+    this.worldCtx = getContext(this.cworld, size);
+    this.vacuumCtx = getContext(this.cvacuum, vsize);
+  },
+
+  loop: function(){
+    //console.log(Time.frameTime + "( " + Time.deltaTime + " ) / " + Time.time);
+    this.manager.update();
+    this.manager.draw(this.viewCtx, this.worldCtx, this.vacuumCtx);
+  },
+
+  start: function(){
+    this.paused = false;
+    Controls.enable();
+    this.gameRun();
+  },
+
+  stop: function(){
+    this.paused = true;
+    Controls.disable();
+    window.cancelAnimationFrame(this.tLoop);
+  },
+
+  gameRun: function(){
+    if (Time.tick()) { this.loop(); }
+    this.tLoop = window.requestAnimationFrame(this.boundGameRun);
   }
-  else { throw "canvas not supported!"; }
 
-  this.worldCtx = this.cworld.getContext("2d");
-  this.cworld.width = size.x;
-  this.cworld.height = size.y;
-
-  this.vacuumCtx = this.cvacuum.getContext("2d");
-  this.cvacuum.width = config.vacuum.size.x;
-  this.cvacuum.height = config.vacuum.size.y;
-};
-
-Game.prototype.loop = function(){
-  //console.log(Time.frameTime + "( " + Time.deltaTime + " ) / " + Time.time);
-  this.manager.update();
-  this.manager.draw(this.viewCtx, this.worldCtx, this.vacuumCtx);
-};
-
-Game.prototype.start = function(){
-  this.paused = false;
-  Controls.enable();
-  this.gameRun();
-};
-
-Game.prototype.stop = function(){
-  this.paused = true;
-  Controls.disable();
-  window.cancelAnimationFrame(this.tLoop);
-};
-
-Game.prototype.gameRun = function(){
-  if (Time.tick()) { this.loop(); }
-  this.tLoop = window.requestAnimationFrame(this.boundGameRun);
-};
+});
 
 },{"./Manager":12}],11:[function(require,module,exports){
-// Manages the ticks for a Game Loop
 
-var GameTime = module.exports = function(){
-  this.lastTime = Date.now();
-  this.frameTime = 0;
-  this.deltaTime = 0;
-  this.typicalFrameTime = 20;
-  this.minFrameTime = 12; 
-  this.time = 0;
-};
+module.exports = Base.extend({
 
-// move the clock one tick. 
-// return true if new frame, false otherwise.
-GameTime.prototype.tick = function() {
-  var now = Date.now();
-  var delta = now - this.lastTime;
+  lastTime: null,
+  frameTime: 0,
+  deltaTime: 0,
+  typicalFrameTime: 20,
+  minFrameTime: 12,
+  time: 0,
 
-  if (delta < this.minFrameTime ) {
-    return false;
+  initialize: function(){
+    this.lastTime = Date.now();
+  },
+
+  tick: function(){
+    var now = Date.now();
+    var delta = now - this.lastTime;
+
+    if (delta < this.minFrameTime ) {
+      return false;
+    }
+
+    if (delta > 2 * this.typicalFrameTime) { // +1 frame if too much time elapsed
+      this.frameTime = this.typicalFrameTime;
+    } else {  
+      this.frameTime = delta;      
+    }
+
+    this.deltaTime = this.frameTime/1000;
+    this.time += this.frameTime;
+    this.lastTime = now;
+
+    return true;
   }
 
-  if (delta > 2 * this.typicalFrameTime) { // +1 frame if too much time elapsed
-    this.frameTime = this.typicalFrameTime;
-  } else {  
-    this.frameTime = delta;      
-  }
+});
 
-  this.deltaTime = this.frameTime/1000;
-  this.time += this.frameTime;
-  this.lastTime = now;
-
-  return true;
-};
-
+/*
 GameTime.prototype.reset = function() {
   this.lastTime = Date.now();
   this.frameTime = 0;
@@ -412,6 +417,7 @@ GameTime.prototype.reset = function() {
   this.minFrameTime = 12; 
   this.time = 0;
 };
+*/
 },{}],12:[function(require,module,exports){
 
 var Nodes = require("./prefabs/Nodes");
@@ -423,124 +429,124 @@ var Vacuum = require("./prefabs/Vacuum");
 var Stats = require("./prefabs/Stats");
 var Elements = require("./prefabs/Elements");
 
-var Manager = module.exports = function(){
+module.exports = Base.extend({
 
-  this.cursor = new Cursor();
-  this.nodes = new Nodes();
-  this.paths = new Paths();
-  this.target = new Target();
-  this.vacuum = new Vacuum({
-    target: this.target
-  });
-  this.elements = new Elements();
-  this.spiders = new Spiders({
-    nodes: this.nodes
-  });
-  this.stats = new Stats();
+  initialize: function(){
+    this.cursor = new Cursor();
+    this.nodes = new Nodes();
+    this.paths = new Paths();
+    this.target = new Target();
 
-  this.target.setNodesInside(this.nodes.getNodes());
-};
+    this.vacuum = new Vacuum({
+      target: this.target
+    });
 
-Manager.prototype.update = function(){
-  
-  this.cursor.update();
+    this.elements = new Elements();
 
-  window.blowing = this.cursor.blowing;
-  this.elements.current = this.cursor.element;
-  this.elements.active = this.cursor.active;
+    this.spiders = new Spiders({
+      nodes: this.nodes
+    });
 
-  if (this.cursor.active){
-    this.nodes.applyPos = this.cursor.pos;
-    this.nodes.applyRatio = this.cursor.radius;
-    this.nodes.element = this.cursor.element;
+    this.stats = new Stats();
+
+    this.target.setNodesInside(this.nodes.getNodes());
+  },
+
+  update: function(){
+    var cursor = this.cursor
+      , nodes = this.nodes
+      , spiders = this.spiders
+      , elements = this.elements;
+
+    cursor.update();
+
+    elements.current = cursor.element;
+    elements.active = cursor.active;
+
+    nodes.applyPos = null;
+    if (cursor.active){
+      nodes.applyPos = cursor.pos;
+      nodes.applyRatio = cursor.radius;
+      nodes.element = cursor.element;
+    }
+
+    nodes.update();
+    spiders.update();
+    this.target.update(spiders.getSpiders());
+    this.vacuum.update();
+    this.stats.update(spiders.stats);
+
+    elements.update();
+
+    //Particles.update();
+  },
+
+  draw: function(viewCtx, worldCtx, vacuumCtx){
+    var s = config.size;
+    var vs = config.vacuum.size;
+
+    viewCtx.clearRect(0, 0, s.x, s.y);
+    worldCtx.clearRect(0, 0, s.x, s.y);
+    vacuumCtx.clearRect(0, 0, vs.x, vs.y);
+
+    this.cursor.draw(viewCtx);
+    this.nodes.draw(worldCtx);
+    this.spiders.draw(worldCtx);
+    this.target.draw(worldCtx);
+
+    this.vacuum.draw(vacuumCtx);
+    this.stats.draw(viewCtx);
+    this.elements.draw(viewCtx);
+
+    //Particles.draw(viewCtx);
   }
-  else {
-    this.nodes.applyPos = null;
-  }
 
-  this.nodes.update();
-  this.spiders.update();
-  this.target.update(this.spiders.getSpiders());
-  this.vacuum.update();
-  this.stats.update(this.spiders.stats);
+});
 
-  this.elements.update();
-
-  //Particles.update();
-};
-
-Manager.prototype.draw = function(viewCtx, worldCtx, vacuumCtx){
-  var s = config.size;
-  var vs = config.vacuum.size;
-
-  viewCtx.clearRect(0, 0, s.x, s.y);
-  worldCtx.clearRect(0, 0, s.x, s.y);
-  vacuumCtx.clearRect(0, 0, vs.x, vs.y);
-
-  this.cursor.draw(viewCtx);
-  this.nodes.draw(worldCtx);
-  this.spiders.draw(worldCtx);
-  this.target.draw(worldCtx);
-
-  this.vacuum.draw(vacuumCtx);
-  this.stats.draw(viewCtx);
-  this.elements.draw(viewCtx);
-
-  //Particles.draw(viewCtx);
-};
 },{"./prefabs/Cursor":19,"./prefabs/Elements":21,"./prefabs/Nodes":23,"./prefabs/Paths":25,"./prefabs/Spiders":27,"./prefabs/Stats":28,"./prefabs/Target":29,"./prefabs/Vacuum":30}],13:[function(require,module,exports){
 
-var Mathf = {};
+var Mathf = module.exports = Base.extend({ }, {
 
-Mathf.rnd = function(min, max){
-  return Math.floor(Math.random() * (max - min + 1) + min);
-};
+  rnd: function(min, max){
+    return Math.floor(Math.random() * (max - min + 1) + min);
+  },
 
-Mathf.rnd11 = function(){
-  return Math.round(Math.random());
-};
+  rnd01: function(){
+    return Math.random();
+  },
 
-Mathf.rnd01 = function(){
-  return Math.random();
-};
+  rndInCircle: function(radius){
+    var angle = Math.random() * Math.PI * 2;
+    var rad = Mathf.rnd(0, radius);
 
-Mathf.rndAngle = function(){
-  return Math.random() * Math.PI * 2;
-};
+    return {
+      x: Math.cos(angle) * rad,
+      y: Math.sin(angle) * rad
+    };
+  },
 
-Mathf.rndInCircle = function(radius){
-  var angle = Mathf.rndAngle();
-  var rad = Mathf.rnd(0, radius);
+  lerp: function(a, b, u) {
+    return (1 - u) * a + u * b;
+  },
 
-  return {
-    x: Math.cos(angle) * rad,
-    y: Math.sin(angle) * rad
-  };
-};
+  polygonPoints: function(center, radius, sides) {
+    var points = [];
+    var angle = (Math.PI * 2) / sides;
 
-Mathf.lerp = function(a, b, u) {
-  return (1 - u) * a + u * b;
-};
+    for (var i = 0; i < sides; i++) {
+      points.push({
+        x: center.x + radius * Math.cos(i * angle),
+        y: center.y + radius * Math.sin(i * angle)
+      });
+    }
 
-Mathf.polygonPoints = function(center, radius, sides) {
-  var points = [];
-  var angle = (Math.PI * 2) / sides;
+    return points;
+  },
 
-  for (var i = 0; i < sides; i++) {
-    points.push({
-      x: center.x + radius * Math.cos(i * angle),
-      y: center.y + radius * Math.sin(i * angle)
-    });
-  }
+});
 
-  return points;
-};
-
-module.exports = Mathf;
 
 },{}],14:[function(require,module,exports){
-
-var Renderer = {};
 
 function fill(ctx, ps){
   if (ps.hasOwnProperty("fill")){
@@ -559,80 +565,6 @@ function stroke(ctx, ps){
   }
 }
 
-Renderer.drawCircle = function(ctx, ps){
-  var start = (ps.angles && ps.angles.start) || 0,
-    end = (ps.angles && ps.angles.end) || 2 * Math.PI;
-
-  ctx.beginPath();
-
-  if (ps.lineCap){
-    ctx.lineCap = ps.lineCap;
-  }
-
-  ctx.arc(ps.pos.x, ps.pos.y, ps.radius, start, end, false);
-
-  fill(ctx, ps);
-  stroke(ctx, ps);
-};
-
-Renderer.drawLine = function(ctx, ps){
-  var a = ps.from
-    , b = ps.to;
-
-  ctx.beginPath();
-
-  ctx.lineCap = 'round';
-
-  ctx.moveTo(a.x, a.y);
-  ctx.lineTo(b.x, b.y);
-
-  ctx.lineWidth = ps.size;
-  ctx.strokeStyle = ps.color;
-  ctx.stroke();
-};
-
-Renderer.drawSprite = function(ctx, ps){
-  var img = Repo[ps.resource]
-    , p = Vector.origin(ps.pos, ps.size)
-    , x = p.x
-    , y = p.y
-    , w = ps.size.x
-    , h = ps.size.y
-    , sp = ps.sp;
-
-  function draw(){
-    if (sp){
-      ctx.drawImage(img, sp.x, sp.y, sp.w, sp.h, x, y, w, h);
-    }
-    else {
-      ctx.drawImage(img, x, y, w, h);
-    }
-  }
-
-  if (ps.hasOwnProperty("angle")){
-    ctx.save();
-
-    ctx.translate(x + w/2, y + h/2);
-    x = -w/2;
-    y = -h/2;
-    ctx.rotate(ps.angle);
-
-    draw();
-
-    ctx.restore();
-    return;
-  }
-
-  draw();
-};
-
-Renderer.drawText = function(ctx, ps){
-  ctx.font = ps.size + 'pt Arial';
-  ctx.textBaseline = ps.baseline || 'middle';
-  ctx.fillStyle = ps.color;
-  ctx.fillText(ps.text, ps.pos.x, ps.pos.y);
-};
-
 function drawRect(ctx, ps){
   ctx.beginPath();
   ctx.rect(ps.pos.x, ps.pos.y, ps.size.x, ps.size.y);
@@ -640,36 +572,112 @@ function drawRect(ctx, ps){
   stroke(ctx, ps);
 }
 
-Renderer.drawRect = function(ctx, ps){
-  var x = ps.pos.x
-    , y = ps.pos.y
-    , w = ps.size.x
-    , h = ps.size.y;
+module.exports = Base.extend({ }, {
 
-  if (!ps.hasOwnProperty("corner")){
-    drawRect(ctx, ps);
-    return;
+  drawCircle: function(ctx, ps){
+    var start = (ps.angles && ps.angles.start) || 0,
+      end = (ps.angles && ps.angles.end) || 2 * Math.PI;
+
+    ctx.beginPath();
+
+    if (ps.lineCap){
+      ctx.lineCap = ps.lineCap;
+    }
+
+    ctx.arc(ps.pos.x, ps.pos.y, ps.radius, start, end, false);
+
+    fill(ctx, ps);
+    stroke(ctx, ps);
+  },
+
+  drawLine: function(ctx, ps){
+    var a = ps.from
+      , b = ps.to;
+
+    ctx.beginPath();
+
+    ctx.lineCap = 'round';
+
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+
+    ctx.lineWidth = ps.size;
+    ctx.strokeStyle = ps.color;
+    ctx.stroke();
+  },
+
+  drawSprite: function(ctx, ps){
+    var img = Repo[ps.resource]
+      , p = Vector.origin(ps.pos, ps.size)
+      , x = p.x
+      , y = p.y
+      , w = ps.size.x
+      , h = ps.size.y
+      , sp = ps.sp;
+
+    function draw(){
+      if (sp){
+        ctx.drawImage(img, sp.x, sp.y, sp.w, sp.h, x, y, w, h);
+      }
+      else {
+        ctx.drawImage(img, x, y, w, h);
+      }
+    }
+
+    if (ps.hasOwnProperty("angle")){
+      ctx.save();
+
+      ctx.translate(x + w/2, y + h/2);
+      x = -w/2;
+      y = -h/2;
+      ctx.rotate(ps.angle);
+
+      draw();
+
+      ctx.restore();
+      return;
+    }
+
+    draw();
+  },
+
+  drawText: function(ctx, ps){
+    ctx.font = ps.size + 'pt Arial';
+    ctx.textBaseline = ps.baseline || 'middle';
+    ctx.fillStyle = ps.color;
+    ctx.fillText(ps.text, ps.pos.x, ps.pos.y);
+  },
+
+  drawRect: function(ctx, ps){
+    var x = ps.pos.x
+      , y = ps.pos.y
+      , w = ps.size.x
+      , h = ps.size.y;
+
+    if (!ps.hasOwnProperty("corner")){
+      drawRect(ctx, ps);
+      return;
+    }
+
+    var c = ps.corner;
+
+    ctx.beginPath();
+    ctx.moveTo(x + c, y);
+    ctx.lineTo(x + w - c, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + c);
+    ctx.lineTo(x + w, y + h - c);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - c, y + h);
+    ctx.lineTo(x + c, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - c);
+    ctx.lineTo(x, y + c);
+    ctx.quadraticCurveTo(x, y, x + c, y);
+    ctx.closePath();
+    
+    fill(ctx, ps);
+    stroke(ctx, ps);
   }
 
-  var c = ps.corner;
-
-  ctx.beginPath();
-  ctx.moveTo(x + c, y);
-  ctx.lineTo(x + w - c, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + c);
-  ctx.lineTo(x + w, y + h - c);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - c, y + h);
-  ctx.lineTo(x + c, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - c);
-  ctx.lineTo(x, y + c);
-  ctx.quadraticCurveTo(x, y, x + c, y);
-  ctx.closePath();
-  
-  fill(ctx, ps);
-  stroke(ctx, ps);
-};
-
-module.exports = Renderer;
+});
 
 },{}],15:[function(require,module,exports){
 
@@ -823,8 +831,6 @@ var Vector = module.exports = Base.extend({ }, {
 },{}],17:[function(require,module,exports){
 var w = window;
 var doc = w.document;
-
-w.DEBUG = true;
 
 require("./reqAnimFrame");
 

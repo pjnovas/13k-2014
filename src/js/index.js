@@ -1,8 +1,6 @@
 var w = window;
 var doc = w.document;
 
-w.DEBUG = true;
-
 require("./reqAnimFrame");
 
 w.Base = require("./Base/Base");

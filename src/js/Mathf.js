@@ -1,48 +1,41 @@
 
-var Mathf = {};
+var Mathf = module.exports = Base.extend({ }, {
 
-Mathf.rnd = function(min, max){
-  return Math.floor(Math.random() * (max - min + 1) + min);
-};
+  rnd: function(min, max){
+    return Math.floor(Math.random() * (max - min + 1) + min);
+  },
 
-Mathf.rnd11 = function(){
-  return Math.round(Math.random());
-};
+  rnd01: function(){
+    return Math.random();
+  },
 
-Mathf.rnd01 = function(){
-  return Math.random();
-};
+  rndInCircle: function(radius){
+    var angle = Math.random() * Math.PI * 2;
+    var rad = Mathf.rnd(0, radius);
 
-Mathf.rndAngle = function(){
-  return Math.random() * Math.PI * 2;
-};
+    return {
+      x: Math.cos(angle) * rad,
+      y: Math.sin(angle) * rad
+    };
+  },
 
-Mathf.rndInCircle = function(radius){
-  var angle = Mathf.rndAngle();
-  var rad = Mathf.rnd(0, radius);
+  lerp: function(a, b, u) {
+    return (1 - u) * a + u * b;
+  },
 
-  return {
-    x: Math.cos(angle) * rad,
-    y: Math.sin(angle) * rad
-  };
-};
+  polygonPoints: function(center, radius, sides) {
+    var points = [];
+    var angle = (Math.PI * 2) / sides;
 
-Mathf.lerp = function(a, b, u) {
-  return (1 - u) * a + u * b;
-};
+    for (var i = 0; i < sides; i++) {
+      points.push({
+        x: center.x + radius * Math.cos(i * angle),
+        y: center.y + radius * Math.sin(i * angle)
+      });
+    }
 
-Mathf.polygonPoints = function(center, radius, sides) {
-  var points = [];
-  var angle = (Math.PI * 2) / sides;
+    return points;
+  },
 
-  for (var i = 0; i < sides; i++) {
-    points.push({
-      x: center.x + radius * Math.cos(i * angle),
-      y: center.y + radius * Math.sin(i * angle)
-    });
-  }
+});
 
-  return points;
-};
-
-module.exports = Mathf;

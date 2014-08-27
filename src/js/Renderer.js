@@ -1,6 +1,4 @@
 
-var Renderer = {};
-
 function fill(ctx, ps){
   if (ps.hasOwnProperty("fill")){
     ctx.fillStyle = ps.fill;
@@ -18,80 +16,6 @@ function stroke(ctx, ps){
   }
 }
 
-Renderer.drawCircle = function(ctx, ps){
-  var start = (ps.angles && ps.angles.start) || 0,
-    end = (ps.angles && ps.angles.end) || 2 * Math.PI;
-
-  ctx.beginPath();
-
-  if (ps.lineCap){
-    ctx.lineCap = ps.lineCap;
-  }
-
-  ctx.arc(ps.pos.x, ps.pos.y, ps.radius, start, end, false);
-
-  fill(ctx, ps);
-  stroke(ctx, ps);
-};
-
-Renderer.drawLine = function(ctx, ps){
-  var a = ps.from
-    , b = ps.to;
-
-  ctx.beginPath();
-
-  ctx.lineCap = 'round';
-
-  ctx.moveTo(a.x, a.y);
-  ctx.lineTo(b.x, b.y);
-
-  ctx.lineWidth = ps.size;
-  ctx.strokeStyle = ps.color;
-  ctx.stroke();
-};
-
-Renderer.drawSprite = function(ctx, ps){
-  var img = Repo[ps.resource]
-    , p = Vector.origin(ps.pos, ps.size)
-    , x = p.x
-    , y = p.y
-    , w = ps.size.x
-    , h = ps.size.y
-    , sp = ps.sp;
-
-  function draw(){
-    if (sp){
-      ctx.drawImage(img, sp.x, sp.y, sp.w, sp.h, x, y, w, h);
-    }
-    else {
-      ctx.drawImage(img, x, y, w, h);
-    }
-  }
-
-  if (ps.hasOwnProperty("angle")){
-    ctx.save();
-
-    ctx.translate(x + w/2, y + h/2);
-    x = -w/2;
-    y = -h/2;
-    ctx.rotate(ps.angle);
-
-    draw();
-
-    ctx.restore();
-    return;
-  }
-
-  draw();
-};
-
-Renderer.drawText = function(ctx, ps){
-  ctx.font = ps.size + 'pt Arial';
-  ctx.textBaseline = ps.baseline || 'middle';
-  ctx.fillStyle = ps.color;
-  ctx.fillText(ps.text, ps.pos.x, ps.pos.y);
-};
-
 function drawRect(ctx, ps){
   ctx.beginPath();
   ctx.rect(ps.pos.x, ps.pos.y, ps.size.x, ps.size.y);
@@ -99,33 +23,109 @@ function drawRect(ctx, ps){
   stroke(ctx, ps);
 }
 
-Renderer.drawRect = function(ctx, ps){
-  var x = ps.pos.x
-    , y = ps.pos.y
-    , w = ps.size.x
-    , h = ps.size.y;
+module.exports = Base.extend({ }, {
 
-  if (!ps.hasOwnProperty("corner")){
-    drawRect(ctx, ps);
-    return;
+  drawCircle: function(ctx, ps){
+    var start = (ps.angles && ps.angles.start) || 0,
+      end = (ps.angles && ps.angles.end) || 2 * Math.PI;
+
+    ctx.beginPath();
+
+    if (ps.lineCap){
+      ctx.lineCap = ps.lineCap;
+    }
+
+    ctx.arc(ps.pos.x, ps.pos.y, ps.radius, start, end, false);
+
+    fill(ctx, ps);
+    stroke(ctx, ps);
+  },
+
+  drawLine: function(ctx, ps){
+    var a = ps.from
+      , b = ps.to;
+
+    ctx.beginPath();
+
+    ctx.lineCap = 'round';
+
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+
+    ctx.lineWidth = ps.size;
+    ctx.strokeStyle = ps.color;
+    ctx.stroke();
+  },
+
+  drawSprite: function(ctx, ps){
+    var img = Repo[ps.resource]
+      , p = Vector.origin(ps.pos, ps.size)
+      , x = p.x
+      , y = p.y
+      , w = ps.size.x
+      , h = ps.size.y
+      , sp = ps.sp;
+
+    function draw(){
+      if (sp){
+        ctx.drawImage(img, sp.x, sp.y, sp.w, sp.h, x, y, w, h);
+      }
+      else {
+        ctx.drawImage(img, x, y, w, h);
+      }
+    }
+
+    if (ps.hasOwnProperty("angle")){
+      ctx.save();
+
+      ctx.translate(x + w/2, y + h/2);
+      x = -w/2;
+      y = -h/2;
+      ctx.rotate(ps.angle);
+
+      draw();
+
+      ctx.restore();
+      return;
+    }
+
+    draw();
+  },
+
+  drawText: function(ctx, ps){
+    ctx.font = ps.size + 'pt Arial';
+    ctx.textBaseline = ps.baseline || 'middle';
+    ctx.fillStyle = ps.color;
+    ctx.fillText(ps.text, ps.pos.x, ps.pos.y);
+  },
+
+  drawRect: function(ctx, ps){
+    var x = ps.pos.x
+      , y = ps.pos.y
+      , w = ps.size.x
+      , h = ps.size.y;
+
+    if (!ps.hasOwnProperty("corner")){
+      drawRect(ctx, ps);
+      return;
+    }
+
+    var c = ps.corner;
+
+    ctx.beginPath();
+    ctx.moveTo(x + c, y);
+    ctx.lineTo(x + w - c, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + c);
+    ctx.lineTo(x + w, y + h - c);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - c, y + h);
+    ctx.lineTo(x + c, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - c);
+    ctx.lineTo(x, y + c);
+    ctx.quadraticCurveTo(x, y, x + c, y);
+    ctx.closePath();
+    
+    fill(ctx, ps);
+    stroke(ctx, ps);
   }
 
-  var c = ps.corner;
-
-  ctx.beginPath();
-  ctx.moveTo(x + c, y);
-  ctx.lineTo(x + w - c, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + c);
-  ctx.lineTo(x + w, y + h - c);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - c, y + h);
-  ctx.lineTo(x + c, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - c);
-  ctx.lineTo(x, y + c);
-  ctx.quadraticCurveTo(x, y, x + c, y);
-  ctx.closePath();
-  
-  fill(ctx, ps);
-  stroke(ctx, ps);
-};
-
-module.exports = Renderer;
+});

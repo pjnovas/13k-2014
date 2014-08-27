@@ -1,61 +1,62 @@
 
 var Manager = require("./Manager");
 
-var Game = module.exports = function(opts){
-  this.cview = opts.viewport;
-  this.cworld = opts.world;
-  this.cvacuum = opts.vacuum;
+module.exports = Base.extend({
 
-  this.viewCtx = null;
-  this.worldCtx = null;
-  this.vacuumCtx = null;
+  viewCtx:  null,
+  worldCtx:  null,
+  vacuumCtx:  null,
 
-  this.tLoop = null;
-  this.paused = false;
-  this.boundGameRun = this.gameRun.bind(this);
+  tLoop:  null,
+  paused:  false,
 
-  this.manager = new Manager();
-  this.initialize();
-};
+  initialize: function(options){
+    this.cview = options.viewport;
+    this.cworld = options.world;
+    this.cvacuum = options.vacuum;
 
-Game.prototype.initialize = function(){
-  var size = config.size;
+    this.boundGameRun = this.gameRun.bind(this);
+    this.initContexts();
 
-  if (this.cview.getContext){
-    this.cview.width = size.x;
-    this.cview.height = size.y;
-    this.viewCtx = this.cview.getContext("2d");
+    this.manager = new Manager();
+  },
+
+  initContexts: function(){
+    var size = config.size
+      , vsize = config.vacuum.size;
+
+    function getContext(canvas, _size){
+      canvas.width = _size.x;
+      canvas.height = _size.y;
+      return canvas.getContext("2d");
+    }
+
+    this.viewCtx = getContext(this.cview, size);
+    this.worldCtx = getContext(this.cworld, size);
+    this.vacuumCtx = getContext(this.cvacuum, vsize);
+  },
+
+  loop: function(){
+    //console.log(Time.frameTime + "( " + Time.deltaTime + " ) / " + Time.time);
+    this.manager.update();
+    this.manager.draw(this.viewCtx, this.worldCtx, this.vacuumCtx);
+  },
+
+  start: function(){
+    this.paused = false;
+    Controls.enable();
+    this.gameRun();
+  },
+
+  stop: function(){
+    this.paused = true;
+    Controls.disable();
+    window.cancelAnimationFrame(this.tLoop);
+  },
+
+  gameRun: function(){
+    if (Time.tick()) { this.loop(); }
+    this.tLoop = window.requestAnimationFrame(this.boundGameRun);
   }
-  else { throw "canvas not supported!"; }
 
-  this.worldCtx = this.cworld.getContext("2d");
-  this.cworld.width = size.x;
-  this.cworld.height = size.y;
-
-  this.vacuumCtx = this.cvacuum.getContext("2d");
-  this.cvacuum.width = config.vacuum.size.x;
-  this.cvacuum.height = config.vacuum.size.y;
-};
-
-Game.prototype.loop = function(){
-  //console.log(Time.frameTime + "( " + Time.deltaTime + " ) / " + Time.time);
-  this.manager.update();
-  this.manager.draw(this.viewCtx, this.worldCtx, this.vacuumCtx);
-};
-
-Game.prototype.start = function(){
-  this.paused = false;
-  Controls.enable();
-  this.gameRun();
-};
-
-Game.prototype.stop = function(){
-  this.paused = true;
-  Controls.disable();
-  window.cancelAnimationFrame(this.tLoop);
-};
-
-Game.prototype.gameRun = function(){
-  if (Time.tick()) { this.loop(); }
-  this.tLoop = window.requestAnimationFrame(this.boundGameRun);
-};
+});

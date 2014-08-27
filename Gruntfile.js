@@ -141,13 +141,6 @@ module.exports = function(grunt) {
 
     uglify: {
       all: {
-        options: {
-          compress: {
-            global_defs: {
-              "DEBUG": false
-            }
-          }
-        },
         files: {
           '<%= paths.dist.exportJS %><%= paths.dist.gameJS %>': 
             [ '<%= paths.dist.exportJS %><%= paths.dist.gameJS %>' ]
