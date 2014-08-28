@@ -192,6 +192,7 @@ module.exports = function(grunt) {
   
   return grunt.registerTask('server', function() {
     grunt.task.run(build);
+    //grunt.task.run(dist);
     grunt.task.run('connect:server');
     return grunt.task.run('watch:all');
   });
