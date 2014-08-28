@@ -1,9 +1,9 @@
 
-module.exports = psycho.Collection.extend({
+module.exports = ng.Collection.extend({
 
   pos: { x: 20, y: 50},
 
-  initialize: function(){
+  start: function(){
     this.entities = [];
 
     this.current = "fire";

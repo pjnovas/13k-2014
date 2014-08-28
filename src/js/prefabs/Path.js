@@ -1,11 +1,11 @@
 
-var Path = module.exports = psycho.Line.extend({
+var Path = module.exports = ng.Line.extend({
 
   pos: { x: 0, y: 0 },
   to: { x: 0, y: 0 },
 
   size: 2,
-  color: psycho.Color.white,
+  color: ng.Color.white,
 
   tBurn: 0.5,
   burned: false,
@@ -14,14 +14,14 @@ var Path = module.exports = psycho.Line.extend({
   na: null,
   nb: null,
 /*
-  initialize: function(){
+  start: function(){
     //TODO: check Heat Line if it should be created as another line or not.
   },
 */
   setHeat: function(from, to, t){
     this.heat = {
       from: from.pos,
-      to: psycho.Vector.round(psycho.Vector.lerp(from.pos, to.pos, t * 2 > 1 ? 1 : t * 2 ))
+      to: ng.Vector.round(ng.Vector.lerp(from.pos, to.pos, t * 2 > 1 ? 1 : t * 2 ))
     };
   },
 
@@ -47,11 +47,11 @@ var Path = module.exports = psycho.Line.extend({
       na.burn();
     }
 
-    if (psycho.Color.eql(naC,  nbC)){
+    if (ng.Color.eql(naC,  nbC)){
       this.color = naC;
     }
     else {
-      this.color = psycho.Color.lerp(naC, nbC, this.tBurn);
+      this.color = ng.Color.lerp(naC, nbC, this.tBurn);
     }
 
     if (na.burned || nb.burned) {
@@ -68,7 +68,7 @@ var Path = module.exports = psycho.Line.extend({
     Path._super.draw.apply(this, arguments);
 
     if (this.heat){
-      psycho.Renderer.drawLine(ctx, {
+      ng.Renderer.drawLine(ctx, {
         from: this.heat.from,
         to: this.heat.to,
         size: 5,

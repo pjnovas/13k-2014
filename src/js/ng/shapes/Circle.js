@@ -1,11 +1,11 @@
 
-module.exports = psycho.Entity.extend({
+module.exports = ng.Entity.extend({
 
   pos: { x: 0, y: 0 },
   radius: 5,
   stroke: null,
 
-  initialize: function(){},
+  start: function(){},
 
   update: function(){ },
 
@@ -18,7 +18,7 @@ module.exports = psycho.Entity.extend({
     };
 
     if (this.color){
-      opts.fill = psycho.Color.toRGBA(this.color);
+      opts.fill = ng.Color.toRGBA(this.color);
     }
 
     if (this.stroke){
@@ -29,7 +29,7 @@ module.exports = psycho.Entity.extend({
       opts.angles = this.angles;
     }
 
-    psycho.Renderer.drawCircle(ctx, opts);
+    ng.Renderer.drawCircle(ctx, opts);
   },
 
 });

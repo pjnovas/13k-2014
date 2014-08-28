@@ -1,6 +1,6 @@
 
 
-module.exports = psycho.Circle.extend({
+module.exports = ng.Circle.extend({
 
   stroke: {
     color: [80,255,85,0.1]
@@ -13,7 +13,7 @@ module.exports = psycho.Circle.extend({
   
   suckForce: 3,
 
-  initialize: function(){
+  start: function(){
     var cfg = config
       , cfgm = cfg.world.margin;
 
@@ -21,7 +21,7 @@ module.exports = psycho.Circle.extend({
     this.radius = this.size/2;
     this.stroke.size = this.size;
 
-    this.pos = psycho.Vector.prod(psycho.Vector.one, cfg.size);
+    this.pos = ng.Vector.prod(ng.Vector.one, cfg.size);
     this.pos.x -= cfgm.x + 10;
     this.pos.y -= cfgm.y + 20;
     
@@ -31,7 +31,7 @@ module.exports = psycho.Circle.extend({
 
   setNodesInside: function(nodes){
     nodes.forEach(function(node){
-      if (psycho.Vector.pointInCircle(node.pos, this.pos, this.size)){
+      if (ng.Vector.pointInCircle(node.pos, this.pos, this.size)){
         if (node.burned){
           node.burned = false;
           node.revive();
@@ -46,7 +46,7 @@ module.exports = psycho.Circle.extend({
     spiders.forEach(function(spider){
       if (!spider.dead && !spider.exited){
 
-        if (psycho.Vector.pointInCircle(spider.pos, this.pos, this.size)){
+        if (ng.Vector.pointInCircle(spider.pos, this.pos, this.size)){
           spider.building = false;
           spider.exited = true;
           spider.vel = { x: 0, y: 0 };
@@ -63,11 +63,11 @@ module.exports = psycho.Circle.extend({
 
       if (!spider.catched){
         var sp = spider.pos;
-        var imp = psycho.Vector.normal(sp, p);
-        spider.vel = psycho.Vector.add(spider.vel, psycho.Vector.multiply(imp, force)); 
-        spider.pos = psycho.Vector.add(sp, spider.vel);
+        var imp = ng.Vector.normal(sp, p);
+        spider.vel = ng.Vector.add(spider.vel, ng.Vector.multiply(imp, force)); 
+        spider.pos = ng.Vector.add(sp, spider.vel);
         
-        if (psycho.Vector.pointInCircle(spider.pos, p, 5)){
+        if (ng.Vector.pointInCircle(spider.pos, p, 5)){
           spider.catched = true;
           this.saved.push(spider);
         }

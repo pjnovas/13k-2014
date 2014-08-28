@@ -1,9 +1,8 @@
 
-
-module.exports = psycho.Circle.extend({
+module.exports = ng.Circle.extend({
 
   radius: 3,
-  color: psycho.Color.white,
+  color: ng.Color.white,
 
   nears: null,
   selected: false,
@@ -28,7 +27,7 @@ module.exports = psycho.Circle.extend({
     , earth: [190,160,40,1]
   },
 
-  initialize: function(){
+  start: function(){
     this.nears = [];
   },
 
@@ -42,7 +41,7 @@ module.exports = psycho.Circle.extend({
       return node.burned;
     });
 
-    if (!oneBurned && psycho.Mathf.rnd01() < 0.15){
+    if (!oneBurned && ng.Mathf.rnd01() < 0.15){
       this.setBurned();
     }
   },
@@ -69,7 +68,7 @@ module.exports = psycho.Circle.extend({
     }
     
     this.shaked = true;
-    this.pos = psycho.Vector.round(psycho.Vector.add(this.pos, psycho.Mathf.rndInCircle(0.2)));
+    this.pos = ng.Vector.round(ng.Vector.add(this.pos, ng.Mathf.rndInCircle(0.2)));
   },
 
   endShake: function(){
@@ -123,7 +122,7 @@ module.exports = psycho.Circle.extend({
     });
 
     if (ns.length > 0){
-      var idx = psycho.Mathf.rnd(0, ns.length-1);
+      var idx = ng.Mathf.rnd(0, ns.length-1);
       return ns[idx];
     }
 
@@ -189,7 +188,7 @@ module.exports = psycho.Circle.extend({
       this.resetTemp();
     }
 
-    this.fill = this.color = psycho.Color.lerp(this.colors.cold, this.colors.burn, this.temp);
+    this.fill = this.color = ng.Color.lerp(this.colors.cold, this.colors.burn, this.temp);
 
     if (this.temp > 1){
       this.setBurned();

@@ -1,5 +1,5 @@
 
-module.exports = psycho.Collection.extend({
+module.exports = ng.Collection.extend({
 
   hasOne: function(naId, nbId){
     return this.entities.some(function(path){

@@ -1,5 +1,5 @@
 
-module.exports = psycho.Circle.extend({
+module.exports = ng.Circle.extend({
 
   radius: 20,
   stroke: {
@@ -10,7 +10,7 @@ module.exports = psycho.Circle.extend({
   active: false,
   element: "fire",
 
-  initialize: function(){
+  start: function(){
     Controls.on("pressing", this.onPressing.bind(this));
     Controls.on("moving", this.onMoving.bind(this));
     Controls.on("release", this.onRelease.bind(this));

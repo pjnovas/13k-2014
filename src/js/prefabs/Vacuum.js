@@ -1,7 +1,7 @@
 
-module.exports = psycho.Entity.extend({
+module.exports = ng.Entity.extend({
 
-  initialize: function(options){
+  start: function(options){
     this.target = options.target;
     this.size = config.vacuum.size;
 
@@ -20,7 +20,7 @@ module.exports = psycho.Entity.extend({
   createGraphics: function(){
     var cPos = { x: this.offx + 150, y: this.offy + 50 };
 
-    this.bgBack = new psycho.Rect({
+    this.bgBack = new ng.Rect({
       pos: cPos,
       size: { x: 110, y: 330 },
       corner: 6,
@@ -37,22 +37,22 @@ module.exports = psycho.Entity.extend({
       pos: this.recipePos,
       size: this.recipeSize,
       corner: 6,
-      fill: psycho.Color.white,
+      fill: ng.Color.white,
       stroke: {
         size: 2,
         color: c
       }
     };
 
-    this.cilinder = new psycho.Rect(opts);
+    this.cilinder = new ng.Rect(opts);
 
     opts.fill = [0,0,255,0.5];
-    this.glass = new psycho.Rect(opts);
+    this.glass = new ng.Rect(opts);
 
-    this.stats = new psycho.Text({
+    this.stats = new ng.Text({
       pos: { x: 180, y: 30 },
       size: 20,
-      color: psycho.Color.white
+      color: ng.Color.white
     });
 
   },
@@ -72,11 +72,11 @@ module.exports = psycho.Entity.extend({
         spider.inVacuum = true;
         
         spider.vacuum = {
-          ampY: psycho.Mathf.rnd(10, centerY/2),
-          velY: psycho.Mathf.rnd(600, 1000),
-          ampX: psycho.Mathf.rnd(5, 20),
-          velX: psycho.Mathf.rnd(2000, 6000),
-          rot: psycho.Mathf.rnd(1, 5)/10
+          ampY: ng.Mathf.rnd(10, centerY/2),
+          velY: ng.Mathf.rnd(600, 1000),
+          ampX: ng.Mathf.rnd(5, 20),
+          velX: ng.Mathf.rnd(2000, 6000),
+          rot: ng.Mathf.rnd(1, 5)/10
         };
 
         spider.pos = { 

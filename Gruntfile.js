@@ -92,7 +92,7 @@ module.exports = function(grunt) {
             ,Time: true
             ,game: true
 
-            ,psycho: true
+            ,ng: true
             ,prefabs: true
             ,Controls: true
           }

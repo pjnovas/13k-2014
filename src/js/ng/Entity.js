@@ -1,9 +1,9 @@
 
-module.exports = psycho.Base.extend({
+module.exports = ng.Base.extend({
 
   pos: { x: 0, y: 0 },
 
-  initialize: function(){},
+  start: function(){},
 
   update: function(){ },
 

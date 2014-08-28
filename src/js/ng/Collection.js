@@ -1,9 +1,9 @@
 
-module.exports = psycho.Base.extend({
+module.exports = ng.Base.extend({
 
   entities: [],
 
-  initialize: function(){
+  start: function(){
     this.entities = [];
   },
 

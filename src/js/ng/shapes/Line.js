@@ -1,23 +1,23 @@
 
-module.exports = psycho.Entity.extend({
+module.exports = ng.Entity.extend({
 
   pos: { x: 0, y: 0 },
   to: { x: 0, y: 0 },
 
   size: 1,
-  color: psycho.Color.white,
+  color: ng.Color.white,
   
-  initialize: function(){},
+  start: function(){},
 
   update: function(){ },
 
   draw: function(ctx){
 
-    psycho.Renderer.drawLine(ctx, {
+    ng.Renderer.drawLine(ctx, {
       from: this.pos,
       to: this.to,
       size: this.size,
-      color: psycho.Color.toRGBA(this.color)
+      color: ng.Color.toRGBA(this.color)
     });
 
   },

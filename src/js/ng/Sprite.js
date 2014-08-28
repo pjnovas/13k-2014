@@ -1,5 +1,5 @@
 
-module.exports = psycho.Entity.extend({
+module.exports = ng.Entity.extend({
 
   resource: "",
   pos: { x: 0, y: 0 },
@@ -7,13 +7,13 @@ module.exports = psycho.Entity.extend({
   size: { x: 20, y: 20 },
   angle: 0,
 
-  initialize: function(){},
+  start: function(){},
 
   update: function(){ },
 
   draw: function(ctx){
 
-    psycho.Renderer.drawSprite(ctx, {
+    ng.Renderer.drawSprite(ctx, {
       resource: this.resource,
       pos: this.pos,
       size: this.size,

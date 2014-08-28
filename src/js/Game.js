@@ -1,7 +1,7 @@
 
 var Manager = require("./Manager");
 
-module.exports = psycho.Base.extend({
+module.exports = ng.Base.extend({
 
   viewCtx:  null,
   worldCtx:  null,
@@ -10,7 +10,7 @@ module.exports = psycho.Base.extend({
   tLoop:  null,
   paused:  false,
 
-  initialize: function(options){
+  start: function(options){
     this.cview = options.viewport;
     this.cworld = options.world;
     this.cvacuum = options.vacuum;
@@ -42,7 +42,7 @@ module.exports = psycho.Base.extend({
     this.manager.draw(this.viewCtx, this.worldCtx, this.vacuumCtx);
   },
 
-  start: function(){
+  play: function(){
     this.paused = false;
     Controls.enable();
     this.gameRun();

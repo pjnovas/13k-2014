@@ -1,9 +1,9 @@
 
-module.exports = psycho.Collection.extend({
+module.exports = ng.Collection.extend({
 
   size: { x: 96, y: 96 },
 
-  initialize: function(options){
+  start: function(options){
     this.entities = [];
 
     this.name = options.name;
@@ -19,7 +19,7 @@ module.exports = psycho.Collection.extend({
 
   createElement: function(){
     
-    this.bg = new psycho.Rect({
+    this.bg = new ng.Rect({
       pos: this.pos,
       size: this.size,
       fill: this.color,
@@ -28,9 +28,9 @@ module.exports = psycho.Collection.extend({
     });
     this.entities.push(this.bg);
 
-    this.icon = new psycho.Sprite({
+    this.icon = new ng.Sprite({
       resource: "elements",
-      pos: psycho.Vector.center(this.pos, this.size),
+      pos: ng.Vector.center(this.pos, this.size),
       size: this.size,
       angle: 0,
       sprite: this.sprite
@@ -40,15 +40,15 @@ module.exports = psycho.Collection.extend({
     var txtPos = { x: this.pos.x, y: this.pos.y + this.size.y * 1.1 };
     var txtSize = 20;
 
-    this.ctrlKey = new psycho.Rect({
+    this.ctrlKey = new ng.Rect({
       pos: { x: txtPos.x - txtSize/2, y: txtPos.y - txtSize},
-      size: psycho.Vector.multiply(psycho.Vector.one, txtSize*2),
+      size: ng.Vector.multiply(ng.Vector.one, txtSize*2),
       fill: [0,0,0,1],
       corner: 4
     });
     this.entities.push(this.ctrlKey);
 
-    this.txtKey = new psycho.Text({
+    this.txtKey = new ng.Text({
       text: this.key,
       pos: txtPos,
       size: txtSize,

@@ -1,5 +1,5 @@
 
-var Vector = module.exports = psycho.Base.extend({ }, {
+var Vector = module.exports = ng.Base.extend({ }, {
 
   zero: { x: 0, y: 0 },
   one: { x: 1, y: 1 },

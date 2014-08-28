@@ -1,5 +1,5 @@
 
-var Mathf = module.exports = psycho.Base.extend({ }, {
+var Mathf = module.exports = ng.Base.extend({ }, {
 
   rnd: function(min, max){
     return Math.floor(Math.random() * (max - min + 1) + min);

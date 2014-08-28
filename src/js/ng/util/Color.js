@@ -1,5 +1,5 @@
 
-module.exports = psycho.Base.extend({ }, {
+module.exports = ng.Base.extend({ }, {
 
   white: [255,255,255,1],
 
@@ -11,7 +11,7 @@ module.exports = psycho.Base.extend({ }, {
 
     function l(a, b, t, m){
       m = m ? m : 1;
-      return Math.round(psycho.Mathf.lerp(a, b, t) * m) / m;
+      return Math.round(ng.Mathf.lerp(a, b, t) * m) / m;
     }
 
     return [

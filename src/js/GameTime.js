@@ -1,5 +1,5 @@
 
-module.exports = psycho.Base.extend({
+module.exports = ng.Base.extend({
 
   lastTime: null,
   frameTime: 0,
@@ -8,7 +8,7 @@ module.exports = psycho.Base.extend({
   minFrameTime: 12,
   time: 0,
 
-  initialize: function(){
+  start: function(){
     this.lastTime = Date.now();
   },
 

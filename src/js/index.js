@@ -4,7 +4,7 @@ var modal = document.querySelector(".bg-modal");
 
 require("./reqAnimFrame");
 
-require("./psycho");
+require("./ng");
 
 w.prefabs = require("./prefabs");
 
@@ -101,7 +101,7 @@ function initGame(){
   function pauseGame(){
     if (game.paused){
       toggleModal();
-      game.start();
+      game.play();
     }
     else {
       modal.innerHTML = '<div class="pause">Pause</div>';
@@ -117,10 +117,10 @@ function initGame(){
 function onDocLoad(){
   w.config = configGame();
 
-  w.psycho.Repo.addResources(w.config.images)
+  w.ng.Repo.addResources(w.config.images)
     .onComplete(function(){
       initGame();
-      w.game.start();
+      w.game.play();
     })
     .load();
 }

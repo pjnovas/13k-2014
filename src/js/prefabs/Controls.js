@@ -20,7 +20,7 @@ function getCoordsEvent(e, ele){
   return { x: x, y: y };
 }
 
-module.exports = psycho.Base.extend({
+module.exports = ng.Base.extend({
 
   events: {
       "pressing": null
@@ -32,7 +32,7 @@ module.exports = psycho.Base.extend({
 
   enabled: false,
 
-  initialize: function(options){
+  start: function(options){
     var doc = window.document
       , c = this.container = options.container || doc;
 

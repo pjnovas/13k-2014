@@ -1,5 +1,5 @@
 
-module.exports = psycho.Entity.extend({
+module.exports = ng.Entity.extend({
 
   pos: { x: 0, y: 0 },
   size: { x: 20, y: 20},
@@ -7,7 +7,7 @@ module.exports = psycho.Entity.extend({
   stroke: null,
   corner: null,
 
-  initialize: function(){},
+  start: function(){},
 
   update: function(){ },
 
@@ -21,19 +21,19 @@ module.exports = psycho.Entity.extend({
     if (this.stroke){
       opts.stroke = this.stroke;
       if (opts.stroke.color) {
-        opts.stroke.color = psycho.Color.toRGBA(opts.stroke.color);
+        opts.stroke.color = ng.Color.toRGBA(opts.stroke.color);
       }
     }
 
     if (this.fill){
-      opts.fill = psycho.Color.toRGBA(this.fill);
+      opts.fill = ng.Color.toRGBA(this.fill);
     }
 
     if (this.corner){
       opts.corner = this.corner;
     }
 
-    psycho.Renderer.drawRect(ctx, opts);
+    ng.Renderer.drawRect(ctx, opts);
 
   },
 

@@ -1,6 +1,6 @@
 /*jslint -W083 */
 
-var Nodes = module.exports = psycho.Collection.extend({
+var Nodes = module.exports = ng.Collection.extend({
 
   paths: null,
 
@@ -8,21 +8,21 @@ var Nodes = module.exports = psycho.Collection.extend({
   applyRatio: 0,
   element: null,
 
-  initialize: function(){
+  start: function(){
     this.paths = new prefabs.Paths();
 
     var marginW = config.world.margin.x;
     var marginH = config.world.margin.y;
     
     // Full-screen
-    var radius = psycho.Vector.divide(config.size, 2);
+    var radius = ng.Vector.divide(config.size, 2);
 
     // Full-screen with margin
     radius.x -= marginW;
     radius.y -= marginH;
 
     // Center of Screen
-    var center = psycho.Vector.center(psycho.Vector.zero, config.size);
+    var center = ng.Vector.center(ng.Vector.zero, config.size);
 
     this.createWeb(center, radius);
   },
@@ -36,8 +36,8 @@ var Nodes = module.exports = psycho.Collection.extend({
       , duplicateBy = 3
       , increaseBy = 2
       , maxNodesByRing = nodesByRing * 8 // 8 times increase max
-      , boundMin = psycho.Vector.add(center, psycho.Vector.multiply(rad, -1))
-      , boundMax = psycho.Vector.add(center, rad)
+      , boundMin = ng.Vector.add(center, ng.Vector.multiply(rad, -1))
+      , boundMax = ng.Vector.add(center, rad)
       , rings = [];
    
     var cNode = new prefabs.Node({ pos: center });
@@ -59,7 +59,7 @@ var Nodes = module.exports = psycho.Collection.extend({
         nodesByRing = maxNodesByRing;
       }
 
-      var ps = psycho.Mathf.polygonPoints(center, (i*ringsGap) + start, nodesByRing);
+      var ps = ng.Mathf.polygonPoints(center, (i*ringsGap) + start, nodesByRing);
       countNodes += ps.length;
       var cRing = [];
 
@@ -69,10 +69,10 @@ var Nodes = module.exports = psycho.Collection.extend({
 
       ps.forEach(function(p){
 
-        var np = psycho.Vector.round(psycho.Vector.add(p, psycho.Mathf.rndInCircle(rndRadius)));
+        var np = ng.Vector.round(ng.Vector.add(p, ng.Mathf.rndInCircle(rndRadius)));
         var node = new prefabs.Node({ pos: np });
         
-        if (psycho.Vector.isOut(np, boundMin, boundMax)) {
+        if (ng.Vector.isOut(np, boundMin, boundMax)) {
           node.out = true;
         }
         else {
@@ -154,7 +154,7 @@ var Nodes = module.exports = psycho.Collection.extend({
 
   findNodeByCollider: function(){
     this.entities.forEach(function (node) {
-      if (this.applyPos && psycho.Vector.pointInCircle(this.applyPos, node.pos, this.applyRatio)) {
+      if (this.applyPos && ng.Vector.pointInCircle(this.applyPos, node.pos, this.applyRatio)) {
         var methodIdx = this.elements.indexOf(this.element);
         var method = this.applyMethods[methodIdx];
         node[method]();

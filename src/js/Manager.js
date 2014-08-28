@@ -1,7 +1,7 @@
 
-module.exports = psycho.Base.extend({
+module.exports = ng.Base.extend({
 
-  initialize: function(){
+  start: function(){
     this.cursor = new prefabs.Cursor();
     this.nodes = new prefabs.Nodes();
     this.paths = new prefabs.Paths();

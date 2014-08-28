@@ -1,5 +1,5 @@
 
-module.exports = psycho.Collection.extend({
+module.exports = ng.Collection.extend({
 
   nodes: null,
   spidersExit: 0,
@@ -7,7 +7,7 @@ module.exports = psycho.Collection.extend({
   stats: {},
   amount: 50,
 
-  initialize: function(options){
+  start: function(options){
     this.entities = [];
     this.nodes = options.nodes;
 
@@ -40,7 +40,7 @@ module.exports = psycho.Collection.extend({
       , amount = (len < this.amount ? len-2: this.amount);
 
     do {
-      idx = psycho.Mathf.rnd(0, len-1);
+      idx = ng.Mathf.rnd(0, len-1);
       node = nodes[idx];
 
       if (!node.burned && nodesIds.indexOf(node.cid) === -1){
@@ -61,7 +61,7 @@ module.exports = psycho.Collection.extend({
   },
 
   gonnaBuildWeb: function(node, spider){
-    if (!node.hasEarth && node.temp === 0 && psycho.Mathf.rnd01() > 0.7) {
+    if (!node.hasEarth && node.temp === 0 && ng.Mathf.rnd01() > 0.7) {
       var nearBurned = node.getNearBurned();
       if (nearBurned){
         spider.buildWeb(node, nearBurned);
@@ -84,7 +84,7 @@ module.exports = psycho.Collection.extend({
   },
 
   spiderNodeCollide: function(spider, node){
-    if (psycho.Vector.pointInCircle(spider.pos, node.pos, 5)) {
+    if (ng.Vector.pointInCircle(spider.pos, node.pos, 5)) {
      
       if (!this.gonnaBuildWeb(node, spider) && !this.gotNearNodeToGo(node, spider)){
         if (node.burned){

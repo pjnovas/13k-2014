@@ -45,11 +45,11 @@ var Base = module.exports = function(attributes) {
 
   this.cid = _.uniqueId('c');
   
-  this.initialize.apply(this, arguments);
+  this.start.apply(this, arguments);
 };
 
 _.extend(Base.prototype, {
-  initialize: function(){},
+  start: function(){},
 });
 
 Base.extend = function(protoProps, staticProps) {
