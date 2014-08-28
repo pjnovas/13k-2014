@@ -1,5 +1,5 @@
 
-module.exports = ng.Collection.extend({
+$.Stats = $.Collection.extend({
 
   pos: { x: 1, y: 0 },
 
@@ -13,7 +13,7 @@ module.exports = ng.Collection.extend({
 
   start: function(){
     this.entities = [];
-    this.pos = ng.Vector.prod(this.pos, config.size);
+    this.pos = $.Vector.prod(this.pos, config.size);
 
     this.stats = {
       saved: 0,
@@ -45,7 +45,7 @@ module.exports = ng.Collection.extend({
       y: this.pos.y + mH + size*1.5
     };
 
-    this.iconAlives = new ng.Sprite(spider);
+    this.iconAlives = new $.Sprite(spider);
     this.entities.push(this.iconAlives);
 
     spider.pos = {
@@ -53,18 +53,18 @@ module.exports = ng.Collection.extend({
       y: this.pos.y + mH
     };
 
-    this.iconKills = new ng.Sprite(spider);
+    this.iconKills = new $.Sprite(spider);
     this.entities.push(this.iconKills);
     
-    this.lineAKills = new ng.Line({
-      pos: ng.Vector.origin(spider.pos, spSize),
-      to: ng.Vector.add(hSpSize, spider.pos),
+    this.lineAKills = new $.Line({
+      pos: $.Vector.origin(spider.pos, spSize),
+      to: $.Vector.add(hSpSize, spider.pos),
       size: 3,
       color: this.colors.kills
     });
     this.entities.push(this.lineAKills);
 
-    this.lineBKills = new ng.Line({
+    this.lineBKills = new $.Line({
       pos: { x: spider.pos.x + hSpSize.x, y: spider.pos.y - hSpSize.y },
       to: { x: spider.pos.x - hSpSize.x, y: spider.pos.y + hSpSize.y },
       size: 3,
@@ -76,14 +76,14 @@ module.exports = ng.Collection.extend({
   createText: function(){
     var txtSize = 30;
 
-    this.textKills = new ng.Text({
+    this.textKills = new $.Text({
       pos: { x: this.iconKills.pos.x - txtSize*3, y: this.iconKills.pos.y },
       size: txtSize,
       color: this.colors.kills
     });
     this.entities.push(this.textKills);
 
-    this.textAlives = new ng.Text({
+    this.textAlives = new $.Text({
       pos: { x: this.iconAlives.pos.x - txtSize*3, y: this.iconAlives.pos.y },
       size: txtSize,
       color: this.colors.alives

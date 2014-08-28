@@ -1,5 +1,5 @@
 
-module.exports = ng.Collection.extend({
+$.Paths = $.Collection.extend({
 
   hasOne: function(naId, nbId){
     return this.entities.some(function(path){
@@ -14,7 +14,7 @@ module.exports = ng.Collection.extend({
       nA.addNear(nB);
       nB.addNear(nA);
 
-      this.entities.push(new prefabs.Path({
+      this.entities.push(new $.Path({
         na: nA, 
         nb: nB
       }));

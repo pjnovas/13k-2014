@@ -4,10 +4,8 @@
  * and only left the minimun and necessary code
  */
 
-
-//TODO: centralize this in utilities
-
 var _ = {};
+var $ = {};
 
 var idCounter = 0;
 _.uniqueId = function(prefix) {
@@ -34,10 +32,15 @@ _.extend = function(obj) {
   return obj;
 };
 
+_.pad = function(num, size) {
+  var s = "0000000" + num;
+  return s.substr(s.length-size);
+};
+
 
 // BASE CLASS 
 
-var Base = module.exports = function(attributes) {
+$.Base = function(attributes) {
 
   if (_.isObject(attributes)){
     _.extend(this, attributes || {});
@@ -48,11 +51,11 @@ var Base = module.exports = function(attributes) {
   this.start.apply(this, arguments);
 };
 
-_.extend(Base.prototype, {
+_.extend($.Base.prototype, {
   start: function(){},
 });
 
-Base.extend = function(protoProps, staticProps) {
+$.Base.extend = function(protoProps, staticProps) {
   var parent = this;
   var child = function(){ return parent.apply(this, arguments); };
     

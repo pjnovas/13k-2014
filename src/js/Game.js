@@ -1,7 +1,5 @@
 
-var Manager = require("./Manager");
-
-module.exports = ng.Base.extend({
+$.Game = $.Base.extend({
 
   viewCtx:  null,
   worldCtx:  null,
@@ -18,7 +16,7 @@ module.exports = ng.Base.extend({
     this.boundGameRun = this.gameRun.bind(this);
     this.initContexts();
 
-    this.manager = new Manager();
+    this.manager = new $.Manager();
   },
 
   initContexts: function(){

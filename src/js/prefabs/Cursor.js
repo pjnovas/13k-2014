@@ -1,5 +1,5 @@
 
-module.exports = ng.Circle.extend({
+$.Cursor = $.Circle.extend({
 
   radius: 20,
   stroke: {

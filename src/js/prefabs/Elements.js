@@ -1,5 +1,5 @@
 
-module.exports = ng.Collection.extend({
+$.Elements = $.Collection.extend({
 
   pos: { x: 20, y: 50},
 
@@ -26,7 +26,7 @@ module.exports = ng.Collection.extend({
 
     this.elements.forEach(function(ele, i){
 
-      this.entities.push(new prefabs.Element({
+      this.entities.push(new $.Element({
         pos: { x: this.pos.x, y: this.pos.y + (i * (size + gap)) },
         name: ele,
         key: this.keys[i],

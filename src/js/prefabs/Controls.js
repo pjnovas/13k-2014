@@ -1,26 +1,5 @@
 
-function getCoordsEvent(e, ele){
-  var x, y
-    , doc = document
-    , body = doc.body
-    , docEle = doc.documentElement;
-
-  if (e.pageX || e.pageY) { 
-    x = e.pageX;
-    y = e.pageY;
-  }
-  else { 
-    x = e.clientX + body.scrollLeft + docEle.scrollLeft; 
-    y = e.clientY + body.scrollTop + docEle.scrollTop; 
-  } 
-  
-  x -= ele.offsetLeft;
-  y -= ele.offsetTop;
-  
-  return { x: x, y: y };
-}
-
-module.exports = ng.Base.extend({
+$.Controls = $.Base.extend({
 
   events: {
       "pressing": null
@@ -121,11 +100,32 @@ module.exports = ng.Base.extend({
       return;
     }
 
-    var pos = getCoordsEvent(e, this.container);
+    var pos = this.getCoordsEvent(e, this.container);
 
     this.events[type].forEach(function(cb){
       cb(pos);
     });
+  },
+
+  getCoordsEvent: function(e, ele){
+    var x, y
+      , doc = document
+      , body = doc.body
+      , docEle = doc.documentElement;
+
+    if (e.pageX || e.pageY) { 
+      x = e.pageX;
+      y = e.pageY;
+    }
+    else { 
+      x = e.clientX + body.scrollLeft + docEle.scrollLeft; 
+      y = e.clientY + body.scrollTop + docEle.scrollTop; 
+    } 
+    
+    x -= ele.offsetLeft;
+    y -= ele.offsetTop;
+    
+    return { x: x, y: y };
   }
 
 });

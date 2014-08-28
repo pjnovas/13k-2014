@@ -1,5 +1,5 @@
 
-module.exports = ng.Base.extend({
+$.Collection = $.Base.extend({
 
   entities: [],
 

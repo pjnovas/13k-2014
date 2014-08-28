@@ -1,5 +1,5 @@
 
-module.exports = ng.Base.extend({
+$.Message = $.Base.extend({
 
   start: function(){
     

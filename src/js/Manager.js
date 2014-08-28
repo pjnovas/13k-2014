@@ -1,23 +1,23 @@
 
-module.exports = ng.Base.extend({
+$.Manager = $.Base.extend({
 
   start: function(){
-    this.cursor = new prefabs.Cursor();
-    this.nodes = new prefabs.Nodes();
-    this.paths = new prefabs.Paths();
-    this.target = new prefabs.Target();
+    this.cursor = new $.Cursor();
+    this.nodes = new $.Nodes();
+    this.paths = new $.Paths();
+    this.target = new $.Target();
 
-    this.vacuum = new prefabs.Vacuum({
+    this.vacuum = new $.Vacuum({
       target: this.target
     });
 
-    this.elements = new prefabs.Elements();
+    this.elements = new $.Elements();
 
-    this.spiders = new prefabs.Spiders({
+    this.spiders = new $.Spiders({
       nodes: this.nodes
     });
 
-    this.stats = new prefabs.Stats();
+    this.stats = new $.Stats();
 
     this.target.setNodesInside(this.nodes.getNodes());
   },

@@ -1,5 +1,5 @@
 
-var Vector = module.exports = ng.Base.extend({ }, {
+$.Vector = $.Base.extend({ }, {
 
   zero: { x: 0, y: 0 },
   one: { x: 1, y: 1 },
@@ -30,17 +30,17 @@ var Vector = module.exports = ng.Base.extend({ }, {
 
   // get "which" part of a point between 2 (i.e. 4th part)
   part: function(from, to, which){
-    return Vector.lerp(from, to, which/10);
+    return $.Vector.lerp(from, to, which/10);
   },
 
   angleTo: function(from, to){
-    var p = Vector.dif(from, to);
+    var p = $.Vector.dif(from, to);
     return Math.atan2(p.y, p.x);
   },
 
   // get mid point between 2
   mid: function(from, to){
-    return Vector.divide(Vector.add(from, to), 2);
+    return $.Vector.divide($.Vector.add(from, to), 2);
   },
 
   eql: function(a, b){
@@ -48,8 +48,8 @@ var Vector = module.exports = ng.Base.extend({ }, {
   },
 
   normal: function(from, to){
-    var d = Vector.dif(from, to);
-    var l = Vector.magnitude(from, to);
+    var d = $.Vector.dif(from, to);
+    var l = $.Vector.magnitude(from, to);
 
     return {
         x: d.x / l || 0
@@ -72,12 +72,12 @@ var Vector = module.exports = ng.Base.extend({ }, {
   },
 
   magnitude: function(a, b){
-    var dif = Vector.dif(a, b);
+    var dif = $.Vector.dif(a, b);
     return Math.sqrt(dif.x*dif.x + dif.y*dif.y);
   },
 
   pointInCircle: function(p, pos, radius){
-    return Vector.magnitude(p, pos) < radius;
+    return $.Vector.magnitude(p, pos) < radius;
   },
   
   lerp: function(from, to, t){

@@ -1,6 +1,6 @@
 /*jslint -W083 */
 
-var Nodes = module.exports = ng.Collection.extend({
+$.Nodes = $.Collection.extend({
 
   paths: null,
 
@@ -9,20 +9,20 @@ var Nodes = module.exports = ng.Collection.extend({
   element: null,
 
   start: function(){
-    this.paths = new prefabs.Paths();
+    this.paths = new $.Paths();
 
     var marginW = config.world.margin.x;
     var marginH = config.world.margin.y;
     
     // Full-screen
-    var radius = ng.Vector.divide(config.size, 2);
+    var radius = $.Vector.divide(config.size, 2);
 
     // Full-screen with margin
     radius.x -= marginW;
     radius.y -= marginH;
 
     // Center of Screen
-    var center = ng.Vector.center(ng.Vector.zero, config.size);
+    var center = $.Vector.center($.Vector.zero, config.size);
 
     this.createWeb(center, radius);
   },
@@ -36,11 +36,11 @@ var Nodes = module.exports = ng.Collection.extend({
       , duplicateBy = 3
       , increaseBy = 2
       , maxNodesByRing = nodesByRing * 8 // 8 times increase max
-      , boundMin = ng.Vector.add(center, ng.Vector.multiply(rad, -1))
-      , boundMax = ng.Vector.add(center, rad)
+      , boundMin = $.Vector.add(center, $.Vector.multiply(rad, -1))
+      , boundMax = $.Vector.add(center, rad)
       , rings = [];
    
-    var cNode = new prefabs.Node({ pos: center });
+    var cNode = new $.Node({ pos: center });
     this.entities.push(cNode);
 
     var start = 10;
@@ -59,7 +59,7 @@ var Nodes = module.exports = ng.Collection.extend({
         nodesByRing = maxNodesByRing;
       }
 
-      var ps = ng.Mathf.polygonPoints(center, (i*ringsGap) + start, nodesByRing);
+      var ps = $.Mathf.polygonPoints(center, (i*ringsGap) + start, nodesByRing);
       countNodes += ps.length;
       var cRing = [];
 
@@ -69,10 +69,10 @@ var Nodes = module.exports = ng.Collection.extend({
 
       ps.forEach(function(p){
 
-        var np = ng.Vector.round(ng.Vector.add(p, ng.Mathf.rndInCircle(rndRadius)));
-        var node = new prefabs.Node({ pos: np });
+        var np = $.Vector.round($.Vector.add(p, $.Mathf.rndInCircle(rndRadius)));
+        var node = new $.Node({ pos: np });
         
-        if (ng.Vector.isOut(np, boundMin, boundMax)) {
+        if ($.Vector.isOut(np, boundMin, boundMax)) {
           node.out = true;
         }
         else {
@@ -154,7 +154,7 @@ var Nodes = module.exports = ng.Collection.extend({
 
   findNodeByCollider: function(){
     this.entities.forEach(function (node) {
-      if (this.applyPos && ng.Vector.pointInCircle(this.applyPos, node.pos, this.applyRatio)) {
+      if (this.applyPos && $.Vector.pointInCircle(this.applyPos, node.pos, this.applyRatio)) {
         var methodIdx = this.elements.indexOf(this.element);
         var method = this.applyMethods[methodIdx];
         node[method]();
@@ -173,12 +173,12 @@ var Nodes = module.exports = ng.Collection.extend({
     }
 
     this.paths.update();
-    Nodes._super.update.apply(this);
+    $.Nodes._super.update.apply(this);
   },
 
   draw: function(ctx){
     this.paths.draw(ctx);
-    Nodes._super.draw.apply(this, arguments);
+    $.Nodes._super.draw.apply(this, arguments);
   }
 
 });

@@ -1,8 +1,8 @@
 
-module.exports = ng.Circle.extend({
+$.Node = $.Circle.extend({
 
   radius: 3,
-  color: ng.Color.white,
+  color: $.Color.white,
 
   nears: null,
   selected: false,
@@ -41,7 +41,7 @@ module.exports = ng.Circle.extend({
       return node.burned;
     });
 
-    if (!oneBurned && ng.Mathf.rnd01() < 0.15){
+    if (!oneBurned && $.Mathf.rnd01() < 0.15){
       this.setBurned();
     }
   },
@@ -68,7 +68,7 @@ module.exports = ng.Circle.extend({
     }
     
     this.shaked = true;
-    this.pos = ng.Vector.round(ng.Vector.add(this.pos, ng.Mathf.rndInCircle(0.2)));
+    this.pos = $.Vector.round($.Vector.add(this.pos, $.Mathf.rndInCircle(0.2)));
   },
 
   endShake: function(){
@@ -122,7 +122,7 @@ module.exports = ng.Circle.extend({
     });
 
     if (ns.length > 0){
-      var idx = ng.Mathf.rnd(0, ns.length-1);
+      var idx = $.Mathf.rnd(0, ns.length-1);
       return ns[idx];
     }
 
@@ -188,7 +188,7 @@ module.exports = ng.Circle.extend({
       this.resetTemp();
     }
 
-    this.fill = this.color = ng.Color.lerp(this.colors.cold, this.colors.burn, this.temp);
+    this.fill = this.color = $.Color.lerp(this.colors.cold, this.colors.burn, this.temp);
 
     if (this.temp > 1){
       this.setBurned();

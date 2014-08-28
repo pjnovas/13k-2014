@@ -1,29 +1,29 @@
 
-function fill(ctx, ps){
-  if (ps.hasOwnProperty("fill")){
-    ctx.fillStyle = ps.fill;
-    ctx.fill();
-  }
-}
+$.Renderer = $.Base.extend({ }, {
 
-function stroke(ctx, ps){
-  if (ps.hasOwnProperty("stroke")){
-    ctx.lineWidth = ps.strokeWidth || ps.stroke.size || 1;
+  fill: function(ctx, ps){
+    if (ps.hasOwnProperty("fill")){
+      ctx.fillStyle = ps.fill;
+      ctx.fill();
+    }
+  },
 
-    var strokeColor = ps.stroke.color || ps.stroke || "#000";
-    ctx.strokeStyle = Array.isArray(strokeColor) ? ng.Color.toRGBA(strokeColor) : strokeColor;
-    ctx.stroke();
-  }
-}
+  stroke: function(ctx, ps){
+    if (ps.hasOwnProperty("stroke")){
+      ctx.lineWidth = ps.strokeWidth || ps.stroke.size || 1;
 
-function drawRect(ctx, ps){
-  ctx.beginPath();
-  ctx.rect(ps.pos.x, ps.pos.y, ps.size.x, ps.size.y);
-  fill(ctx, ps);
-  stroke(ctx, ps);
-}
+      var strokeColor = ps.stroke.color || ps.stroke || "#000";
+      ctx.strokeStyle = Array.isArray(strokeColor) ? $.Color.toRGBA(strokeColor) : strokeColor;
+      ctx.stroke();
+    }
+  },
 
-module.exports = ng.Base.extend({ }, {
+  _drawRect: function(ctx, ps){
+    ctx.beginPath();
+    ctx.rect(ps.pos.x, ps.pos.y, ps.size.x, ps.size.y);
+    $.Renderer.fill(ctx, ps);
+    $.Renderer.stroke(ctx, ps);
+  },
 
   drawCircle: function(ctx, ps){
     var start = (ps.angles && ps.angles.start) || 0,
@@ -37,8 +37,8 @@ module.exports = ng.Base.extend({ }, {
 
     ctx.arc(ps.pos.x, ps.pos.y, ps.radius, start, end, false);
 
-    fill(ctx, ps);
-    stroke(ctx, ps);
+    $.Renderer.fill(ctx, ps);
+    $.Renderer.stroke(ctx, ps);
   },
 
   drawLine: function(ctx, ps){
@@ -58,8 +58,8 @@ module.exports = ng.Base.extend({ }, {
   },
 
   drawSprite: function(ctx, ps){
-    var img = ng.Repo[ps.resource]
-      , p = ng.Vector.origin(ps.pos, ps.size)
+    var img = $.Repo[ps.resource]
+      , p = $.Vector.origin(ps.pos, ps.size)
       , x = p.x
       , y = p.y
       , w = ps.size.x
@@ -106,7 +106,7 @@ module.exports = ng.Base.extend({ }, {
       , h = ps.size.y;
 
     if (!ps.hasOwnProperty("corner")){
-      drawRect(ctx, ps);
+      $.Renderer._drawRect(ctx, ps);
       return;
     }
 
@@ -124,8 +124,8 @@ module.exports = ng.Base.extend({ }, {
     ctx.quadraticCurveTo(x, y, x + c, y);
     ctx.closePath();
     
-    fill(ctx, ps);
-    stroke(ctx, ps);
+    $.Renderer.fill(ctx, ps);
+    $.Renderer.stroke(ctx, ps);
   }
 
 });

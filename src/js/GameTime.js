@@ -1,5 +1,5 @@
 
-module.exports = ng.Base.extend({
+$.GameTime = $.Base.extend({
 
   lastTime: null,
   frameTime: 0,

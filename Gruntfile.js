@@ -31,7 +31,7 @@ module.exports = function(grunt) {
         ],
       } 
     },
-
+/*
     browserify: {
       game: {
         options:{
@@ -40,6 +40,69 @@ module.exports = function(grunt) {
         src: ['<%= paths.game.js %>index.js'],
         dest: '<%= paths.dist.exportJS %><%= paths.dist.gameJS %>'
       }
+    },
+*/
+
+    concat: {
+      all: {
+        src: [
+            
+            '<%= paths.game.js %>reqAnimFrame.js' // polyfill
+
+          , '<%= paths.game.js %>ng/Base.js'
+
+          , '<%= paths.game.js %>ng/Entity.js'
+          , '<%= paths.game.js %>ng/Collection.js'
+
+          // Utils
+
+          , '<%= paths.game.js %>ng/util/Mathf.js'
+          , '<%= paths.game.js %>ng/util/Color.js'
+          , '<%= paths.game.js %>ng/util/Vector.js'
+          , '<%= paths.game.js %>ng/util/Renderer.js'
+          , '<%= paths.game.js %>ng/util/Repo.js'
+
+          // Shapes
+
+          , '<%= paths.game.js %>ng/shapes/Circle.js'
+          , '<%= paths.game.js %>ng/shapes/Line.js'
+          , '<%= paths.game.js %>ng/shapes/Rect.js'
+          , '<%= paths.game.js %>ng/shapes/Text.js'
+
+          , '<%= paths.game.js %>ng/Sprite.js'
+
+          // Prefabs
+
+          , '<%= paths.game.js %>prefabs/Controls.js'
+
+          , '<%= paths.game.js %>prefabs/Node.js'
+          , '<%= paths.game.js %>prefabs/Nodes.js'
+
+          , '<%= paths.game.js %>prefabs/Path.js'
+          , '<%= paths.game.js %>prefabs/Paths.js'
+          , '<%= paths.game.js %>prefabs/Cursor.js'
+
+          , '<%= paths.game.js %>prefabs/Spider.js'
+          , '<%= paths.game.js %>prefabs/Spiders.js'
+
+          , '<%= paths.game.js %>prefabs/Target.js'
+          , '<%= paths.game.js %>prefabs/Vacuum.js'
+          , '<%= paths.game.js %>prefabs/Stats.js'
+
+          , '<%= paths.game.js %>prefabs/Element.js'
+          , '<%= paths.game.js %>prefabs/Elements.js'
+
+          // MAIN
+          
+          , '<%= paths.game.js %>Manager.js'
+          , '<%= paths.game.js %>GameTime.js'
+          , '<%= paths.game.js %>Game.js'
+
+          , '<%= paths.game.js %>index.js'
+
+        ],
+        dest: '<%= paths.dist.exportJS %><%= paths.dist.gameJS %>',
+      },
     },
 
     copy: {
@@ -81,19 +144,16 @@ module.exports = function(grunt) {
           ,globals: {
             window: true
             ,document: true
-
-            ,require: true
-            ,module: true
             ,console: true
 
             ,config: true
-            ,_: true
+
+            , _ : true
+            , $ :true
 
             ,Time: true
             ,game: true
 
-            ,ng: true
-            ,prefabs: true
             ,Controls: true
           }
         }
@@ -166,7 +226,8 @@ module.exports = function(grunt) {
 
   // compile
   grunt.loadNpmTasks('grunt-contrib-clean');
-  grunt.loadNpmTasks('grunt-browserify');
+  //grunt.loadNpmTasks('grunt-browserify');
+  grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-jshint');
 
@@ -178,7 +239,8 @@ module.exports = function(grunt) {
   var build = [
     "clean", 
     "jshint:all", 
-    "browserify", 
+    //"browserify", 
+    "concat",
     "copy"
   ];
 

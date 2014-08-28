@@ -1,5 +1,5 @@
 
-module.exports = ng.Collection.extend({
+$.Spiders = $.Collection.extend({
 
   nodes: null,
   spidersExit: 0,
@@ -40,13 +40,13 @@ module.exports = ng.Collection.extend({
       , amount = (len < this.amount ? len-2: this.amount);
 
     do {
-      idx = ng.Mathf.rnd(0, len-1);
+      idx = $.Mathf.rnd(0, len-1);
       node = nodes[idx];
 
       if (!node.burned && nodesIds.indexOf(node.cid) === -1){
         nodesIds.push(node.cid);
         
-        this.entities.push(new prefabs.Spider({
+        this.entities.push(new $.Spider({
           pos: node.pos, 
           onDead: this.onSpiderDead.bind(this)
         }));
@@ -61,7 +61,7 @@ module.exports = ng.Collection.extend({
   },
 
   gonnaBuildWeb: function(node, spider){
-    if (!node.hasEarth && node.temp === 0 && ng.Mathf.rnd01() > 0.7) {
+    if (!node.hasEarth && node.temp === 0 && $.Mathf.rnd01() > 0.7) {
       var nearBurned = node.getNearBurned();
       if (nearBurned){
         spider.buildWeb(node, nearBurned);
@@ -84,7 +84,7 @@ module.exports = ng.Collection.extend({
   },
 
   spiderNodeCollide: function(spider, node){
-    if (ng.Vector.pointInCircle(spider.pos, node.pos, 5)) {
+    if ($.Vector.pointInCircle(spider.pos, node.pos, 5)) {
      
       if (!this.gonnaBuildWeb(node, spider) && !this.gotNearNodeToGo(node, spider)){
         if (node.burned){

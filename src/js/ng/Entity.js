@@ -1,5 +1,5 @@
 
-module.exports = ng.Base.extend({
+$.Entity = $.Base.extend({
 
   pos: { x: 0, y: 0 },
 

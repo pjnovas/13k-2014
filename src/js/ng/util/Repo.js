@@ -1,5 +1,5 @@
 
-module.exports = (function(){
+$.Repo = (function(){
   var resources = {}
     , loaded = 0
     , getCount = function(){

@@ -1,5 +1,5 @@
 
-module.exports = ng.Entity.extend({
+$.Vacuum = $.Entity.extend({
 
   start: function(options){
     this.target = options.target;
@@ -20,7 +20,7 @@ module.exports = ng.Entity.extend({
   createGraphics: function(){
     var cPos = { x: this.offx + 150, y: this.offy + 50 };
 
-    this.bgBack = new ng.Rect({
+    this.bgBack = new $.Rect({
       pos: cPos,
       size: { x: 110, y: 330 },
       corner: 6,
@@ -37,22 +37,22 @@ module.exports = ng.Entity.extend({
       pos: this.recipePos,
       size: this.recipeSize,
       corner: 6,
-      fill: ng.Color.white,
+      fill: $.Color.white,
       stroke: {
         size: 2,
         color: c
       }
     };
 
-    this.cilinder = new ng.Rect(opts);
+    this.cilinder = new $.Rect(opts);
 
     opts.fill = [0,0,255,0.5];
-    this.glass = new ng.Rect(opts);
+    this.glass = new $.Rect(opts);
 
-    this.stats = new ng.Text({
+    this.stats = new $.Text({
       pos: { x: 180, y: 30 },
       size: 20,
-      color: ng.Color.white
+      color: $.Color.white
     });
 
   },
@@ -72,11 +72,11 @@ module.exports = ng.Entity.extend({
         spider.inVacuum = true;
         
         spider.vacuum = {
-          ampY: ng.Mathf.rnd(10, centerY/2),
-          velY: ng.Mathf.rnd(600, 1000),
-          ampX: ng.Mathf.rnd(5, 20),
-          velX: ng.Mathf.rnd(2000, 6000),
-          rot: ng.Mathf.rnd(1, 5)/10
+          ampY: $.Mathf.rnd(10, centerY/2),
+          velY: $.Mathf.rnd(600, 1000),
+          ampX: $.Mathf.rnd(5, 20),
+          velX: $.Mathf.rnd(2000, 6000),
+          rot: $.Mathf.rnd(1, 5)/10
         };
 
         spider.pos = { 

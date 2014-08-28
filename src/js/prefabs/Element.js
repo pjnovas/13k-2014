@@ -1,5 +1,5 @@
 
-module.exports = ng.Collection.extend({
+$.Element = $.Collection.extend({
 
   size: { x: 96, y: 96 },
 
@@ -19,7 +19,7 @@ module.exports = ng.Collection.extend({
 
   createElement: function(){
     
-    this.bg = new ng.Rect({
+    this.bg = new $.Rect({
       pos: this.pos,
       size: this.size,
       fill: this.color,
@@ -28,9 +28,9 @@ module.exports = ng.Collection.extend({
     });
     this.entities.push(this.bg);
 
-    this.icon = new ng.Sprite({
+    this.icon = new $.Sprite({
       resource: "elements",
-      pos: ng.Vector.center(this.pos, this.size),
+      pos: $.Vector.center(this.pos, this.size),
       size: this.size,
       angle: 0,
       sprite: this.sprite
@@ -40,15 +40,15 @@ module.exports = ng.Collection.extend({
     var txtPos = { x: this.pos.x, y: this.pos.y + this.size.y * 1.1 };
     var txtSize = 20;
 
-    this.ctrlKey = new ng.Rect({
+    this.ctrlKey = new $.Rect({
       pos: { x: txtPos.x - txtSize/2, y: txtPos.y - txtSize},
-      size: ng.Vector.multiply(ng.Vector.one, txtSize*2),
+      size: $.Vector.multiply($.Vector.one, txtSize*2),
       fill: [0,0,0,1],
       corner: 4
     });
     this.entities.push(this.ctrlKey);
 
-    this.txtKey = new ng.Text({
+    this.txtKey = new $.Text({
       text: this.key,
       pos: txtPos,
       size: txtSize,

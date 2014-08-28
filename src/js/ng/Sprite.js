@@ -1,5 +1,5 @@
 
-module.exports = ng.Entity.extend({
+$.Sprite = $.Entity.extend({
 
   resource: "",
   pos: { x: 0, y: 0 },
@@ -13,7 +13,7 @@ module.exports = ng.Entity.extend({
 
   draw: function(ctx){
 
-    ng.Renderer.drawSprite(ctx, {
+    $.Renderer.drawSprite(ctx, {
       resource: this.resource,
       pos: this.pos,
       size: this.size,

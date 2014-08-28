@@ -1,11 +1,11 @@
 
-module.exports = ng.Entity.extend({
+$.Line = $.Entity.extend({
 
   pos: { x: 0, y: 0 },
   to: { x: 0, y: 0 },
 
   size: 1,
-  color: ng.Color.white,
+  color: $.Color.white,
   
   start: function(){},
 
@@ -13,11 +13,11 @@ module.exports = ng.Entity.extend({
 
   draw: function(ctx){
 
-    ng.Renderer.drawLine(ctx, {
+    $.Renderer.drawLine(ctx, {
       from: this.pos,
       to: this.to,
       size: this.size,
-      color: ng.Color.toRGBA(this.color)
+      color: $.Color.toRGBA(this.color)
     });
 
   },

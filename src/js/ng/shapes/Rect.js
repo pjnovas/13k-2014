@@ -1,5 +1,5 @@
 
-module.exports = ng.Entity.extend({
+$.Rect = $.Entity.extend({
 
   pos: { x: 0, y: 0 },
   size: { x: 20, y: 20},
@@ -21,19 +21,19 @@ module.exports = ng.Entity.extend({
     if (this.stroke){
       opts.stroke = this.stroke;
       if (opts.stroke.color) {
-        opts.stroke.color = ng.Color.toRGBA(opts.stroke.color);
+        opts.stroke.color = $.Color.toRGBA(opts.stroke.color);
       }
     }
 
     if (this.fill){
-      opts.fill = ng.Color.toRGBA(this.fill);
+      opts.fill = $.Color.toRGBA(this.fill);
     }
 
     if (this.corner){
       opts.corner = this.corner;
     }
 
-    ng.Renderer.drawRect(ctx, opts);
+    $.Renderer.drawRect(ctx, opts);
 
   },
 

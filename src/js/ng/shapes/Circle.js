@@ -1,5 +1,5 @@
 
-module.exports = ng.Entity.extend({
+$.Circle = $.Entity.extend({
 
   pos: { x: 0, y: 0 },
   radius: 5,
@@ -18,7 +18,7 @@ module.exports = ng.Entity.extend({
     };
 
     if (this.color){
-      opts.fill = ng.Color.toRGBA(this.color);
+      opts.fill = $.Color.toRGBA(this.color);
     }
 
     if (this.stroke){
@@ -29,7 +29,7 @@ module.exports = ng.Entity.extend({
       opts.angles = this.angles;
     }
 
-    ng.Renderer.drawCircle(ctx, opts);
+    $.Renderer.drawCircle(ctx, opts);
   },
 
 });

@@ -1,11 +1,11 @@
 
-var Path = module.exports = ng.Line.extend({
+$.Path = $.Line.extend({
 
   pos: { x: 0, y: 0 },
   to: { x: 0, y: 0 },
 
   size: 2,
-  color: ng.Color.white,
+  color: $.Color.white,
 
   tBurn: 0.5,
   burned: false,
@@ -21,7 +21,7 @@ var Path = module.exports = ng.Line.extend({
   setHeat: function(from, to, t){
     this.heat = {
       from: from.pos,
-      to: ng.Vector.round(ng.Vector.lerp(from.pos, to.pos, t * 2 > 1 ? 1 : t * 2 ))
+      to: $.Vector.round($.Vector.lerp(from.pos, to.pos, t * 2 > 1 ? 1 : t * 2 ))
     };
   },
 
@@ -47,11 +47,11 @@ var Path = module.exports = ng.Line.extend({
       na.burn();
     }
 
-    if (ng.Color.eql(naC,  nbC)){
+    if ($.Color.eql(naC,  nbC)){
       this.color = naC;
     }
     else {
-      this.color = ng.Color.lerp(naC, nbC, this.tBurn);
+      this.color = $.Color.lerp(naC, nbC, this.tBurn);
     }
 
     if (na.burned || nb.burned) {
@@ -65,10 +65,10 @@ var Path = module.exports = ng.Line.extend({
   },
 
   draw: function(ctx){
-    Path._super.draw.apply(this, arguments);
+    $.Path._super.draw.apply(this, arguments);
 
     if (this.heat){
-      ng.Renderer.drawLine(ctx, {
+      $.Renderer.drawLine(ctx, {
         from: this.heat.from,
         to: this.heat.to,
         size: 5,
