@@ -1,5 +1,5 @@
 
-function getCoordsEvent(e, canvas){
+function getCoordsEvent(e, ele){
   var x, y
     , doc = document
     , body = doc.body
@@ -14,8 +14,8 @@ function getCoordsEvent(e, canvas){
     y = e.clientY + body.scrollTop + docEle.scrollTop; 
   } 
   
-  x -= canvas.offsetLeft;
-  y -= canvas.offsetTop;
+  x -= ele.offsetLeft;
+  y -= ele.offsetTop;
   
   return { x: x, y: y };
 }

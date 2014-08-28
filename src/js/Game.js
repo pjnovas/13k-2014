@@ -57,6 +57,14 @@ module.exports = psycho.Base.extend({
   gameRun: function(){
     if (Time.tick()) { this.loop(); }
     this.tLoop = window.requestAnimationFrame(this.boundGameRun);
+  },
+
+  onWin: function(cb){
+    this._onWin = cb;
+  },
+
+  onLoose: function(cb){
+    this._onLoose = cb;
   }
 
 });
