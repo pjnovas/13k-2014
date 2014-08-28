@@ -37,7 +37,7 @@ $.Vacuum = $.Entity.extend({
       pos: this.recipePos,
       size: this.recipeSize,
       corner: 6,
-      fill: $.Color.white,
+      fill: $.C.white,
       stroke: {
         size: 2,
         color: c
@@ -52,7 +52,7 @@ $.Vacuum = $.Entity.extend({
     this.stats = new $.Text({
       pos: { x: 180, y: 30 },
       size: 20,
-      color: $.Color.white
+      color: $.C.white
     });
 
   },
@@ -72,11 +72,11 @@ $.Vacuum = $.Entity.extend({
         spider.inVacuum = true;
         
         spider.vacuum = {
-          ampY: $.Mathf.rnd(10, centerY/2),
-          velY: $.Mathf.rnd(600, 1000),
-          ampX: $.Mathf.rnd(5, 20),
-          velX: $.Mathf.rnd(2000, 6000),
-          rot: $.Mathf.rnd(1, 5)/10
+          ampY: $.M.rnd(10, centerY/2),
+          velY: $.M.rnd(600, 1000),
+          ampX: $.M.rnd(5, 20),
+          velX: $.M.rnd(2000, 6000),
+          rot: $.M.rnd(1, 5)/10
         };
 
         spider.pos = { 

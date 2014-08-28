@@ -5,7 +5,7 @@ $.Path = $.Line.extend({
   to: { x: 0, y: 0 },
 
   size: 2,
-  color: $.Color.white,
+  color: $.C.white,
 
   tBurn: 0.5,
   burned: false,
@@ -21,7 +21,7 @@ $.Path = $.Line.extend({
   setHeat: function(from, to, t){
     this.heat = {
       from: from.pos,
-      to: $.Vector.round($.Vector.lerp(from.pos, to.pos, t * 2 > 1 ? 1 : t * 2 ))
+      to: $.V.round($.V.lerp(from.pos, to.pos, t * 2 > 1 ? 1 : t * 2 ))
     };
   },
 
@@ -47,11 +47,11 @@ $.Path = $.Line.extend({
       na.burn();
     }
 
-    if ($.Color.eql(naC,  nbC)){
+    if ($.C.eql(naC,  nbC)){
       this.color = naC;
     }
     else {
-      this.color = $.Color.lerp(naC, nbC, this.tBurn);
+      this.color = $.C.lerp(naC, nbC, this.tBurn);
     }
 
     if (na.burned || nb.burned) {

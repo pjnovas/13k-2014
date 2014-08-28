@@ -1,5 +1,5 @@
 
-$.Color = $.Base.extend({ }, {
+$.C = $.Base.extend({ }, {
 
   white: [255,255,255,1],
 
@@ -11,7 +11,7 @@ $.Color = $.Base.extend({ }, {
 
     function l(a, b, t, m){
       m = m ? m : 1;
-      return Math.round($.Mathf.lerp(a, b, t) * m) / m;
+      return Math.round($.M.lerp(a, b, t) * m) / m;
     }
 
     return [

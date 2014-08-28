@@ -1,5 +1,5 @@
 
-$.Mathf = $.Base.extend({ }, {
+$.M = $.Base.extend({ }, {
 
   rnd: function(min, max){
     return Math.floor(Math.random() * (max - min + 1) + min);
@@ -11,7 +11,7 @@ $.Mathf = $.Base.extend({ }, {
 
   rndInCircle: function(radius){
     var angle = Math.random() * Math.PI * 2;
-    var rad = $.Mathf.rnd(0, radius);
+    var rad = $.M.rnd(0, radius);
 
     return {
       x: Math.cos(angle) * rad,

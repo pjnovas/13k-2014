@@ -15,14 +15,14 @@ $.Nodes = $.Collection.extend({
     var marginH = config.world.margin.y;
     
     // Full-screen
-    var radius = $.Vector.divide(config.size, 2);
+    var radius = $.V.divide(config.size, 2);
 
     // Full-screen with margin
     radius.x -= marginW;
     radius.y -= marginH;
 
     // Center of Screen
-    var center = $.Vector.center($.Vector.zero, config.size);
+    var center = $.V.center($.V.zero, config.size);
 
     this.createWeb(center, radius);
   },
@@ -36,8 +36,8 @@ $.Nodes = $.Collection.extend({
       , duplicateBy = 3
       , increaseBy = 2
       , maxNodesByRing = nodesByRing * 8 // 8 times increase max
-      , boundMin = $.Vector.add(center, $.Vector.multiply(rad, -1))
-      , boundMax = $.Vector.add(center, rad)
+      , boundMin = $.V.add(center, $.V.multiply(rad, -1))
+      , boundMax = $.V.add(center, rad)
       , rings = [];
    
     var cNode = new $.Node({ pos: center });
@@ -59,7 +59,7 @@ $.Nodes = $.Collection.extend({
         nodesByRing = maxNodesByRing;
       }
 
-      var ps = $.Mathf.polygonPoints(center, (i*ringsGap) + start, nodesByRing);
+      var ps = $.M.polygonPoints(center, (i*ringsGap) + start, nodesByRing);
       countNodes += ps.length;
       var cRing = [];
 
@@ -69,10 +69,10 @@ $.Nodes = $.Collection.extend({
 
       ps.forEach(function(p){
 
-        var np = $.Vector.round($.Vector.add(p, $.Mathf.rndInCircle(rndRadius)));
+        var np = $.V.round($.V.add(p, $.M.rndInCircle(rndRadius)));
         var node = new $.Node({ pos: np });
         
-        if ($.Vector.isOut(np, boundMin, boundMax)) {
+        if ($.V.isOut(np, boundMin, boundMax)) {
           node.out = true;
         }
         else {
@@ -154,7 +154,7 @@ $.Nodes = $.Collection.extend({
 
   findNodeByCollider: function(){
     this.entities.forEach(function (node) {
-      if (this.applyPos && $.Vector.pointInCircle(this.applyPos, node.pos, this.applyRatio)) {
+      if (this.applyPos && $.V.pointInCircle(this.applyPos, node.pos, this.applyRatio)) {
         var methodIdx = this.elements.indexOf(this.element);
         var method = this.applyMethods[methodIdx];
         node[method]();

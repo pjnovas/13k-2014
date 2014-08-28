@@ -18,7 +18,7 @@ $.Circle = $.Entity.extend({
     };
 
     if (this.color){
-      opts.fill = $.Color.toRGBA(this.color);
+      opts.fill = $.C.toRGBA(this.color);
     }
 
     if (this.stroke){

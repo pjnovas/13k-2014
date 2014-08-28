@@ -5,7 +5,7 @@ $.Text = $.Entity.extend({
   text: "",
 
   size: 1,
-  color: $.Color.white,
+  color: $.C.white,
   
   start: function(){},
 
@@ -17,7 +17,7 @@ $.Text = $.Entity.extend({
       text: this.text,
       pos: this.pos,
       size: this.size,
-      color: $.Color.toRGBA(this.color)
+      color: $.C.toRGBA(this.color)
     });
 
   },

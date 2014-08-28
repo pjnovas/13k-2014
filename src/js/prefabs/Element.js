@@ -30,7 +30,7 @@ $.Element = $.Collection.extend({
 
     this.icon = new $.Sprite({
       resource: "elements",
-      pos: $.Vector.center(this.pos, this.size),
+      pos: $.V.center(this.pos, this.size),
       size: this.size,
       angle: 0,
       sprite: this.sprite
@@ -42,7 +42,7 @@ $.Element = $.Collection.extend({
 
     this.ctrlKey = new $.Rect({
       pos: { x: txtPos.x - txtSize/2, y: txtPos.y - txtSize},
-      size: $.Vector.multiply($.Vector.one, txtSize*2),
+      size: $.V.multiply($.V.one, txtSize*2),
       fill: [0,0,0,1],
       corner: 4
     });

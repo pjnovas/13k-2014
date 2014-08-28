@@ -20,7 +20,7 @@ $.Target = $.Circle.extend({
     this.radius = this.size/2;
     this.stroke.size = this.size;
 
-    this.pos = $.Vector.prod($.Vector.one, cfg.size);
+    this.pos = $.V.prod($.V.one, cfg.size);
     this.pos.x -= cfgm.x + 10;
     this.pos.y -= cfgm.y + 20;
     
@@ -30,7 +30,7 @@ $.Target = $.Circle.extend({
 
   setNodesInside: function(nodes){
     nodes.forEach(function(node){
-      if ($.Vector.pointInCircle(node.pos, this.pos, this.size)){
+      if ($.V.pointInCircle(node.pos, this.pos, this.size)){
         if (node.burned){
           node.burned = false;
           node.revive();
@@ -45,7 +45,7 @@ $.Target = $.Circle.extend({
     spiders.forEach(function(spider){
       if (!spider.dead && !spider.exited){
 
-        if ($.Vector.pointInCircle(spider.pos, this.pos, this.size)){
+        if ($.V.pointInCircle(spider.pos, this.pos, this.size)){
           spider.building = false;
           spider.exited = true;
           spider.vel = { x: 0, y: 0 };
@@ -62,11 +62,11 @@ $.Target = $.Circle.extend({
 
       if (!spider.catched){
         var sp = spider.pos;
-        var imp = $.Vector.normal(sp, p);
-        spider.vel = $.Vector.add(spider.vel, $.Vector.multiply(imp, force)); 
-        spider.pos = $.Vector.add(sp, spider.vel);
+        var imp = $.V.normal(sp, p);
+        spider.vel = $.V.add(spider.vel, $.V.multiply(imp, force)); 
+        spider.pos = $.V.add(sp, spider.vel);
         
-        if ($.Vector.pointInCircle(spider.pos, p, 5)){
+        if ($.V.pointInCircle(spider.pos, p, 5)){
           spider.catched = true;
           this.saved.push(spider);
         }

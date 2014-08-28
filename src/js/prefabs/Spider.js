@@ -38,7 +38,7 @@ $.Spider = $.Sprite.extend({
   },
 
   start: function(options){
-    this.pos = $.Vector.round(options.pos);
+    this.pos = $.V.round(options.pos);
     this.onDead = options.onDead;
 
     this.speed = this.calmSpeed;
@@ -56,10 +56,10 @@ $.Spider = $.Sprite.extend({
     this.nTo = nTo;
 
     this.t_startMove = Time.time;
-    this.journeyLength = $.Vector.magnitude(nFrom.pos, nTo.pos);
+    this.journeyLength = $.V.magnitude(nFrom.pos, nTo.pos);
     this.traveling = true;
 
-    this.angle = $.Vector.angleTo(this.pos, this.nTo.pos);
+    this.angle = $.V.angleTo(this.pos, this.nTo.pos);
   },
 
   setDead: function(){
@@ -127,13 +127,13 @@ $.Spider = $.Sprite.extend({
     if (this.staying){
       if(tm > tstart + tstay) {
         this.staying = false;
-        this.t_nextStay = tm + tstay / $.Mathf.rnd(2, 5);
+        this.t_nextStay = tm + tstay / $.M.rnd(2, 5);
       }
     }
-    else if (tm > this.t_nextStay && $.Mathf.rnd01() < 0.8){
+    else if (tm > this.t_nextStay && $.M.rnd01() < 0.8){
       this.staying = true;
       this.t_startStay = tm;
-      this.t_stay = $.Mathf.rnd(cfgTm.tStayA, cfgTm.tStayB);
+      this.t_stay = $.M.rnd(cfgTm.tStayA, cfgTm.tStayB);
     }
 
   },
@@ -159,7 +159,7 @@ $.Spider = $.Sprite.extend({
       return true;
     }
 
-    this.pos = $.Vector.round($.Vector.lerp(this.nFrom.pos, this.nTo.pos, fracJourney));
+    this.pos = $.V.round($.V.lerp(this.nFrom.pos, this.nTo.pos, fracJourney));
 
     this.animate();
   },
@@ -199,7 +199,7 @@ $.Spider = $.Sprite.extend({
         from: this.pos,
         to: this.nFrom.pos,
         size: 2,
-        color: $.Color.toRGBA($.Color.white)
+        color: $.C.toRGBA($.C.white)
       });
     }
 

@@ -5,7 +5,7 @@ $.Line = $.Entity.extend({
   to: { x: 0, y: 0 },
 
   size: 1,
-  color: $.Color.white,
+  color: $.C.white,
   
   start: function(){},
 
@@ -17,7 +17,7 @@ $.Line = $.Entity.extend({
       from: this.pos,
       to: this.to,
       size: this.size,
-      color: $.Color.toRGBA(this.color)
+      color: $.C.toRGBA(this.color)
     });
 
   },

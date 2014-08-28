@@ -2,7 +2,7 @@
 $.Node = $.Circle.extend({
 
   radius: 3,
-  color: $.Color.white,
+  color: $.C.white,
 
   nears: null,
   selected: false,
@@ -41,7 +41,7 @@ $.Node = $.Circle.extend({
       return node.burned;
     });
 
-    if (!oneBurned && $.Mathf.rnd01() < 0.15){
+    if (!oneBurned && $.M.rnd01() < 0.15){
       this.setBurned();
     }
   },
@@ -68,7 +68,7 @@ $.Node = $.Circle.extend({
     }
     
     this.shaked = true;
-    this.pos = $.Vector.round($.Vector.add(this.pos, $.Mathf.rndInCircle(0.2)));
+    this.pos = $.V.round($.V.add(this.pos, $.M.rndInCircle(0.2)));
   },
 
   endShake: function(){
@@ -122,7 +122,7 @@ $.Node = $.Circle.extend({
     });
 
     if (ns.length > 0){
-      var idx = $.Mathf.rnd(0, ns.length-1);
+      var idx = $.M.rnd(0, ns.length-1);
       return ns[idx];
     }
 
@@ -188,7 +188,7 @@ $.Node = $.Circle.extend({
       this.resetTemp();
     }
 
-    this.fill = this.color = $.Color.lerp(this.colors.cold, this.colors.burn, this.temp);
+    this.fill = this.color = $.C.lerp(this.colors.cold, this.colors.burn, this.temp);
 
     if (this.temp > 1){
       this.setBurned();

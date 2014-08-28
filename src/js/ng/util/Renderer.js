@@ -13,7 +13,7 @@ $.Renderer = $.Base.extend({ }, {
       ctx.lineWidth = ps.strokeWidth || ps.stroke.size || 1;
 
       var strokeColor = ps.stroke.color || ps.stroke || "#000";
-      ctx.strokeStyle = Array.isArray(strokeColor) ? $.Color.toRGBA(strokeColor) : strokeColor;
+      ctx.strokeStyle = Array.isArray(strokeColor) ? $.C.toRGBA(strokeColor) : strokeColor;
       ctx.stroke();
     }
   },
@@ -59,7 +59,7 @@ $.Renderer = $.Base.extend({ }, {
 
   drawSprite: function(ctx, ps){
     var img = $.Repo[ps.resource]
-      , p = $.Vector.origin(ps.pos, ps.size)
+      , p = $.V.origin(ps.pos, ps.size)
       , x = p.x
       , y = p.y
       , w = ps.size.x

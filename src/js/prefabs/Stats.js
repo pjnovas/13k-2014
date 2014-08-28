@@ -13,7 +13,7 @@ $.Stats = $.Collection.extend({
 
   start: function(){
     this.entities = [];
-    this.pos = $.Vector.prod(this.pos, config.size);
+    this.pos = $.V.prod(this.pos, config.size);
 
     this.stats = {
       saved: 0,
@@ -57,8 +57,8 @@ $.Stats = $.Collection.extend({
     this.entities.push(this.iconKills);
     
     this.lineAKills = new $.Line({
-      pos: $.Vector.origin(spider.pos, spSize),
-      to: $.Vector.add(hSpSize, spider.pos),
+      pos: $.V.origin(spider.pos, spSize),
+      to: $.V.add(hSpSize, spider.pos),
       size: 3,
       color: this.colors.kills
     });

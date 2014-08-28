@@ -21,12 +21,12 @@ $.Rect = $.Entity.extend({
     if (this.stroke){
       opts.stroke = this.stroke;
       if (opts.stroke.color) {
-        opts.stroke.color = $.Color.toRGBA(opts.stroke.color);
+        opts.stroke.color = $.C.toRGBA(opts.stroke.color);
       }
     }
 
     if (this.fill){
-      opts.fill = $.Color.toRGBA(this.fill);
+      opts.fill = $.C.toRGBA(this.fill);
     }
 
     if (this.corner){

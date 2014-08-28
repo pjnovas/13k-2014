@@ -40,7 +40,7 @@ $.Spiders = $.Collection.extend({
       , amount = (len < this.amount ? len-2: this.amount);
 
     do {
-      idx = $.Mathf.rnd(0, len-1);
+      idx = $.M.rnd(0, len-1);
       node = nodes[idx];
 
       if (!node.burned && nodesIds.indexOf(node.cid) === -1){
@@ -61,7 +61,7 @@ $.Spiders = $.Collection.extend({
   },
 
   gonnaBuildWeb: function(node, spider){
-    if (!node.hasEarth && node.temp === 0 && $.Mathf.rnd01() > 0.7) {
+    if (!node.hasEarth && node.temp === 0 && $.M.rnd01() > 0.7) {
       var nearBurned = node.getNearBurned();
       if (nearBurned){
         spider.buildWeb(node, nearBurned);
@@ -84,7 +84,7 @@ $.Spiders = $.Collection.extend({
   },
 
   spiderNodeCollide: function(spider, node){
-    if ($.Vector.pointInCircle(spider.pos, node.pos, 5)) {
+    if ($.V.pointInCircle(spider.pos, node.pos, 5)) {
      
       if (!this.gonnaBuildWeb(node, spider) && !this.gotNearNodeToGo(node, spider)){
         if (node.burned){
