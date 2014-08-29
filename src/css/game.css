@@ -5,14 +5,7 @@ body {
   margin: 0;
 }
 
-.absoluted {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-}
-
-.game-ctn {
+#ctn {
   height: auto;
   height: 100%;
   margin: 10px auto;
@@ -23,23 +16,30 @@ body {
   background: url("../images/front.png");
 }
 
-.game-viewport-ctn {
+canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
+
+#viewport { 
   z-index: 10;
 }
 
-.game-world-ctn {
+#world{
   z-index: 5;
 }
 
-#game-viewport,
-#game-world {
-  margin: 0 auto;
-  display: block;
-}
-
 #vacuum {
-  position: absolute;
+  width: auto;
+  top: auto; 
+  left: auto;
   right: 5px;
   bottom: 5px;
   z-index: 20;
+}
+
+#modals{
+  z-index: 30;
 }

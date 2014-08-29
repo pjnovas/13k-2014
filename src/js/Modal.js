@@ -44,7 +44,7 @@ $.Modal = $.Base.extend({
     }));
 
     var title = {
-      text: "SPIDER BUSTERS",
+      text: document.title,
       pos: $.V.center(pos, size),
       size: 20
     };

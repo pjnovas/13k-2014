@@ -2,9 +2,19 @@
 (function(){
   var w = window;
   var doc = w.document;
+  doc.title = "SPIDER BUSTERS";
   
   function $get(id){
     return doc.getElementById(id);
+  }
+
+  var gameCtn = $get("ctn");
+
+  function $newCanvas(id){
+    var cv = doc.createElement("canvas");
+    cv.id = id;
+    gameCtn.appendChild(cv);
+    return cv;
   }
 
   //var Particles = require("./Particles");
@@ -24,19 +34,20 @@
       );
     }
 
-    var w = getSize("Width");
+    var w = getSize("Width") - 20;
     var h = getSize("Height") - 30;
 
-    //TODO: ADD MIN SIZE
-    
     var max = { x: 1250, y: 750 };
+    var min = { x: 950, y: 640 };
 
     var size = {
       x: (w > max.x ? max.x : w),
       y: (h > max.y ? max.y : h)
     };
 
-    var gameCtn = $get("game-ctn");
+    size.x = (size.x < min.x ? min.x : size.x);
+    size.y = (size.y < min.y ? min.y : size.y);
+    
     gameCtn.style.width = size.x + "px";
     gameCtn.style.height = size.y + "px";
 
@@ -54,24 +65,20 @@
   }
 
   function initGame(){
-    var cviewport = $get("game-viewport");
-    var cworld = $get("game-world");
-    var cvacuum = $get("vacuum");
-    var cmodals = $get("modals");
 
     w.Time = new $.GameTime();
 
     //w.Particles = new Particles();
 
     w.Controls = new $.Controls({
-      container: $get("game-ctn")
+      container: gameCtn
     });
 
     w.game = new $.Game({
-      viewport: cviewport,
-      world: cworld,
-      vacuum: cvacuum,
-      modals: cmodals
+      viewport: $newCanvas("viewport"),
+      world: $newCanvas("world"),
+      vacuum: $newCanvas("vacuum"),
+      modals: $newCanvas("modals")
     });
 
     w.game.onWin(function(){
