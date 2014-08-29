@@ -2,7 +2,10 @@
 (function(){
   var w = window;
   var doc = w.document;
-  var modal = document.querySelector(".bg-modal");
+  
+  function $get(id){
+    return doc.getElementById(id);
+  }
 
   //var Particles = require("./Particles");
 
@@ -11,12 +14,13 @@
       , body = doc.body;
 
     function getSize(which){
+      var offset = "offset", scroll = "scroll";
       return Math.max(
         ele["client" + which], 
-        body["scroll" + which], 
-        ele["scroll" + which], 
-        body["offset" + which], 
-        ele["offset" + which]
+        ele[scroll + which], 
+        ele[offset + which],
+        body[scroll + which], 
+        body[offset + which] 
       );
     }
 
@@ -30,7 +34,7 @@
       y: (h > max.y ? max.y : h)
     };
 
-    var gameCtn = doc.getElementById("game-ctn");
+    var gameCtn = $get("game-ctn");
     gameCtn.style.width = size.x + "px";
     gameCtn.style.height = size.y + "px";
 
@@ -46,16 +50,16 @@
   }
 
   function initGame(){
-    var cviewport = doc.getElementById("game-viewport");
-    var cworld = doc.getElementById("game-world");
-    var cvacuum = doc.getElementById("vacuum");
+    var cviewport = $get("game-viewport");
+    var cworld = $get("game-world");
+    var cvacuum = $get("vacuum");
 
     w.Time = new $.GameTime();
 
     //w.Particles = new Particles();
 
     w.Controls = new $.Controls({
-      container: doc.getElementById("game-ctn")
+      container: $get("game-ctn")
     });
 
     w.game = new $.Game({
@@ -64,35 +68,25 @@
       vacuum: cvacuum
     });
 
-    function toggleModal(show){
-      modal.style.display = show ? "" : "none";
-    }
-
     w.game.onWin(function(){
-      modal.innerHTML = '<div class="finish">Win!</div>';
-      toggleModal(true);
+      console.log("YOU WIN");
       game.stop(); 
     });
 
     w.game.onLoose(function(){
-      modal.innerHTML = '<div class="finish">Loose!</div>';
-      toggleModal(true);
+      console.log("YOU LOOSE");
       game.stop(); 
     });
 
     function pauseGame(){
       if (game.paused){
-        toggleModal();
         game.play();
       }
       else {
-        modal.innerHTML = '<div class="pause">Pause</div>';
-        toggleModal(true);
         game.stop(); 
       }
     }
 
-    toggleModal();
     w.Controls.on('pause', pauseGame);
   }
 

@@ -1,1 +1,2610 @@
-!function(){for(var a=0,b=["ms","moz","webkit","o"],c=0;c<b.length&&!window.requestAnimationFrame;++c)window.requestAnimationFrame=window[b[c]+"RequestAnimationFrame"],window.cancelAnimationFrame=window[b[c]+"CancelAnimationFrame"]||window[b[c]+"CancelRequestAnimationFrame"];window.requestAnimationFrame||(window.requestAnimationFrame=function(b){var c=(new Date).getTime(),d=Math.max(0,16-(c-a)),e=window.setTimeout(function(){b(c+d)},d);return a=c+d,e}),window.cancelAnimationFrame||(window.cancelAnimationFrame=function(a){window.clearTimeout(a)})}();var _={},$={},idCounter=0;_.uniqueId=function(a){var b=++idCounter+"";return a?a+b:b},_.isObject=function(a){var b=typeof a;return"function"===b||"object"===b&&!!a},_.extend=function(a){if(!_.isObject(a))return a;for(var b,c,d=1,e=arguments.length;e>d;d++){b=arguments[d];for(c in b)hasOwnProperty.call(b,c)&&(a[c]=b[c])}return a},_.pad=function(a,b){var c="0000000"+a;return c.substr(c.length-b)},$.Base=function(a){_.isObject(a)&&_.extend(this,a||{}),this.cid=_.uniqueId("c"),this.start.apply(this,arguments)},_.extend($.Base.prototype,{start:function(){}}),$.Base.extend=function(a,b){var c=this,d=function(){return c.apply(this,arguments)};_.extend(d,c,b);var e=function(){this.constructor=d};return e.prototype=c.prototype,d.prototype=new e,a&&_.extend(d.prototype,a),d._super=c.prototype,d},$.Entity=$.Base.extend({pos:{x:0,y:0},start:function(){},update:function(){},draw:function(){}}),$.Collection=$.Base.extend({entities:[],start:function(){this.entities=[]},update:function(){this.entities.forEach(function(a){a.update()})},draw:function(a){this.entities.forEach(function(b){b.draw(a)})}}),$.M=$.Base.extend({},{rnd:function(a,b){return Math.floor(Math.random()*(b-a+1)+a)},rnd01:function(){return Math.random()},rndInCircle:function(a){var b=Math.random()*Math.PI*2,c=$.M.rnd(0,a);return{x:Math.cos(b)*c,y:Math.sin(b)*c}},lerp:function(a,b,c){return(1-c)*a+c*b},polygonPoints:function(a,b,c){for(var d=[],e=2*Math.PI/c,f=0;c>f;f++)d.push({x:a.x+b*Math.cos(f*e),y:a.y+b*Math.sin(f*e)});return d}}),$.C=$.Base.extend({},{white:[255,255,255,1],toRGBA:function(a){return"rgba("+a[0]+","+a[1]+","+a[2]+","+(a[3]||1)+")"},lerp:function(a,b,c){function d(a,b,c,d){return d=d?d:1,Math.round($.M.lerp(a,b,c)*d)/d}return[d(a[0],b[0],c),d(a[1],b[1],c),d(a[2],b[2],c),d(a[3]>=0?a[3]:1,b[3]>=0?b[3]:1,c,100)]},eql:function(a,b){return a[0]===b[0]&&a[1]===b[1]&&a[2]===b[2]&&a[3]===b[3]}}),$.V=$.Base.extend({},{zero:{x:0,y:0},one:{x:1,y:1},clone:function(a){return{x:a.x,y:a.y}},prod:function(a,b){return{x:a.x*b.x,y:a.y*b.y}},multiply:function(a,b){return{x:a.x*b,y:a.y*b}},divide:function(a,b){return{x:a.x/b,y:a.y/b}},add:function(a,b){return{x:a.x+b.x,y:a.y+b.y}},dif:function(a,b){return{x:b.x-a.x,y:b.y-a.y}},part:function(a,b,c){return $.V.lerp(a,b,c/10)},angleTo:function(a,b){var c=$.V.dif(a,b);return Math.atan2(c.y,c.x)},mid:function(a,b){return $.V.divide($.V.add(a,b),2)},eql:function(a,b){return a.x===b.x&&a.y===b.y},normal:function(a,b){var c=$.V.dif(a,b),d=$.V.magnitude(a,b);return{x:c.x/d||0,y:c.y/d||0}},origin:function(a,b){return{x:a.x-b.x/2,y:a.y-b.y/2}},center:function(a,b){return{x:a.x+b.x/2,y:a.y+b.y/2}},magnitude:function(a,b){var c=$.V.dif(a,b);return Math.sqrt(c.x*c.x+c.y*c.y)},pointInCircle:function(a,b,c){return $.V.magnitude(a,b)<c},lerp:function(a,b,c){return{x:a.x+(b.x-a.x)*c,y:a.y+(b.y-a.y)*c}},round:function(a){return a.x=Math.round(a.x),a.y=Math.round(a.y),a},isOut:function(a,b,c){return a.x<b.x||a.x>c.x||a.y<b.y||a.y>c.y}}),$.Renderer=$.Base.extend({},{fill:function(a,b){b.hasOwnProperty("fill")&&(a.fillStyle=b.fill,a.fill())},stroke:function(a,b){if(b.hasOwnProperty("stroke")){a.lineWidth=b.strokeWidth||b.stroke.size||1;var c=b.stroke.color||b.stroke||"#000";a.strokeStyle=Array.isArray(c)?$.C.toRGBA(c):c,a.stroke()}},_drawRect:function(a,b){a.beginPath(),a.rect(b.pos.x,b.pos.y,b.size.x,b.size.y),$.Renderer.fill(a,b),$.Renderer.stroke(a,b)},drawCircle:function(a,b){var c=b.angles&&b.angles.start||0,d=b.angles&&b.angles.end||2*Math.PI;a.beginPath(),b.lineCap&&(a.lineCap=b.lineCap),a.arc(b.pos.x,b.pos.y,b.radius,c,d,!1),$.Renderer.fill(a,b),$.Renderer.stroke(a,b)},drawLine:function(a,b){var c=b.from,d=b.to;a.beginPath(),a.lineCap="round",a.moveTo(c.x,c.y),a.lineTo(d.x,d.y),a.lineWidth=b.size,a.strokeStyle=b.color,a.stroke()},drawSprite:function(a,b){function c(){j?a.drawImage(d,j.x,j.y,j.w,j.h,f,g,h,i):a.drawImage(d,f,g,h,i)}var d=$.repo[b.resource],e=$.V.origin(b.pos,b.size),f=e.x,g=e.y,h=b.size.x,i=b.size.y,j=b.sp;return b.hasOwnProperty("angle")?(a.save(),a.translate(f+h/2,g+i/2),f=-h/2,g=-i/2,a.rotate(b.angle),c(),void a.restore()):void c()},drawText:function(a,b){a.font=b.size+"pt Arial",a.textBaseline=b.baseline||"middle",a.fillStyle=b.color,a.fillText(b.text,b.pos.x,b.pos.y)},drawRect:function(a,b){var c=b.pos.x,d=b.pos.y,e=b.size.x,f=b.size.y;if(!b.hasOwnProperty("corner"))return void $.Renderer._drawRect(a,b);var g=b.corner;a.beginPath(),a.moveTo(c+g,d),a.lineTo(c+e-g,d),a.quadraticCurveTo(c+e,d,c+e,d+g),a.lineTo(c+e,d+f-g),a.quadraticCurveTo(c+e,d+f,c+e-g,d+f),a.lineTo(c+g,d+f),a.quadraticCurveTo(c,d+f,c,d+f-g),a.lineTo(c,d+g),a.quadraticCurveTo(c,d,c+g,d),a.closePath(),$.Renderer.fill(a,b),$.Renderer.stroke(a,b)}}),$.Circle=$.Entity.extend({pos:{x:0,y:0},radius:5,stroke:null,start:function(){},update:function(){},draw:function(a){var b={pos:this.pos,radius:this.radius,lineCap:this.lineCap||"butt"};this.color&&(b.fill=$.C.toRGBA(this.color)),this.stroke&&(b.stroke=this.stroke),this.angles&&(b.angles=this.angles),$.Renderer.drawCircle(a,b)}}),$.Line=$.Entity.extend({pos:{x:0,y:0},to:{x:0,y:0},size:1,color:$.C.white,start:function(){},update:function(){},draw:function(a){$.Renderer.drawLine(a,{from:this.pos,to:this.to,size:this.size,color:$.C.toRGBA(this.color)})}}),$.Rect=$.Entity.extend({pos:{x:0,y:0},size:{x:20,y:20},fill:null,stroke:null,corner:null,start:function(){},update:function(){},draw:function(a){var b={pos:this.pos,size:this.size};this.stroke&&(b.stroke=this.stroke,b.stroke.color&&(b.stroke.color=$.C.toRGBA(b.stroke.color))),this.fill&&(b.fill=$.C.toRGBA(this.fill)),this.corner&&(b.corner=this.corner),$.Renderer.drawRect(a,b)}}),$.Text=$.Entity.extend({pos:{x:0,y:0},text:"",size:1,color:$.C.white,start:function(){},update:function(){},draw:function(a){$.Renderer.drawText(a,{text:this.text,pos:this.pos,size:this.size,color:$.C.toRGBA(this.color)})}}),$.Sprite=$.Entity.extend({resource:"",pos:{x:0,y:0},size:{x:20,y:20},start:function(){},update:function(){},draw:function(a){var b={resource:this.resource,pos:this.pos,size:this.size};this.sprite&&(b.sp=this.sprite),this.angle&&(b.angle=this.angle),$.Renderer.drawSprite(a,b)}}),$.Controls=$.Base.extend({events:{pressing:null,moving:null,release:null,element:null,pause:null},enabled:!1,start:function(a){var b=window.document,c=this.container=a.container||b;c.onmouseup=this._onMouseEvent.bind(this,"release"),c.onmousedown=this._onMouseEvent.bind(this,"pressing"),c.onmousemove=this._onMouseEvent.bind(this,"moving"),b.onkeyup=this._onKeyUp.bind(this)},enable:function(){return this.enabled=!0,this},disable:function(){return this.enabled=!1,this},on:function(a,b){return this.events[a]||(this.events[a]=[]),this.events[a].push(b),this},off:function(a){return this.events[a]&&(this.events[a].length=0),this},_getEventName:function(a){switch(a.which||a.keyCode){case 81:case 113:return"element:fire";case 87:case 119:return"element:water";case 69:case 101:return"element:earth";case 82:case 114:return"element:air";case 112:case 80:return"pause"}},_onKeyUp:function(a){var b=this._getEventName(a);if((this.enabled||"pause"===b)&&b){if(b.indexOf("element")>-1){var c=b.split(":")[1];return void this.events.element.forEach(function(a){a(c)})}this.events[b].forEach(function(a){a()})}},_onMouseEvent:function(a,b){if(this.enabled){var c=this.getCoordsEvent(b,this.container);this.events[a].forEach(function(a){a(c)})}},getCoordsEvent:function(a,b){var c,d,e=document,f=e.body,g=e.documentElement;return a.pageX||a.pageY?(c=a.pageX,d=a.pageY):(c=a.clientX+f.scrollLeft+g.scrollLeft,d=a.clientY+f.scrollTop+g.scrollTop),c-=b.offsetLeft,d-=b.offsetTop,{x:c,y:d}}}),$.Node=$.Circle.extend({radius:3,color:$.C.white,nears:null,selected:!1,temp:0,incTemp:0,incTempSize:0,burned:!1,shaked:!1,originalPos:null,hasEarth:!1,insideTarget:!1,blowing:!1,blowingEnd:0,colors:{cold:[255,255,255,1],burn:[255,0,0,1],burned:[0,0,0,.2],earth:[190,160,40,1]},start:function(){this.nears=[]},addNear:function(a){this.nears.push(a)},randomBurn:function(){var a=this.nears.some(function(a){return a.burned});!a&&$.M.rnd01()<.15&&this.setBurned()},getNearBurned:function(){var a;return this.nears.some(function(b){return b.burned?(a=b,!0):void 0}),a},shake:function(){this.originalPos?this.pos=this.originalPos:this.originalPos=this.pos,this.shaked=!0,this.pos=$.V.round($.V.add(this.pos,$.M.rndInCircle(.2)))},endShake:function(){this.originalPos&&(this.pos=this.originalPos),this.shaked=!1},revive:function(){this.burned&&(this.resetTemp(),this.burned=!1)},burn:function(){this.burned||(this.incTemp=1)},cool:function(){this.burned||(this.incTemp=-1,this.incTempSize=.5)},applyEarth:function(){this.burned||(this.hasEarth=!0)},applyAir:function(){this.burned||(this.blowing=!0,this.hasEarth=!1,this.blowingEnd=Time.time+500)},getRandomNear:function(a){var b=[];if(this.nears.forEach(function(c){c.cid!==a&&!c.burned&&c.temp<.5&&b.push(c)}),b.length>0){var c=$.M.rnd(0,b.length-1);return b[c]}return null},resetTemp:function(){this.temp=0,this.incTemp=0,this.incTempSize=0},setBurned:function(){this.burned=!0,this.fill=this.color=this.colors.burned,this.resetTemp()},update:function(){if(!this.burned){if(this.blowing&&Time.time>this.blowingEnd&&(this.blowing=!1),this.hasEarth)return this.fill=this.color=this.colors.earth,void this.resetTemp();var a=this.nears.every(function(a){return a.burned});return a?void this.setBurned():(this.incTemp>0&&(this.incTempSize=this.blowing?.2:.1),this.blowing||this.insideTarget?this.shake():this.shaked&&this.endShake(),this.temp+=this.incTemp*this.incTempSize*Time.deltaTime,this.temp<=0&&this.resetTemp(),this.fill=this.color=$.C.lerp(this.colors.cold,this.colors.burn,this.temp),this.temp>1?(this.setBurned(),void this.resetTemp()):void 0)}}}),$.Nodes=$.Collection.extend({paths:null,applyPos:null,applyRatio:0,element:null,start:function(){this.paths=new $.Paths;var a=config.world.margin.x,b=config.world.margin.y,c=$.V.divide(config.size,2);c.x-=a,c.y-=b;var d=$.V.center($.V.zero,config.size);this.createWeb(d,c)},createWeb:function(a,b){var c=0,d=30,e=d/5,f=6,g=3,h=2,i=8*f,j=$.V.add(a,$.V.multiply(b,-1)),k=$.V.add(a,b),l=[],m=new $.Node({pos:a});this.entities.push(m);var n,o=10,p=1,q=0;do{n=!1,p%g===0&&(f*=h),f>i&&(f=i);var r=$.M.polygonPoints(a,p*d+o,f);q+=r.length;var s=[];(10===p||20===p)&&(e+=.1),r.forEach(function(a){var b=$.V.round($.V.add(a,$.M.rndInCircle(e))),c=new $.Node({pos:b});$.V.isOut(b,j,k)?c.out=!0:(n=!0,this.entities.push(c)),s.push(c)},this),l[p-1]=s,p++}while(n);c=p-2,l[0].forEach(function(a){this.paths.addOne(m,a)},this);var t,u,v,w;for(t=0;c>t;t++){var x=l[t],y=x.length;for(u=0;y>u;u++){v=u+1,w=u*h,v>y-1&&(v=0),w>y*h-g&&(w=-h);var z=l[t][v];if(!z.out){var A=l[t+1],B=A[v];A.length>x.length&&(B=A[w+h]),c-1>t&&B&&!B.out&&this.paths.addOne(z,B);var C=l[t][u];C.out||this.paths.addOne(z,C)}}}this.entities.forEach(function(a){a.randomBurn()})},elements:["fire","water","earth","air"],applyMethods:["burn","cool","applyEarth","applyAir"],findNodeByCollider:function(){this.entities.forEach(function(a){if(this.applyPos&&$.V.pointInCircle(this.applyPos,a.pos,this.applyRatio)){var b=this.elements.indexOf(this.element),c=this.applyMethods[b];a[c]()}},this)},getNodes:function(){return this.entities},update:function(){this.applyPos&&this.findNodeByCollider(),this.paths.update(),$.Nodes._super.update.apply(this)},draw:function(a){this.paths.draw(a),$.Nodes._super.draw.apply(this,arguments)}}),$.Path=$.Line.extend({pos:{x:0,y:0},to:{x:0,y:0},size:2,color:$.C.white,tBurn:.5,burned:!1,heat:null,na:null,nb:null,setHeat:function(a,b,c){this.heat={from:a.pos,to:$.V.round($.V.lerp(a.pos,b.pos,2*c>1?1:2*c))}},update:function(){var a=this.na,b=this.nb,c=a.temp,d=b.temp,e=a.color,f=this.nb.color;c>0?this.setHeat(a,b,c):d>0&&this.setHeat(b,a,d),c>this.tBurn&&0===d?b.burn():d>this.tBurn&&0===c&&a.burn(),this.color=$.C.eql(e,f)?e:$.C.lerp(e,f,this.tBurn),(a.burned||b.burned)&&(this.heat=null,this.burned=!0,this.color=[0,0,0,.2]),this.pos=this.na.pos,this.to=this.nb.pos},draw:function(a){$.Path._super.draw.apply(this,arguments),this.heat&&$.Renderer.drawLine(a,{from:this.heat.from,to:this.heat.to,size:5,color:"rgba(255,0,0,0.4)"})}}),$.Paths=$.Collection.extend({hasOne:function(a,b){return this.entities.some(function(c){var d=c.na.cid,e=c.nb.cid;return!(a!==d&&a!==e||b!==d&&b!==e)})},addOne:function(a,b){b&&!this.hasOne(a.cid,b.cid)&&(a.addNear(b),b.addNear(a),this.entities.push(new $.Path({na:a,nb:b})))}}),$.Cursor=$.Circle.extend({radius:20,stroke:{color:"#fff",size:2},active:!1,element:"fire",start:function(){Controls.on("pressing",this.onPressing.bind(this)),Controls.on("moving",this.onMoving.bind(this)),Controls.on("release",this.onRelease.bind(this)),Controls.on("element",this.onElement.bind(this))},onPressing:function(a){this.pos=a,this.active=!0},onMoving:function(a){this.pos=a},onRelease:function(){this.active=!1},onElement:function(a){this.element=a},update:function(){var a=["fire","water","earth","air"],b=.4,c=[20,20,20,50],d=[[255,0,0,b],[0,0,255,b],[165,140,80,b],[0,220,255,b]];this.color=d[a.indexOf(this.element)],this.radius=c[a.indexOf(this.element)]}}),$.Spider=$.Sprite.extend({resource:"spider",size:{x:32,y:32},nFrom:null,nTo:null,journeyLength:null,traveling:!1,isDead:!1,temp:0,staying:!1,t_stay:2e3,t_startStay:0,t_nextStay:0,t_startMove:0,building:!1,spriteIndex:0,animTime:3,lastFrameTime:0,exited:!1,calmSpeed:.05,alertSpeed:.1,behaviour:{alertTemp:0,tStayA:3e3,tStayB:1e4},start:function(a){this.pos=$.V.round(a.pos),this.onDead=a.onDead,this.speed=this.calmSpeed,this.move=[];for(var b=0;3>b;b++)this.move.push({x:32*b,y:0,w:32,h:32});this.sprite=this.move[0]},setNode:function(a,b){this.nFrom=a,this.nTo=b,this.t_startMove=Time.time,this.journeyLength=$.V.magnitude(a.pos,b.pos),this.traveling=!0,this.angle=$.V.angleTo(this.pos,this.nTo.pos)},setDead:function(){this.isDead||(this.isDead=!0,this.onDead())},animate:function(){this.staying||(this.lastFrameTime-=Time.frameTime,this.lastFrameTime<=0&&(this.spriteIndex++,this.spriteIndex>2&&(this.spriteIndex=0),this.lastFrameTime=this.animTime/this.speed))},updateTemp:function(){var a=this.nFrom.temp,b=this.nTo.temp;return 0===a&&0===b?void(this.temp=0):a>b?void(this.temp=a):void(b>a&&(this.temp=b))},canMove:function(){return!this.staying&&!this.traveling&&!this.building},updateState:function(){var a=Time.time,b=this.behaviour,c=this.t_startStay,d=this.t_stay;return this.temp>b.alertTemp?(this.speed=this.alertSpeed,void(this.staying=!1)):(this.speed=this.calmSpeed,void(this.staying?a>c+d&&(this.staying=!1,this.t_nextStay=a+d/$.M.rnd(2,5)):a>this.t_nextStay&&$.M.rnd01()<.8&&(this.staying=!0,this.t_startStay=a,this.t_stay=$.M.rnd(b.tStayA,b.tStayB))))},updateMove:function(){if(!this.building&&(this.nFrom.burned||this.nTo.burned))return void this.setDead();var a=(Time.time-this.t_startMove)*this.speed,b=a/this.journeyLength;return b>1?(this.pos=this.nTo.pos,this.nTo.revive(),this.traveling=!1,this.building=!1,!0):(this.pos=$.V.round($.V.lerp(this.nFrom.pos,this.nTo.pos,b)),void this.animate())},buildWeb:function(a,b){this.building=!0,this.traveling=!0,this.setNode(a,b)},update:function(){if(this.sprite=this.move[this.spriteIndex],!(this.isDead||this.exited||this.inVacuum)){if(this.updateTemp(),this.building||this.traveling){var a=this.updateMove();if(!a)return}this.updateState()}},draw:function(a){this.isDead||(this.building&&$.Renderer.drawLine(a,{from:this.pos,to:this.nFrom.pos,size:2,color:$.C.toRGBA($.C.white)}),$.Spider._super.draw.apply(this,arguments))}}),$.Spiders=$.Collection.extend({nodes:null,spidersExit:0,spidersKilled:0,stats:{},amount:50,start:function(a){this.entities=[],this.nodes=a.nodes,this.onExitSpider=a.onExitSpider,this.generateSpiders(),this.updateGUI()},updateGUI:function(){this.stats={saved:this.spidersExit,killed:this.spidersKilled,alives:this.entities.length-(this.spidersKilled+this.spidersExit),total:this.entities.length}},onSpiderDead:function(){this.spidersKilled++,this.updateGUI()},generateSpiders:function(){var a,b,c=this.nodes.getNodes(),d=c.length,e=[],f=d<this.amount?d-2:this.amount;do b=$.M.rnd(0,d-1),a=c[b],a.burned||-1!==e.indexOf(a.cid)||(e.push(a.cid),this.entities.push(new $.Spider({pos:a.pos,onDead:this.onSpiderDead.bind(this)})),f--);while(f)},getSpiders:function(){return this.entities},gonnaBuildWeb:function(a,b){if(!a.hasEarth&&0===a.temp&&$.M.rnd01()>.7){var c=a.getNearBurned();if(c)return b.buildWeb(a,c),!0}return!1},gotNearNodeToGo:function(a,b){var c=b.nodeFrom&&b.nodeFrom.cid||-1,d=a.getRandomNear(c);return d?(b.setNode(a,d),!0):!1},spiderNodeCollide:function(a,b){$.V.pointInCircle(a.pos,b.pos,5)&&(this.gonnaBuildWeb(b,a)||this.gotNearNodeToGo(b,a)||b.burned&&a.setDead())},update:function(){var a=this.nodes.getNodes(),b=this.spidersExit;this.spidersExit=0,this.entities.forEach(function(b){b.exited?this.spidersExit++:b.canMove()&&a.some(function(a){this.spiderNodeCollide(b,a)},this),b.update()},this),b!==this.spidersExit&&this.updateGUI()},draw:function(a){this.entities.forEach(function(b){b.inVacuum||b.draw(a)})}}),$.Target=$.Circle.extend({stroke:{color:[80,255,85,.1]},angles:{start:.97*Math.PI,end:1.52*Math.PI},lineCap:"butt",suckForce:3,start:function(){var a=config,b=a.world.margin;this.size=a.size.y/6,this.radius=this.size/2,this.stroke.size=this.size,this.pos=$.V.prod($.V.one,a.size),this.pos.x-=b.x+10,this.pos.y-=b.y+20,this.saved=[],this.saving=[]},setNodesInside:function(a){a.forEach(function(a){$.V.pointInCircle(a.pos,this.pos,this.size)&&(a.burned&&(a.burned=!1,a.revive()),a.insideTarget=!0)},this)},update:function(a){a.forEach(function(a){a.dead||a.exited||$.V.pointInCircle(a.pos,this.pos,this.size)&&(a.building=!1,a.exited=!0,a.vel={x:0,y:0},this.saving.push(a))},this);var b=Time.deltaTime,c=b*this.suckForce,d=this.pos;this.saving.forEach(function(a){if(!a.catched){var b=a.pos,e=$.V.normal(b,d);a.vel=$.V.add(a.vel,$.V.multiply(e,c)),a.pos=$.V.add(b,a.vel),$.V.pointInCircle(a.pos,d,5)&&(a.catched=!0,this.saved.push(a))}},this)}}),$.Vacuum=$.Entity.extend({start:function(a){this.target=a.target,this.size=config.vacuum.size,this.targetLen=20,this.current=0,this.offx=30,this.offy=10,this.recipePos={x:this.offx+165,y:this.offy+65},this.recipeSize={x:80,y:300},this.createGraphics()},createGraphics:function(){var a=$.sprites.vacuum.size;this.bgBack=new $.Sprite({resource:"vacuum",pos:$.V.center({x:this.offx,y:this.offy},a),size:a});var b=[187,187,249],c={pos:this.recipePos,size:this.recipeSize,corner:6,fill:$.C.white,stroke:{size:2,color:b}};this.cilinder=new $.Rect(c),c.fill=[0,0,255,.5],this.glass=new $.Rect(c),this.stats=new $.Text({pos:{x:180,y:30},size:20,color:$.C.white})},update:function(){this.current=this.target.saved.length;var a=this.recipePos,b=this.recipeSize,c=a.y+b.y/2,d=a.x+b.x/2,e=2*Time.time*Math.PI;this.target.saved.forEach(function(a){if(a.inVacuum){a.animate();var b=a.vacuum;a.pos={x:b.ampX*Math.sin(e/b.velX)+d,y:b.ampY*Math.sin(e/b.velY)+c},a.angle+=b.rot}else a.inVacuum=!0,a.vacuum={ampY:$.M.rnd(10,c/2),velY:$.M.rnd(600,1e3),ampX:$.M.rnd(5,20),velX:$.M.rnd(2e3,6e3),rot:$.M.rnd(1,5)/10},a.pos={x:d,y:c}},this),this.stats.text=_.pad(this.current,3)+" / "+_.pad(this.targetLen,3)},draw:function(a){this.bgBack.draw(a),this.cilinder.draw(a),this.target.saved.forEach(function(b){b.draw(a)}),this.glass.draw(a),this.stats.draw(a)}}),$.Stats=$.Collection.extend({pos:{x:1,y:0},marginW:40,marginH:40,colors:{kills:[255,0,0,1],alives:[0,255,0,1]},start:function(){this.entities=[],this.pos=$.V.prod(this.pos,config.size),this.stats={saved:0,killed:0,alives:0,total:0},this.createIcons(),this.createText()},createIcons:function(){var a=40,b=this.marginW,c=this.marginH,d={x:a,y:a},e={x:a/2,y:a/2},f={resource:"spider",sprite:{x:0,y:0,w:32,h:32},size:d,angle:Math.PI/2};f.pos={x:this.pos.x-b,y:this.pos.y+c+1.5*a},this.iconAlives=new $.Sprite(f),this.entities.push(this.iconAlives),f.pos={x:this.pos.x-b,y:this.pos.y+c},this.iconKills=new $.Sprite(f),this.entities.push(this.iconKills),this.lineAKills=new $.Line({pos:$.V.origin(f.pos,d),to:$.V.add(e,f.pos),size:3,color:this.colors.kills}),this.entities.push(this.lineAKills),this.lineBKills=new $.Line({pos:{x:f.pos.x+e.x,y:f.pos.y-e.y},to:{x:f.pos.x-e.x,y:f.pos.y+e.y},size:3,color:this.colors.kills}),this.entities.push(this.lineBKills)},createText:function(){var a=30;this.textKills=new $.Text({pos:{x:this.iconKills.pos.x-3*a,y:this.iconKills.pos.y},size:a,color:this.colors.kills}),this.entities.push(this.textKills),this.textAlives=new $.Text({pos:{x:this.iconAlives.pos.x-3*a,y:this.iconAlives.pos.y},size:a,color:this.colors.alives}),this.entities.push(this.textAlives)},update:function(a){this.stats=a,this.textKills.text=_.pad(this.stats.killed,3),this.textAlives.text=_.pad(this.stats.alives,3)}}),$.Element=$.Collection.extend({size:{x:96,y:96},start:function(a){this.entities=[],this.name=a.name,this.key=a.key,this.color=[255,255,255,1],this.sprite=a.sprite,this.active=!1,this.current=!1,this.createElement()},createElement:function(){var a=this.size,b=this.pos;this.bg=new $.Rect({pos:b,size:a,fill:this.color,stroke:{size:4,color:[30,30,30,1]},corner:8}),this.entities.push(this.bg),this.icon=new $.Sprite({resource:"elements",pos:$.V.center({x:b.x+3,y:b.y+6},{x:90,y:90}),size:a,angle:0,sprite:this.sprite}),this.entities.push(this.icon);var c={x:b.x,y:b.y+1.1*a.y},d=20;this.ctrlKey=new $.Rect({pos:{x:c.x-d/2,y:c.y-d},size:$.V.multiply($.V.one,2*d),fill:[0,0,0,1],corner:4}),this.entities.push(this.ctrlKey),this.txtKey=new $.Text({text:this.key,pos:c,size:d,color:[255,255,255,1]}),this.entities.push(this.txtKey)},update:function(){this.bg.fill=this.active?[255,255,255,1]:[255,255,255,.1],this.bg.stroke.color=this.current?[255,255,255,1]:[0,0,0,1]}}),$.Elements=$.Collection.extend({pos:{x:20,y:50},start:function(){this.entities=[],this.current="fire",this.active=!1,this.keys=["Q","W","E","R"],this.elements=["fire","water","earth","air"],this.sprites={};for(var a=0;4>a;a++)this.sprites[this.elements[a]]={x:32*a,y:0,w:32,h:32};this.createElements()},createElements:function(){var a=50,b=96;this.elements.forEach(function(c,d){this.entities.push(new $.Element({pos:{x:this.pos.x,y:this.pos.y+d*(b+a)},name:c,key:this.keys[d],sprite:this.sprites[c]}))},this)},update:function(){var a=this.active,b=this.current;this.entities.forEach(function(c){c.active=c.current=!1,c.name===b&&(c.current=!0,c.active=a),c.update()})}}),$.sprites={color:"41f934",spider:[[,,,,,,,,,,,,,,,],[,,,,,,,,,,,,,,,],[,,,,7,,3,,3,,7,,,,,],[,,1,,7,1,3,,3,1,7,3,7,,,],[,7,3,1,,,1,,1,,3,7,3,7,,],[2,4,3,,1,,1,,1,,1,,,3,7],[,4,3,,,1,1,1,1,1,,,,3,2],[,,,,1,1,1,1,1,1,1,1,,3,2],[,3,2,,1,1,1,1,1,1,1,1,,4,,],[,3,2,,,1,1,1,1,1,,,,4,3],[4,3,2,,1,,1,,1,,1,,,4,3],[,4,3,1,,,1,,1,,3,1,,6,,2],[,,,3,1,7,3,3,3,7,7,,1,,2],[,,,,7,,3,,3,,7,,,2,,],[,,,,,,,,,,,,,,,],[,,,,,,,,,,,,,,,]],colors:[[,"ff1414","ffc700","fff600"],[,"5481ce","5cb1f2","90e3f9"],[,"966910","bf8f35"],[,"aed7ef","e3f9fc"]],elements:[[[,,,,,,,1,1,,,,,,,],[,,,,,,1,1,1,1,,,,,,],[,,,,,,1,1,1,1,1,,,,,],[,,,,,1,1,1,2,1,1,,,,,],[,,,1,,1,1,2,2,1,1,,,,,],[,,1,1,,1,1,2,2,1,1,,1,,,],[,1,1,1,,1,1,2,2,1,1,,1,1,,],[,1,1,1,,1,1,2,2,1,1,,1,1,1],[,1,2,1,1,1,1,2,2,1,1,,1,1,1],[,1,2,2,1,1,2,2,2,2,1,1,1,2,1],[,1,2,2,2,2,2,3,3,2,2,2,2,2,1],[,1,2,2,3,3,2,3,3,2,3,3,2,2,1],[,1,1,2,2,3,3,3,3,3,3,2,2,1,1],[,,1,1,2,2,3,3,3,2,2,2,1,1,,],[,,,1,1,2,2,2,2,2,2,1,1,,,],[,,,,1,1,1,1,1,1,1,1,,,,]],[[,,,,,,,1,1,,,,,,,],[,,,,,,,1,1,,,,,,,],[,,,,,,1,1,1,1,,,,,,],[,,,,,,1,1,1,1,,,,,,],[,,,,,1,1,1,2,1,1,,,,,],[,,,,1,1,1,2,2,1,1,1,,,,],[,,,,1,1,2,2,2,2,1,1,1,,,],[,,,1,1,2,2,2,2,3,2,1,1,,,],[,,1,1,2,2,2,2,3,3,3,2,1,1,,],[,,1,1,2,2,2,2,2,3,3,2,1,1,,],[,,1,1,2,2,2,2,2,2,2,2,1,1,,],[,,1,1,2,2,2,2,2,2,2,2,1,1,,],[,,1,1,2,2,2,2,2,2,2,2,1,1,,],[,,1,1,1,2,2,2,2,2,2,1,1,,,],[,,,1,1,1,1,1,1,1,1,1,,,,],[,,,,1,1,1,1,1,1,1,,,,,]],[[,,,,,,,,,,,,,,,],[,,,,,,,,,,,,,,,],[,,,,,,,1,1,,,,,,,],[,,,,,,1,1,1,1,,,,,,],[,,,,,1,1,2,2,1,1,,,,,],[,,,,,1,2,2,2,2,1,1,,,,],[,,,,1,1,2,1,2,2,2,1,,,,],[,,,,1,2,2,2,1,2,2,2,1,,,],[,,,1,2,2,2,2,2,2,1,1,2,1,,],[,,1,1,2,2,2,1,2,2,2,2,2,1,,],[,,1,2,2,1,1,2,2,1,2,2,2,2,1],[,1,1,2,2,2,2,2,2,2,1,1,2,2,1],[,1,2,2,2,2,2,1,1,2,2,2,2,2,1],[,1,2,2,1,2,1,2,2,1,2,2,2,2,1],[,,1,2,2,2,2,2,2,2,2,2,2,1,,],[,,1,1,1,1,1,1,1,1,1,1,1,1,,]],[[,,,,,,1,1,1,1,,,,,,],[,,,,,1,2,2,2,2,1,,,,,],[,,,,1,2,2,1,2,2,2,1,,,,],[,,,1,2,2,2,2,2,1,2,1,,,,],[,,1,1,1,2,2,2,2,2,2,1,1,1,,],[,1,2,2,2,1,2,2,2,2,1,2,2,2,1],[,1,2,1,2,2,2,1,2,2,2,2,2,2,1],[,1,2,2,2,1,2,2,2,1,2,2,2,2,1],[,,1,1,1,1,2,1,2,1,1,2,2,1,,],[,,,,,1,2,1,2,1,,1,1,,,],[,,,,,1,2,1,2,1,,,,,,],[,,,,,1,2,2,2,1,,,,,,],[,,,,,1,2,2,2,1,,,,,,],[,,,,1,2,2,1,2,2,1,,,,,],[,,,,1,2,1,2,1,2,1,,,,,],[,,,,1,1,1,1,1,1,1,,,,,]]],vacuum:{size:{x:300,y:500},path:[[70,460],[120,400],[160,445],[195,450,185,380],[225,380],[230,510,145,475]],fill:"#9e9e9e",stroke:"#474747",line:3,box:{pos:{x:150,y:50},size:{x:110,y:330},corner:6,fill:[158,158,158],stroke:{color:[71,71,71],size:2}}}},$.Creator=$.Base.extend({},{getSprites:function(){var a=$.sprites;return{spider:this.generate(a.spider,a.color,!0,3),elements:this.generate(a.elements,a.colors),vacuum:this.drawPath(a.vacuum)}},generate:function(a,b,c,d){var e=new window.Image,f=c?d:a.length,g=document.createElement("canvas"),h=c?a.length:a[0].length,i=c?a[0].length:a[0][0].length,j=2,k=2,l=j*h,m=k*i;g.width=l*f,g.height=m;var n=g.getContext("2d");n.clearRect(0,0,l,m);for(var o=0;f>o;o++)for(var p=0;h>p;p++)for(var q=0;i>q;q++){var r,s,t;c?(r=a[p][q],t=b,s=o+2):(r=a[o][p][q],t=b[o][r],s=o),(c&&(5===r&&(2===s||3===s)||6===r&&(3===s||4===s)||7===r&&(2===s||4===s)||1===r||r===s)||!c&&r)&&(n.save(),n.fillStyle="#"+t,n.fillRect(q*j+l*o,p*k,j,k),n.restore())}return e.src=g.toDataURL("image/png"),g=null,e},drawPath:function(a){var b=new window.Image,c=a.path,d=a.fill,e=a.stroke,f=a.line,g=a.size,h=document.createElement("canvas");h.width=g.x,h.height=g.y;var i=h.getContext("2d");i.beginPath();var j=c[0];i.moveTo(j[0],j[1]);for(var k=1;k<c.length;k++){var l=c[k];4===l.length?i.quadraticCurveTo(l[0],l[1],l[2],l[3]):i.lineTo(l[0],l[1])}return i.lineTo(j[0],j[1]),d&&(i.fillStyle=d,i.fill()),i.lineWidth=f,i.strokeStyle=e,i.lineCap="round",i.stroke(),i.closePath(),$.Renderer.drawRect(i,a.box),b.src=h.toDataURL("image/png"),h=null,b}}),$.Manager=$.Base.extend({start:function(){this.cursor=new $.Cursor,this.nodes=new $.Nodes,this.paths=new $.Paths,this.target=new $.Target,this.vacuum=new $.Vacuum({target:this.target}),this.elements=new $.Elements,this.spiders=new $.Spiders({nodes:this.nodes}),this.stats=new $.Stats,this.target.setNodesInside(this.nodes.getNodes())},update:function(){var a=this.cursor,b=this.nodes,c=this.spiders,d=this.elements;a.update(),d.current=a.element,d.active=a.active,b.applyPos=null,a.active&&(b.applyPos=a.pos,b.applyRatio=a.radius,b.element=a.element),b.update(),c.update(),this.target.update(c.getSpiders()),this.vacuum.update(),this.stats.update(c.stats),d.update()},draw:function(a,b,c){var d=config.size,e=config.vacuum.size;a.clearRect(0,0,d.x,d.y),b.clearRect(0,0,d.x,d.y),c.clearRect(0,0,e.x,e.y),this.cursor.draw(a),this.nodes.draw(b),this.spiders.draw(b),this.target.draw(b),this.vacuum.draw(c),this.stats.draw(a),this.elements.draw(a)}}),$.GameTime=$.Base.extend({lastTime:null,frameTime:0,deltaTime:0,typicalFrameTime:20,minFrameTime:12,time:0,start:function(){this.lastTime=Date.now()},tick:function(){var a=Date.now(),b=a-this.lastTime;return b<this.minFrameTime?!1:(this.frameTime=b>2*this.typicalFrameTime?this.typicalFrameTime:b,this.deltaTime=this.frameTime/1e3,this.time+=this.frameTime,this.lastTime=a,!0)}}),$.Game=$.Base.extend({viewCtx:null,worldCtx:null,vacuumCtx:null,tLoop:null,paused:!1,start:function(a){this.cview=a.viewport,this.cworld=a.world,this.cvacuum=a.vacuum,this.boundGameRun=this.gameRun.bind(this),this.initContexts(),this.manager=new $.Manager},initContexts:function(){function a(a,b){return a.width=b.x,a.height=b.y,a.getContext("2d")}var b=config.size,c=config.vacuum.size;this.viewCtx=a(this.cview,b),this.worldCtx=a(this.cworld,b),this.vacuumCtx=a(this.cvacuum,c)},loop:function(){this.manager.update(),this.manager.draw(this.viewCtx,this.worldCtx,this.vacuumCtx)},play:function(){this.paused=!1,Controls.enable(),this.gameRun()},stop:function(){this.paused=!0,Controls.disable(),window.cancelAnimationFrame(this.tLoop)},gameRun:function(){Time.tick()&&this.loop(),this.tLoop=window.requestAnimationFrame(this.boundGameRun)},onWin:function(a){this._onWin=a},onLoose:function(a){this._onLoose=a}}),function(){function a(){function a(a){return Math.max(b["client"+a],c["scroll"+a],b["scroll"+a],c["offset"+a],b["offset"+a])}var b=e.documentElement,c=e.body,d=a("Width"),f=a("Height"),g={x:1250,y:750},h={x:d>g.x?g.x:d,y:f>g.y?g.y:f},i=e.getElementById("game-ctn");return i.style.width=h.x+"px",i.style.height=h.y+"px",{size:h,world:{margin:{x:150,y:20}},vacuum:{size:{x:300,y:500}}}}function b(){function a(a){f.style.display=a?"":"none"}function b(){game.paused?(a(),game.play()):(f.innerHTML='<div class="pause">Pause</div>',a(!0),game.stop())}var c=e.getElementById("game-viewport"),g=e.getElementById("game-world"),h=e.getElementById("vacuum");d.Time=new $.GameTime,d.Controls=new $.Controls({container:e.getElementById("game-ctn")}),d.game=new $.Game({viewport:c,world:g,vacuum:h}),d.game.onWin(function(){f.innerHTML='<div class="finish">Win!</div>',a(!0),game.stop()}),d.game.onLoose(function(){f.innerHTML='<div class="finish">Loose!</div>',a(!0),game.stop()}),a(),d.Controls.on("pause",b)}function c(){d.config=a(),$.repo=$.Creator.getSprites(),b(),d.game.play()}var d=window,e=d.document,f=document.querySelector(".bg-modal");d.onload=c}();
+// http://paulirish.com/2011/requestanimationframe-for-smart-animating/
+// http://my.opera.com/emoller/blog/2011/12/20/requestanimationframe-for-smart-er-animating
+
+// requestAnimationFrame polyfill by Erik Möller. fixes from Paul Irish and Tino Zijdel
+
+// MIT license
+
+(function() {
+  var lastTime = 0;
+  var vendors = ['ms', 'moz', 'webkit', 'o'];
+  for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
+    window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
+    window.cancelAnimationFrame = window[vendors[x]+'CancelAnimationFrame'] || window[vendors[x]+'CancelRequestAnimationFrame'];
+  }
+
+  if (!window.requestAnimationFrame) {
+    window.requestAnimationFrame = function(callback) {
+      var currTime = new Date().getTime();
+      var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+      var id = window.setTimeout(function() { callback(currTime + timeToCall); }, timeToCall);
+      lastTime = currTime + timeToCall;
+      return id;
+    };
+  }
+
+  if (!window.cancelAnimationFrame) {
+    window.cancelAnimationFrame = function(id) { window.clearTimeout(id); };
+  }
+}());
+
+/*
+ * Taken from Backbone and Underscore
+ * and only left the minimun and necessary code
+ */
+
+var _ = {};
+var $ = {};
+
+var idCounter = 0;
+_.uniqueId = function(prefix) {
+  var id = ++idCounter + '';
+  return prefix ? prefix + id : id;
+};
+
+_.isObject = function(obj) {
+  var type = typeof obj;
+  return type === 'function' || type === 'object' && !!obj;
+};
+
+_.extend = function(obj) {
+  if (!_.isObject(obj)) { return obj; }
+  var source, prop;
+  for (var i = 1, length = arguments.length; i < length; i++) {
+    source = arguments[i];
+    for (prop in source) {
+      if (hasOwnProperty.call(source, prop)) {
+        obj[prop] = source[prop];
+      }
+    }
+  }
+  return obj;
+};
+
+_.pad = function(num, size) {
+  var s = "0000000" + num;
+  return s.substr(s.length-size);
+};
+
+
+// BASE CLASS 
+
+$.Base = function(attributes) {
+
+  if (_.isObject(attributes)){
+    _.extend(this, attributes || {});
+  }
+
+  this.cid = _.uniqueId('c');
+  
+  this.start.apply(this, arguments);
+};
+
+_.extend($.Base.prototype, {
+  start: function(){},
+});
+
+$.Base.extend = function(protoProps, staticProps) {
+  var parent = this;
+  var child = function(){ return parent.apply(this, arguments); };
+    
+  _.extend(child, parent, staticProps);
+
+  var Surrogate = function(){ this.constructor = child; };
+  Surrogate.prototype = parent.prototype;
+  child.prototype = new Surrogate();
+
+  if (protoProps) { _.extend(child.prototype, protoProps); }
+  child._super = parent.prototype;
+
+  return child;
+};
+
+
+$.Entity = $.Base.extend({
+
+  pos: { x: 0, y: 0 },
+
+  start: function(){},
+
+  update: function(){ },
+
+  draw: function(/*ctx*/){ },
+
+});
+
+
+$.Collection = $.Base.extend({
+
+  entities: [],
+
+  start: function(){
+    this.entities = [];
+  },
+
+  update: function(){
+    this.entities.forEach(function (entity) {
+      entity.update();
+    });
+  },
+
+  draw: function(ctx){
+    this.entities.forEach(function (entity) {
+      entity.draw(ctx);
+    });
+  },
+
+});
+
+
+$.M = $.Base.extend({ }, {
+
+  rnd: function(min, max){
+    return Math.floor(Math.random() * (max - min + 1) + min);
+  },
+
+  rnd01: function(){
+    return Math.random();
+  },
+
+  rndInCircle: function(radius){
+    var angle = Math.random() * Math.PI * 2;
+    var rad = $.M.rnd(0, radius);
+
+    return {
+      x: Math.cos(angle) * rad,
+      y: Math.sin(angle) * rad
+    };
+  },
+
+  lerp: function(a, b, u) {
+    return (1 - u) * a + u * b;
+  },
+
+  polygonPoints: function(center, radius, sides) {
+    var points = [];
+    var angle = (Math.PI * 2) / sides;
+
+    for (var i = 0; i < sides; i++) {
+      points.push({
+        x: center.x + radius * Math.cos(i * angle),
+        y: center.y + radius * Math.sin(i * angle)
+      });
+    }
+
+    return points;
+  },
+
+});
+
+
+
+$.C = $.Base.extend({ }, {
+
+  white: [255,255,255,1],
+
+  toRGBA: function(arr){
+    return "rgba(" + arr[0] + "," + arr[1] + "," + arr[2] + "," + (arr[3] || 1) + ")";
+  },
+
+  lerp: function(from, to, t){
+
+    function l(a, b, t, m){
+      m = m ? m : 1;
+      return Math.round($.M.lerp(a, b, t) * m) / m;
+    }
+
+    return [
+        l(from[0], to[0], t)
+      , l(from[1], to[1], t)
+      , l(from[2], to[2], t)
+      , l(
+          from[3] >= 0 ? from[3]: 1
+        , to[3] >= 0 ? to[3] : 1
+        , t
+        , 100
+        )
+    ];
+  },
+
+  eql: function(a, b){
+    return a[0] === b[0] && a[1] === b[1] && a[2] === b[2] && a[3] === b[3];
+  }
+
+});
+
+
+$.V = $.Base.extend({ }, {
+
+  zero: { x: 0, y: 0 },
+  one: { x: 1, y: 1 },
+
+  clone: function(v){
+    return { x: v.x, y: v.y };
+  },
+
+  prod: function(a, b){
+    return { x: a.x * b.x, y: a.y * b.y };
+  },
+
+  multiply: function(vector, delta){
+    return { x: vector.x * delta, y: vector.y * delta };
+  },
+
+  divide: function(vector, delta){
+    return { x: vector.x / delta, y: vector.y / delta };
+  },
+
+  add: function(a, b){
+    return { x: a.x + b.x, y: a.y + b.y };
+  },
+
+  dif: function(from, to){
+    return { x: to.x - from.x, y: to.y - from.y };
+  },
+
+  // get "which" part of a point between 2 (i.e. 4th part)
+  part: function(from, to, which){
+    return $.V.lerp(from, to, which/10);
+  },
+
+  angleTo: function(from, to){
+    var p = $.V.dif(from, to);
+    return Math.atan2(p.y, p.x);
+  },
+
+  // get mid point between 2
+  mid: function(from, to){
+    return $.V.divide($.V.add(from, to), 2);
+  },
+
+  eql: function(a, b){
+    return (a.x === b.x && a.y === b.y);
+  },
+
+  normal: function(from, to){
+    var d = $.V.dif(from, to);
+    var l = $.V.magnitude(from, to);
+
+    return {
+        x: d.x / l || 0
+      , y: d.y / l || 0
+    };
+  },
+
+  origin: function(pos, size){
+    return {
+        x: pos.x - size.x/2,
+        y: pos.y - size.y/2,
+    };
+  },
+
+  center: function(pos, size){
+    return {
+        x: pos.x + size.x/2,
+        y: pos.y + size.y/2,
+    };
+  },
+
+  magnitude: function(a, b){
+    var dif = $.V.dif(a, b);
+    return Math.sqrt(dif.x*dif.x + dif.y*dif.y);
+  },
+
+  pointInCircle: function(p, pos, radius){
+    return $.V.magnitude(p, pos) < radius;
+  },
+  
+  lerp: function(from, to, t){
+
+    return {
+      x: from.x + (to.x - from.x) * t,
+      y: from.y + (to.y - from.y) * t
+    };
+
+  },
+
+  round: function(v){
+    v.x = Math.round(v.x);
+    v.y = Math.round(v.y);
+    return v;
+  },
+
+  isOut: function(p, min, max){
+    return (p.x < min.x || p.x > max.x || p.y < min.y || p.y > max.y);
+  }
+
+});
+
+
+$.Renderer = $.Base.extend({ }, {
+
+  fill: function(ctx, ps){
+    if (ps.hasOwnProperty("fill")){
+      ctx.fillStyle = ps.fill;
+      ctx.fill();
+    }
+  },
+
+  stroke: function(ctx, ps){
+    if (ps.hasOwnProperty("stroke")){
+      ctx.lineWidth = ps.strokeWidth || ps.stroke.size || 1;
+
+      var strokeColor = ps.stroke.color || ps.stroke || "#000";
+      ctx.strokeStyle = Array.isArray(strokeColor) ? $.C.toRGBA(strokeColor) : strokeColor;
+      ctx.stroke();
+    }
+  },
+
+  _drawRect: function(ctx, ps){
+    ctx.beginPath();
+    ctx.rect(ps.pos.x, ps.pos.y, ps.size.x, ps.size.y);
+    $.Renderer.fill(ctx, ps);
+    $.Renderer.stroke(ctx, ps);
+  },
+
+  drawCircle: function(ctx, ps){
+    var start = (ps.angles && ps.angles.start) || 0,
+      end = (ps.angles && ps.angles.end) || 2 * Math.PI;
+
+    ctx.beginPath();
+
+    if (ps.lineCap){
+      ctx.lineCap = ps.lineCap;
+    }
+
+    ctx.arc(ps.pos.x, ps.pos.y, ps.radius, start, end, false);
+
+    $.Renderer.fill(ctx, ps);
+    $.Renderer.stroke(ctx, ps);
+  },
+
+  drawLine: function(ctx, ps){
+    var a = ps.from
+      , b = ps.to;
+
+    ctx.beginPath();
+
+    ctx.lineCap = 'round';
+
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+
+    ctx.lineWidth = ps.size;
+    ctx.strokeStyle = ps.color;
+    ctx.stroke();
+  },
+
+  drawSprite: function(ctx, ps){
+    var img = $.repo[ps.resource]
+      , p = $.V.origin(ps.pos, ps.size)
+      , x = p.x
+      , y = p.y
+      , w = ps.size.x
+      , h = ps.size.y
+      , sp = ps.sp;
+
+    function draw(){
+      if (sp){
+        ctx.drawImage(img, sp.x, sp.y, sp.w, sp.h, x, y, w, h);
+      }
+      else {
+        ctx.drawImage(img, x, y, w, h);
+      }
+    }
+
+    if (ps.hasOwnProperty("angle")){
+      ctx.save();
+
+      ctx.translate(x + w/2, y + h/2);
+      x = -w/2;
+      y = -h/2;
+      ctx.rotate(ps.angle);
+
+      draw();
+
+      ctx.restore();
+      return;
+    }
+
+    draw();
+  },
+
+  drawText: function(ctx, ps){
+    ctx.font = ps.size + 'pt Arial';
+    ctx.textBaseline = ps.baseline || 'middle';
+    ctx.fillStyle = ps.color;
+    ctx.fillText(ps.text, ps.pos.x, ps.pos.y);
+  },
+
+  drawRect: function(ctx, ps){
+    var x = ps.pos.x
+      , y = ps.pos.y
+      , w = ps.size.x
+      , h = ps.size.y;
+
+    if (!ps.hasOwnProperty("corner")){
+      $.Renderer._drawRect(ctx, ps);
+      return;
+    }
+
+    var c = ps.corner;
+
+    ctx.beginPath();
+    ctx.moveTo(x + c, y);
+    ctx.lineTo(x + w - c, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + c);
+    ctx.lineTo(x + w, y + h - c);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - c, y + h);
+    ctx.lineTo(x + c, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - c);
+    ctx.lineTo(x, y + c);
+    ctx.quadraticCurveTo(x, y, x + c, y);
+    ctx.closePath();
+    
+    $.Renderer.fill(ctx, ps);
+    $.Renderer.stroke(ctx, ps);
+  }
+
+});
+
+
+$.Circle = $.Entity.extend({
+
+  pos: { x: 0, y: 0 },
+  radius: 5,
+  stroke: null,
+
+  start: function(){},
+
+  update: function(){ },
+
+  draw: function(ctx){
+
+    var opts = {
+      pos: this.pos,
+      radius: this.radius,
+      lineCap: this.lineCap || 'butt'
+    };
+
+    if (this.color){
+      opts.fill = $.C.toRGBA(this.color);
+    }
+
+    if (this.stroke){
+      opts.stroke = this.stroke;
+    }
+
+    if (this.angles){
+      opts.angles = this.angles;
+    }
+
+    $.Renderer.drawCircle(ctx, opts);
+  },
+
+});
+
+
+$.Line = $.Entity.extend({
+
+  pos: { x: 0, y: 0 },
+  to: { x: 0, y: 0 },
+
+  size: 1,
+  color: $.C.white,
+  
+  start: function(){},
+
+  update: function(){ },
+
+  draw: function(ctx){
+
+    $.Renderer.drawLine(ctx, {
+      from: this.pos,
+      to: this.to,
+      size: this.size,
+      color: $.C.toRGBA(this.color)
+    });
+
+  },
+
+});
+
+
+
+$.Rect = $.Entity.extend({
+
+  pos: { x: 0, y: 0 },
+  size: { x: 20, y: 20},
+  fill: null,
+  stroke: null,
+  corner: null,
+
+  start: function(){},
+
+  update: function(){ },
+
+  draw: function(ctx){
+
+    var opts = {
+      pos: this.pos,
+      size: this.size,
+    };
+
+    if (this.stroke){
+      opts.stroke = this.stroke;
+      if (opts.stroke.color) {
+        opts.stroke.color = $.C.toRGBA(opts.stroke.color);
+      }
+    }
+
+    if (this.fill){
+      opts.fill = $.C.toRGBA(this.fill);
+    }
+
+    if (this.corner){
+      opts.corner = this.corner;
+    }
+
+    $.Renderer.drawRect(ctx, opts);
+
+  },
+
+});
+
+
+$.Text = $.Entity.extend({
+
+  pos: { x: 0, y: 0 },
+  text: "",
+
+  size: 1,
+  color: $.C.white,
+  
+  start: function(){},
+
+  update: function(){ },
+
+  draw: function(ctx){
+
+    $.Renderer.drawText(ctx, {
+      text: this.text,
+      pos: this.pos,
+      size: this.size,
+      color: $.C.toRGBA(this.color)
+    });
+
+  },
+
+});
+
+
+
+$.Sprite = $.Entity.extend({
+
+  resource: "",
+  pos: { x: 0, y: 0 },
+  //sprite: { x: 0, y: 0, w: 20, h: 20 },
+  size: { x: 20, y: 20 },
+  //angle: 0,
+
+  start: function(){},
+
+  update: function(){ },
+
+  draw: function(ctx){
+
+    var opts = {
+      resource: this.resource,
+      pos: this.pos,
+      size: this.size
+    };
+
+    if (this.sprite){
+      opts.sp = this.sprite;
+    }
+
+    if (this.angle){
+      opts.angle = this.angle;
+    }
+
+    $.Renderer.drawSprite(ctx, opts);
+
+  },
+
+});
+
+
+$.Controls = $.Base.extend({
+
+  events: {
+      "pressing": null
+    , "moving": null
+    , "release": null
+    , "element": null
+    , "pause": null
+  },
+
+  enabled: false,
+
+  start: function(options){
+    var doc = window.document
+      , c = this.container = options.container || doc;
+
+    c.onmouseup = this._onMouseEvent.bind(this, "release");
+    c.onmousedown = this._onMouseEvent.bind(this, "pressing");
+    c.onmousemove = this._onMouseEvent.bind(this, "moving");
+    doc.onkeyup = this._onKeyUp.bind(this);
+  },
+
+  enable: function(){
+    this.enabled = true;
+    return this;
+  },
+
+  disable: function(){
+    this.enabled = false;
+    return this;
+  },
+
+  on: function(evName, callback){
+    if (!this.events[evName]){
+      this.events[evName] = [];
+    }
+
+    this.events[evName].push(callback);
+
+    return this;
+  },
+
+  off: function(evName){
+    if (this.events[evName]){
+      this.events[evName].length = 0;
+    }
+
+    return this;
+  },
+
+  _getEventName: function(e){
+    switch(e.which || e.keyCode){
+      case 81: //Q
+      case 113: //q
+        return "element:fire";
+      case 87: //W
+      case 119: //w
+        return "element:water";
+      case 69: //E
+      case 101: //e
+        return "element:earth";
+      case 82: //R
+      case 114: //r
+        return "element:air";
+      case 112: //P
+      case 80: //p
+        return "pause";
+    }
+
+    return;
+  },
+
+  _onKeyUp: function(e){
+    var evName = this._getEventName(e);
+
+    if (!this.enabled && evName !== "pause"){
+      return;
+    }
+
+    if (evName){
+
+      if (evName.indexOf("element") > -1){
+        var element = evName.split(":")[1];
+        this.events.element.forEach(function(cb){
+          cb(element);
+        });
+
+        return;
+      }
+
+      this.events[evName].forEach(function(cb){
+        cb();
+      });
+    }
+  },
+
+  _onMouseEvent: function(type, e){
+    if (!this.enabled){
+      return;
+    }
+
+    var pos = this.getCoordsEvent(e, this.container);
+
+    this.events[type].forEach(function(cb){
+      cb(pos);
+    });
+  },
+
+  getCoordsEvent: function(e, ele){
+    var x, y
+      , doc = document
+      , body = doc.body
+      , docEle = doc.documentElement;
+
+    if (e.pageX || e.pageY) { 
+      x = e.pageX;
+      y = e.pageY;
+    }
+    else { 
+      x = e.clientX + body.scrollLeft + docEle.scrollLeft; 
+      y = e.clientY + body.scrollTop + docEle.scrollTop; 
+    } 
+    
+    x -= ele.offsetLeft;
+    y -= ele.offsetTop;
+    
+    return { x: x, y: y };
+  }
+
+});
+
+
+$.Node = $.Circle.extend({
+
+  radius: 3,
+  color: $.C.white,
+
+  nears: null,
+  selected: false,
+
+  temp: 0,
+  incTemp: 0,
+  incTempSize: 0,
+
+  burned: false,
+  shaked: false,
+  originalPos: null,
+  hasEarth: false,
+
+  insideTarget: false,
+  blowing: false,
+  blowingEnd: 0,
+
+  colors: {
+      cold: [255,255,255,1]
+    , burn: [255,0,0,1]
+    , burned: [0,0,0,0.2]
+    , earth: [190,160,40,1]
+  },
+
+  start: function(){
+    this.nears = [];
+  },
+
+  addNear: function(node){
+    this.nears.push(node);
+  },
+
+  randomBurn: function(){
+    
+    var oneBurned = this.nears.some(function(node){
+      return node.burned;
+    });
+
+    if (!oneBurned && $.M.rnd01() < 0.15){
+      this.setBurned();
+    }
+  },
+
+  getNearBurned: function(){
+    
+    var burned;
+    this.nears.some(function(node){
+      if (node.burned){
+        burned = node;
+        return true;
+      }
+    });
+
+    return burned;
+  },
+
+  shake: function(){
+    if (this.originalPos){
+      this.pos = this.originalPos;
+    }
+    else {
+      this.originalPos = this.pos;
+    }
+    
+    this.shaked = true;
+    this.pos = $.V.round($.V.add(this.pos, $.M.rndInCircle(0.2)));
+  },
+
+  endShake: function(){
+    if (this.originalPos){
+      this.pos = this.originalPos;
+    }
+    this.shaked = false;
+  },
+
+  revive: function(){
+    if (this.burned){
+      this.resetTemp();
+      this.burned = false;
+    }
+  },
+
+  burn: function(){
+    if (!this.burned){
+      this.incTemp = 1;
+    }
+  },
+
+  cool: function(){
+    if (!this.burned){
+      this.incTemp = -1;
+      this.incTempSize = 0.5;
+    }
+  },
+
+  applyEarth: function(){
+    if (!this.burned){
+      this.hasEarth = true;
+    }
+  },
+
+  applyAir: function(){
+    if (!this.burned){
+      this.blowing = true;
+      this.hasEarth = false;
+      this.blowingEnd = Time.time + 500;
+    }
+  },
+
+  getRandomNear: function(excludeId){
+    var ns = [];
+
+    this.nears.forEach(function(n){
+      if (n.cid !== excludeId && !n.burned && n.temp < 0.5){
+        ns.push(n);
+      }
+    });
+
+    if (ns.length > 0){
+      var idx = $.M.rnd(0, ns.length-1);
+      return ns[idx];
+    }
+
+    return null;
+  },
+
+  resetTemp: function(){
+    this.temp = 0;
+    this.incTemp = 0;
+    this.incTempSize = 0;
+  },
+
+  setBurned: function(){
+    this.burned = true;
+    this.fill = this.color = this.colors.burned;
+    this.resetTemp();
+  },
+
+  update: function(){
+
+    if (this.burned){
+      return;
+    }
+
+    if (this.blowing && Time.time > this.blowingEnd){
+      this.blowing = false;
+    }
+
+    if (this.hasEarth){
+      this.fill = this.color = this.colors.earth;
+      this.resetTemp();
+      return;
+    }
+
+    var isAlone = this.nears.every(function(n){
+      return n.burned;
+    });
+
+    if (isAlone){
+      this.setBurned();
+      return;
+    }
+
+    if (this.incTemp > 0){ // is burning
+      if (this.blowing) {    
+        this.incTempSize = 0.2; 
+      }
+      else {
+        this.incTempSize = 0.1; 
+      }
+    }
+
+    if (this.blowing || this.insideTarget) {
+      this.shake();
+    }
+    else if (this.shaked){
+      this.endShake();
+    }
+
+    this.temp += this.incTemp * this.incTempSize * Time.deltaTime;
+
+    if (this.temp <= 0){
+      this.resetTemp();
+    }
+
+    this.fill = this.color = $.C.lerp(this.colors.cold, this.colors.burn, this.temp);
+
+    if (this.temp > 1){
+      this.setBurned();
+      this.resetTemp();
+      return;
+    }
+
+  }
+
+});
+
+/*jslint -W083 */
+
+$.Nodes = $.Collection.extend({
+
+  paths: null,
+
+  applyPos: null,
+  applyRatio: 0,
+  element: null,
+
+  start: function(){
+    this.paths = new $.Paths();
+
+    var marginW = config.world.margin.x;
+    var marginH = config.world.margin.y;
+    
+    // Full-screen
+    var radius = $.V.divide(config.size, 2);
+
+    // Full-screen with margin
+    radius.x -= marginW;
+    radius.y -= marginH;
+
+    // Center of Screen
+    var center = $.V.center($.V.zero, config.size);
+
+    this.createWeb(center, radius);
+  },
+
+  createWeb: function(center, rad){
+
+    var ringsAm = 0
+      , ringsGap = 30
+      , rndRadius = ringsGap/5
+      , nodesByRing = 6
+      , duplicateBy = 3
+      , increaseBy = 2
+      , maxNodesByRing = nodesByRing * 8 // 8 times increase max
+      , boundMin = $.V.add(center, $.V.multiply(rad, -1))
+      , boundMax = $.V.add(center, rad)
+      , rings = [];
+   
+    var cNode = new $.Node({ pos: center });
+    this.entities.push(cNode);
+
+    var start = 10;
+    var i = 1;
+    var aNodeInside;
+
+    var countNodes = 0;
+
+    do {
+      aNodeInside = false;
+
+      if (i % duplicateBy === 0){
+        nodesByRing *= increaseBy;
+      }
+      if (nodesByRing > maxNodesByRing){
+        nodesByRing = maxNodesByRing;
+      }
+
+      var ps = $.M.polygonPoints(center, (i*ringsGap) + start, nodesByRing);
+      countNodes += ps.length;
+      var cRing = [];
+
+      if (i === 10 || i === 20){
+        rndRadius += 0.1;
+      }
+
+      ps.forEach(function(p){
+
+        var np = $.V.round($.V.add(p, $.M.rndInCircle(rndRadius)));
+        var node = new $.Node({ pos: np });
+        
+        if ($.V.isOut(np, boundMin, boundMax)) {
+          node.out = true;
+        }
+        else {
+          aNodeInside = true;
+          this.entities.push(node);
+        }
+        
+        cRing.push(node);
+
+      }, this);
+
+      rings[i-1] = cRing;
+      i++;
+
+    } while(aNodeInside);
+
+    ringsAm = i-2;
+
+    
+    // path from center to first ring
+    rings[0].forEach(function(rNode){
+      this.paths.addOne(cNode, rNode);
+    }, this);
+
+    var j, k, l1, l2;
+
+    // Paths connections between rings
+    for (j=0; j<ringsAm; j++){
+      var currRing = rings[j];
+      var max = currRing.length;
+
+      for (k=0; k<max; k++){
+
+        l1 = k+1;
+        l2 = k*increaseBy;
+        if (l1 > max-1){
+          l1 = 0;
+        }
+
+        if (l2 > (max*increaseBy)-duplicateBy){
+          l2 = -increaseBy;
+        }
+
+        var currNode = rings[j][l1];
+        if (currNode.out){
+          continue;
+        }
+
+        var nextRing = rings[j+1];
+        var rSiblingA = nextRing[l1];
+
+        if (nextRing.length > currRing.length) {
+           rSiblingA = nextRing[l2+increaseBy]; 
+        }
+        
+        if (j < ringsAm-1){
+          if (rSiblingA && !rSiblingA.out){
+            this.paths.addOne(currNode, rSiblingA);
+          }
+        }
+
+        var sibling = rings[j][k];
+        if (!sibling.out){
+          this.paths.addOne(currNode, sibling);
+        }
+
+      }
+    }
+
+    // burn some nodes randomly
+    this.entities.forEach(function(node){
+      node.randomBurn();
+    });
+
+  },
+
+  elements: ["fire", "water", "earth", "air"],
+  applyMethods: ["burn", "cool", "applyEarth", "applyAir"],
+
+  findNodeByCollider: function(){
+    this.entities.forEach(function (node) {
+      if (this.applyPos && $.V.pointInCircle(this.applyPos, node.pos, this.applyRatio)) {
+        var methodIdx = this.elements.indexOf(this.element);
+        var method = this.applyMethods[methodIdx];
+        node[method]();
+      }
+    }, this);
+  },
+
+  getNodes: function(){
+    return this.entities;
+  },
+
+  update: function(){
+
+    if (this.applyPos){
+      this.findNodeByCollider();
+    }
+
+    this.paths.update();
+    $.Nodes._super.update.apply(this);
+  },
+
+  draw: function(ctx){
+    this.paths.draw(ctx);
+    $.Nodes._super.draw.apply(this, arguments);
+  }
+
+});
+
+
+$.Path = $.Line.extend({
+
+  pos: { x: 0, y: 0 },
+  to: { x: 0, y: 0 },
+
+  size: 2,
+  color: $.C.white,
+
+  tBurn: 0.5,
+  burned: false,
+  heat: null,
+
+  na: null,
+  nb: null,
+/*
+  start: function(){
+    //TODO: check Heat Line if it should be created as another line or not.
+  },
+*/
+  setHeat: function(from, to, t){
+    this.heat = {
+      from: from.pos,
+      to: $.V.round($.V.lerp(from.pos, to.pos, t * 2 > 1 ? 1 : t * 2 ))
+    };
+  },
+
+  update: function(){
+    var na = this.na
+      , nb = this.nb
+      , naT = na.temp
+      , nbT = nb.temp
+      , naC = na.color
+      , nbC = this.nb.color;
+
+    if (naT > 0){
+      this.setHeat(na, nb, naT);
+    }
+    else if (nbT > 0){
+      this.setHeat(nb, na, nbT);
+    }
+
+    if (naT > this.tBurn && nbT === 0){
+      nb.burn();
+    }
+    else if (nbT > this.tBurn && naT === 0){
+      na.burn();
+    }
+
+    if ($.C.eql(naC,  nbC)){
+      this.color = naC;
+    }
+    else {
+      this.color = $.C.lerp(naC, nbC, this.tBurn);
+    }
+
+    if (na.burned || nb.burned) {
+      this.heat = null;
+      this.burned = true;
+      this.color = [0,0,0,0.2];
+    }
+
+    this.pos = this.na.pos;
+    this.to = this.nb.pos;
+  },
+
+  draw: function(ctx){
+    $.Path._super.draw.apply(this, arguments);
+
+    if (this.heat){
+      $.Renderer.drawLine(ctx, {
+        from: this.heat.from,
+        to: this.heat.to,
+        size: 5,
+        color: "rgba(255,0,0,0.4)"
+      });
+    }
+
+  },
+
+});
+
+
+$.Paths = $.Collection.extend({
+
+  hasOne: function(naId, nbId){
+    return this.entities.some(function(path){
+      var pa = path.na.cid, pb = path.nb.cid;
+      return (naId === pa || naId === pb) && (nbId === pa || nbId === pb);
+    });
+  },
+
+  addOne: function(nA, nB){
+    if (nB && !this.hasOne(nA.cid, nB.cid)){
+      
+      nA.addNear(nB);
+      nB.addNear(nA);
+
+      this.entities.push(new $.Path({
+        na: nA, 
+        nb: nB
+      }));
+    }
+  }
+
+});
+
+
+$.Cursor = $.Circle.extend({
+
+  radius: 20,
+  stroke: {
+    color: "#fff",
+    size: 2
+  },
+
+  active: false,
+  element: "fire",
+
+  start: function(){
+    Controls.on("pressing", this.onPressing.bind(this));
+    Controls.on("moving", this.onMoving.bind(this));
+    Controls.on("release", this.onRelease.bind(this));
+    Controls.on("element", this.onElement.bind(this));
+  },
+
+  onPressing: function(pos){
+    this.pos = pos;
+    this.active = true;
+  },
+
+  onMoving: function(pos){
+    this.pos = pos;
+  },
+
+  onRelease: function(){
+    this.active = false;
+  },
+
+  onElement: function(element){
+    this.element = element;
+  },
+
+  update: function(){
+    var elements = ["fire", "water", "earth", "air"]
+      , alpha = 0.4
+      , sizes = [20,20,20,50]
+      , colors = [
+          [255,0,0, alpha]
+        , [0,0,255, alpha]
+        , [165,140,80, alpha]
+        , [0,220,255, alpha]
+      ];
+
+    this.color = colors[elements.indexOf(this.element)];
+    this.radius = sizes[elements.indexOf(this.element)];
+  },
+
+  //draw is used from inheritance by the Circle class
+
+});
+
+
+$.Spider = $.Sprite.extend({
+
+  resource: "spider",
+  size: { x: 32, y: 32 },
+
+  nFrom: null,
+  nTo: null,
+  journeyLength: null,
+
+  traveling: false,
+  isDead: false,
+
+  temp: 0,
+  staying: false,
+
+  t_stay: 2000,
+  t_startStay: 0,
+  t_nextStay: 0,
+
+  t_startMove: 0,
+
+  building: false,
+
+  spriteIndex: 0,
+
+  animTime: 3,
+  lastFrameTime: 0,
+  exited: false,
+
+  calmSpeed: 0.05,
+  alertSpeed: 0.1,
+
+  behaviour: {
+      alertTemp: 0
+    , tStayA: 3000
+    , tStayB: 10000
+  },
+
+  start: function(options){
+    this.pos = $.V.round(options.pos);
+    this.onDead = options.onDead;
+
+    this.speed = this.calmSpeed;
+
+    this.move = [];
+    for(var i=0;i<3;i++){
+      this.move.push({ x: i*32, y: 0, w: 32, h: 32 });
+    }
+
+    this.sprite = this.move[0];
+  },
+
+  setNode: function(nFrom, nTo){
+    this.nFrom = nFrom;
+    this.nTo = nTo;
+
+    this.t_startMove = Time.time;
+    this.journeyLength = $.V.magnitude(nFrom.pos, nTo.pos);
+    this.traveling = true;
+
+    this.angle = $.V.angleTo(this.pos, this.nTo.pos);
+  },
+
+  setDead: function(){
+    if (!this.isDead){
+      this.isDead = true;
+      this.onDead();
+    }
+  },
+
+  animate: function(){
+
+    if (!this.staying){
+      this.lastFrameTime -= Time.frameTime;
+
+      if (this.lastFrameTime <= 0){
+        this.spriteIndex++;
+        if (this.spriteIndex > 2){
+          this.spriteIndex = 0;
+        }
+
+        this.lastFrameTime = this.animTime / this.speed;
+      }
+    }
+
+  },
+
+  updateTemp: function(){
+    var nfromT = this.nFrom.temp;
+    var ntoT = this.nTo.temp;
+
+    if (nfromT === 0 && ntoT === 0){
+      this.temp = 0;
+      return;
+    }
+
+    if (nfromT > ntoT){
+      this.temp = nfromT;
+      return;
+    }
+
+    if (ntoT > nfromT){
+      this.temp = ntoT;
+    }
+  },
+
+  canMove: function(){
+    return !this.staying && !this.traveling && !this.building;
+  },
+
+  updateState: function(){
+    var tm = Time.time
+      , cfgTm = this.behaviour
+      , tstart = this.t_startStay
+      , tstay = this.t_stay;
+
+    if (this.temp > cfgTm.alertTemp){ //alert behaviour!
+      this.speed = this.alertSpeed;
+      this.staying = false;
+      return;
+    }
+
+    // calm behaviour
+    this.speed = this.calmSpeed;
+
+    if (this.staying){
+      if(tm > tstart + tstay) {
+        this.staying = false;
+        this.t_nextStay = tm + tstay / $.M.rnd(2, 5);
+      }
+    }
+    else if (tm > this.t_nextStay && $.M.rnd01() < 0.8){
+      this.staying = true;
+      this.t_startStay = tm;
+      this.t_stay = $.M.rnd(cfgTm.tStayA, cfgTm.tStayB);
+    }
+
+  },
+
+  // returns true if the travel is ended
+  updateMove: function(){
+
+    if (!this.building && (this.nFrom.burned || this.nTo.burned)){
+      this.setDead();
+      return;
+    }
+
+    var distCovered = (Time.time - this.t_startMove) * this.speed;
+    var fracJourney = distCovered / this.journeyLength;
+    
+    if (fracJourney > 1) {
+      this.pos = this.nTo.pos;
+      this.nTo.revive();
+
+      this.traveling = false;
+      this.building = false;
+
+      return true;
+    }
+
+    this.pos = $.V.round($.V.lerp(this.nFrom.pos, this.nTo.pos, fracJourney));
+
+    this.animate();
+  },
+
+  buildWeb: function(from, to){
+    this.building = true;
+    this.traveling = true;
+    this.setNode(from, to);
+  },
+
+  update: function(){
+    this.sprite = this.move[this.spriteIndex];
+
+    if (this.isDead || this.exited || this.inVacuum){
+      return;
+    }
+    
+    this.updateTemp();
+
+    if (this.building || this.traveling){
+      var ended = this.updateMove();
+      if (!ended){
+        return;
+      }
+    }
+
+    this.updateState();
+  },
+
+  draw: function(ctx){
+    if (this.isDead){
+      return;
+    }
+
+    if (this.building){
+      $.Renderer.drawLine(ctx, {
+        from: this.pos,
+        to: this.nFrom.pos,
+        size: 2,
+        color: $.C.toRGBA($.C.white)
+      });
+    }
+
+    $.Spider._super.draw.apply(this, arguments);
+  }
+
+});
+
+
+$.Spiders = $.Collection.extend({
+
+  nodes: null,
+  spidersExit: 0,
+  spidersKilled: 0,
+  stats: {},
+  amount: 50,
+
+  start: function(options){
+    this.entities = [];
+    this.nodes = options.nodes;
+
+    this.onExitSpider = options.onExitSpider;
+
+    this.generateSpiders();
+    this.updateGUI();
+  },
+
+  updateGUI: function(){
+    this.stats = {
+      saved: this.spidersExit,
+      killed: this.spidersKilled,
+      alives: this.entities.length - (this.spidersKilled + this.spidersExit),
+      total: this.entities.length
+    };
+  },
+
+  onSpiderDead: function(){
+    this.spidersKilled++;
+    this.updateGUI();
+  },
+
+  generateSpiders: function(){
+    var nodes = this.nodes.getNodes()
+      , len = nodes.length
+      , nodesIds = []
+      , node
+      , idx
+      , amount = (len < this.amount ? len-2: this.amount);
+
+    do {
+      idx = $.M.rnd(0, len-1);
+      node = nodes[idx];
+
+      if (!node.burned && nodesIds.indexOf(node.cid) === -1){
+        nodesIds.push(node.cid);
+        
+        this.entities.push(new $.Spider({
+          pos: node.pos, 
+          onDead: this.onSpiderDead.bind(this)
+        }));
+
+        amount--;
+      }
+    } while(amount);
+  },
+
+  getSpiders: function(){
+    return this.entities;
+  },
+
+  gonnaBuildWeb: function(node, spider){
+    if (!node.hasEarth && node.temp === 0 && $.M.rnd01() > 0.7) {
+      var nearBurned = node.getNearBurned();
+      if (nearBurned){
+        spider.buildWeb(node, nearBurned);
+        return true;
+      }
+    }
+
+    return false;
+  },
+
+  gotNearNodeToGo: function(node, spider){
+    var fromId = (spider.nodeFrom && spider.nodeFrom.cid) || -1;
+    var nodeTo = node.getRandomNear(fromId);
+    if (nodeTo){
+      spider.setNode(node, nodeTo);
+      return true;
+    }
+
+    return false;
+  },
+
+  spiderNodeCollide: function(spider, node){
+    if ($.V.pointInCircle(spider.pos, node.pos, 5)) {
+     
+      if (!this.gonnaBuildWeb(node, spider) && !this.gotNearNodeToGo(node, spider)){
+        if (node.burned){
+          spider.setDead();
+        }
+      }
+    }
+  },
+
+  update: function(){
+    
+    var nodes = this.nodes.getNodes();
+
+    var lastExits = this.spidersExit;
+    this.spidersExit = 0;
+    this.entities.forEach(function (spider) {
+
+      if (spider.exited){
+        this.spidersExit++;
+      }
+      else if (spider.canMove()){
+        nodes.some(function (node) {
+          this.spiderNodeCollide(spider, node);
+        }, this);
+      }
+    
+      spider.update();
+
+    }, this);
+
+    if (lastExits !== this.spidersExit){
+      this.updateGUI();
+    }
+  },
+
+  draw: function(ctx){
+    this.entities.forEach(function (spider) {
+      if (!spider.inVacuum){
+        spider.draw(ctx);
+      }
+    });
+  }
+
+});
+
+
+$.Target = $.Circle.extend({
+
+  stroke: {
+    color: [80,255,85,0.1]
+  },
+  angles: {
+    start: 0.97 * Math.PI,
+    end: 1.52 * Math.PI
+  },
+  lineCap: 'butt',
+  
+  suckForce: 3,
+
+  start: function(){
+    var cfg = config
+      , cfgm = cfg.world.margin;
+
+    this.size = cfg.size.y/6;
+    this.radius = this.size/2;
+    this.stroke.size = this.size;
+
+    this.pos = $.V.prod($.V.one, cfg.size);
+    this.pos.x -= cfgm.x + 10;
+    this.pos.y -= cfgm.y + 20;
+    
+    this.saved = [];
+    this.saving = [];
+  },
+
+  setNodesInside: function(nodes){
+    nodes.forEach(function(node){
+      if ($.V.pointInCircle(node.pos, this.pos, this.size)){
+        if (node.burned){
+          node.burned = false;
+          node.revive();
+        }
+        node.insideTarget = true;
+      }
+    }, this);
+  },
+
+  update: function(spiders){
+
+    spiders.forEach(function(spider){
+      if (!spider.dead && !spider.exited){
+
+        if ($.V.pointInCircle(spider.pos, this.pos, this.size)){
+          spider.building = false;
+          spider.exited = true;
+          spider.vel = { x: 0, y: 0 };
+          this.saving.push(spider);
+        }
+      }
+    }, this);
+
+    var dt = Time.deltaTime
+      , force = dt * this.suckForce
+      , p = this.pos;
+
+    this.saving.forEach(function(spider){
+
+      if (!spider.catched){
+        var sp = spider.pos;
+        var imp = $.V.normal(sp, p);
+        spider.vel = $.V.add(spider.vel, $.V.multiply(imp, force)); 
+        spider.pos = $.V.add(sp, spider.vel);
+        
+        if ($.V.pointInCircle(spider.pos, p, 5)){
+          spider.catched = true;
+          this.saved.push(spider);
+        }
+      }
+
+    }, this); 
+
+  }
+
+});
+
+
+$.Vacuum = $.Entity.extend({
+
+  start: function(options){
+    this.target = options.target;
+    this.size = config.vacuum.size;
+
+    this.targetLen = 20;
+    this.current = 0;
+
+    this.offx = 30;
+    this.offy = 10;
+
+    this.recipePos = { x: this.offx + 165, y: this.offy + 65 };
+    this.recipeSize = { x: 80, y: 300 };
+
+    this.createGraphics();
+  },
+
+  createGraphics: function(){
+    var size = $.sprites.vacuum.size;
+
+    this.bgBack = new $.Sprite({
+      resource: "vacuum",
+      pos: $.V.center({ x: this.offx, y: this.offy }, size),
+      size: size
+    });
+
+    var c = [187,187,249];
+
+    var opts = {
+      pos: this.recipePos,
+      size: this.recipeSize,
+      corner: 6,
+      fill: $.C.white,
+      stroke: {
+        size: 2,
+        color: c
+      }
+    };
+
+    this.cilinder = new $.Rect(opts);
+
+    opts.fill = [0,0,255,0.5];
+    this.glass = new $.Rect(opts);
+
+    this.stats = new $.Text({
+      pos: { x: 180, y: 30 },
+      size: 20,
+      color: $.C.white
+    });
+
+  },
+
+  update: function(){
+    this.current = this.target.saved.length;
+
+    var p = this.recipePos
+      , s = this.recipeSize
+      , centerY = p.y + (s.y/2)
+      , centerX = p.x + (s.x/2)
+      , sinTime = Time.time * 2 * Math.PI;
+
+    this.target.saved.forEach(function(spider){
+
+      if (!spider.inVacuum){
+        spider.inVacuum = true;
+        
+        spider.vacuum = {
+          ampY: $.M.rnd(10, centerY/2),
+          velY: $.M.rnd(600, 1000),
+          ampX: $.M.rnd(5, 20),
+          velX: $.M.rnd(2000, 6000),
+          rot: $.M.rnd(1, 5)/10
+        };
+
+        spider.pos = { 
+          x: centerX,
+          y: centerY
+        };
+      }
+      else {
+        spider.animate();
+
+        var v = spider.vacuum;
+
+        spider.pos = {
+          x: v.ampX * Math.sin(sinTime / v.velX) + centerX,
+          y: v.ampY * Math.sin(sinTime / v.velY) + centerY
+        };
+
+        spider.angle += v.rot;
+      }
+
+    }, this);
+    
+    this.stats.text = _.pad(this.current, 3) + " / " + _.pad(this.targetLen, 3);
+  },
+
+  draw: function(ctx){
+    this.bgBack.draw(ctx);
+    
+    this.cilinder.draw(ctx);
+    
+    this.target.saved.forEach(function(spider){
+      spider.draw(ctx);
+    });
+
+    this.glass.draw(ctx);
+    this.stats.draw(ctx);
+  },
+
+});
+
+
+$.Stats = $.Collection.extend({
+
+  pos: { x: 1, y: 0 },
+
+  marginW: 40,
+  marginH: 40,
+
+  colors: {
+    kills: [255,0,0,1],
+    alives: [0,255,0,1]
+  },
+
+  start: function(){
+    this.entities = [];
+    this.pos = $.V.prod(this.pos, config.size);
+
+    this.stats = {
+      saved: 0,
+      killed: 0,
+      alives: 0,
+      total: 0
+    };
+
+    this.createIcons();
+    this.createText();
+  },
+
+  createIcons: function(){
+    var size = 40
+      , mW = this.marginW
+      , mH = this.marginH
+      , spSize = { x: size, y: size }
+      , hSpSize = { x: size/2, y: size/2 };
+
+    var spider = {
+      resource: "spider",
+      sprite: { x: 0, y: 0, w: 32, h: 32 },
+      size: spSize,
+      angle: Math.PI / 2
+    };
+
+    spider.pos = {
+      x: this.pos.x - mW,
+      y: this.pos.y + mH + size*1.5
+    };
+
+    this.iconAlives = new $.Sprite(spider);
+    this.entities.push(this.iconAlives);
+
+    spider.pos = {
+      x: this.pos.x - mW,
+      y: this.pos.y + mH
+    };
+
+    this.iconKills = new $.Sprite(spider);
+    this.entities.push(this.iconKills);
+    
+    this.lineAKills = new $.Line({
+      pos: $.V.origin(spider.pos, spSize),
+      to: $.V.add(hSpSize, spider.pos),
+      size: 3,
+      color: this.colors.kills
+    });
+    this.entities.push(this.lineAKills);
+
+    this.lineBKills = new $.Line({
+      pos: { x: spider.pos.x + hSpSize.x, y: spider.pos.y - hSpSize.y },
+      to: { x: spider.pos.x - hSpSize.x, y: spider.pos.y + hSpSize.y },
+      size: 3,
+      color: this.colors.kills
+    });
+    this.entities.push(this.lineBKills);
+  },
+
+  createText: function(){
+    var txtSize = 30;
+
+    this.textKills = new $.Text({
+      pos: { x: this.iconKills.pos.x - txtSize*3, y: this.iconKills.pos.y },
+      size: txtSize,
+      color: this.colors.kills
+    });
+    this.entities.push(this.textKills);
+
+    this.textAlives = new $.Text({
+      pos: { x: this.iconAlives.pos.x - txtSize*3, y: this.iconAlives.pos.y },
+      size: txtSize,
+      color: this.colors.alives
+    });
+    this.entities.push(this.textAlives);
+
+  },
+
+  update: function(stats){
+    this.stats = stats;
+
+    this.textKills.text = _.pad(this.stats.killed, 3);
+    this.textAlives.text = _.pad(this.stats.alives, 3);
+  },
+
+});
+
+
+$.Element = $.Collection.extend({
+
+  size: { x: 96, y: 96 },
+
+  start: function(options){
+    this.entities = [];
+
+    this.name = options.name;
+    this.key = options.key;
+    this.color = [255,255,255,1];
+    this.sprite = options.sprite;
+
+    this.active = false;
+    this.current = false;
+
+    this.createElement();
+  },
+
+  createElement: function(){
+    var size = this.size,
+      pos = this.pos;
+    
+    this.bg = new $.Rect({
+      pos: pos,
+      size: size,
+      fill: this.color,
+      stroke: { size: 4, color: [30,30,30,1] },
+      corner: 8
+    });
+    this.entities.push(this.bg);
+
+    this.icon = new $.Sprite({
+      resource: "elements",
+      pos: $.V.center({ x: pos.x+3, y: pos.y+6 }, { x: 90, y: 90 }),
+      size: size,
+      angle: 0,
+      sprite: this.sprite
+    });
+    this.entities.push(this.icon);
+
+    var txtPos = { x: pos.x, y: pos.y + size.y * 1.1 };
+    var txtSize = 20;
+
+    this.ctrlKey = new $.Rect({
+      pos: { x: txtPos.x - txtSize/2, y: txtPos.y - txtSize},
+      size: $.V.multiply($.V.one, txtSize*2),
+      fill: [0,0,0,1],
+      corner: 4
+    });
+    this.entities.push(this.ctrlKey);
+
+    this.txtKey = new $.Text({
+      text: this.key,
+      pos: txtPos,
+      size: txtSize,
+      color: [255,255,255,1]
+    });
+    this.entities.push(this.txtKey);
+  },
+
+  update: function(){
+    this.bg.fill = this.active ? [255,255,255,1] : [255,255,255, 0.1];
+    this.bg.stroke.color = this.current ? [255,255,255,1] : [0,0,0,1];
+  },
+
+});
+
+
+$.Elements = $.Collection.extend({
+
+  pos: { x: 20, y: 50},
+
+  start: function(){
+    this.entities = [];
+
+    this.current = "fire";
+    this.active = false;
+
+    this.keys = ["Q", "W", "E", "R"];
+    this.elements = ["fire", "water", "earth", "air"];
+
+    this.sprites = {};
+    for(var i=0;i<4;i++){
+      this.sprites[this.elements[i]] = { x: i*32, y: 0, w: 32, h: 32 };
+    }
+
+    this.createElements();
+  },
+
+  createElements: function(){
+    var gap = 50
+      , size = 96;
+
+    this.elements.forEach(function(ele, i){
+
+      this.entities.push(new $.Element({
+        pos: { x: this.pos.x, y: this.pos.y + (i * (size + gap)) },
+        name: ele,
+        key: this.keys[i],
+        sprite: this.sprites[ele]
+      }));
+
+    }, this);
+  },
+
+  update: function(){
+    var isActive = this.active
+      , current = this.current;
+
+    this.entities.forEach(function(e){
+      e.active = e.current = false;
+      if (e.name === current){
+        e.current = true;
+        e.active = isActive;
+      }
+      
+      e.update();
+    });
+  },
+
+});
+
+
+$.sprites = {
+
+  // 0: transparent
+  // 1: all
+  // 2, 3 & 4: 0,1,2 sprites
+  // 5: 2 & 3
+  // 6: 3 & 4
+  // 7: 2 & 4
+
+  color: "b9ce5a",
+
+  spider: [
+    [ , , , , , , , , , , , , , , , ],
+    [ , , , , , , , , , , , , , , , ],
+    [ , , , ,7, ,3, ,3, ,7, , , , , ],
+    [ , ,1, ,7,1,3, ,3,1,7,3,7, , , ],
+    [ ,7,3,1, , ,1, ,1, ,3,7,3,7, , ],
+    [2,4,3, ,1, ,1, ,1, ,1, , ,3,7, ],
+    [ ,4,3, , ,1,1,1,1,1, , , ,3,2, ],
+    [ , , , ,1,1,1,1,1,1,1,1, ,3,2, ],
+    [ ,3,2, ,1,1,1,1,1,1,1,1, ,4, , ],
+    [ ,3,2, , ,1,1,1,1,1, , , ,4,3, ],
+    [4,3,2, ,1, ,1, ,1, ,1, , ,4,3, ],
+    [ ,4,3,1, , ,1, ,1, ,3,1, ,6, ,2],
+    [ , , ,3,1,7,3,3,3,7,7, ,1, ,2, ],
+    [ , , , ,7, ,3, ,3, ,7, , ,2, , ],
+    [ , , , , , , , , , , , , , , , ],
+    [ , , , , , , , , , , , , , , , ],
+  ],
+
+  colors: [
+    [,"ff1414","ffc700", "fff600"],
+    [,"5481ce","5cb1f2", "90e3f9"],
+    [,"966910","bf8f35"],
+    [,"aed7ef","e3f9fc"]
+  ],
+
+  elements: [
+    [
+      [ , , , , , , ,1,1, , , , , , , ],
+      [ , , , , , ,1,1,1,1, , , , , , ],
+      [ , , , , , ,1,1,1,1,1, , , , , ],
+      [ , , , , ,1,1,1,2,1,1, , , , , ],
+      [ , , ,1, ,1,1,2,2,1,1, , , , , ],
+      [ , ,1,1, ,1,1,2,2,1,1, ,1, , , ],
+      [ ,1,1,1, ,1,1,2,2,1,1, ,1,1, , ],
+      [ ,1,1,1, ,1,1,2,2,1,1, ,1,1,1, ],
+      [ ,1,2,1,1,1,1,2,2,1,1, ,1,1,1, ],
+      [ ,1,2,2,1,1,2,2,2,2,1,1,1,2,1, ],
+      [ ,1,2,2,2,2,2,3,3,2,2,2,2,2,1, ],
+      [ ,1,2,2,3,3,2,3,3,2,3,3,2,2,1, ],
+      [ ,1,1,2,2,3,3,3,3,3,3,2,2,1,1, ],
+      [ , ,1,1,2,2,3,3,3,2,2,2,1,1, , ],
+      [ , , ,1,1,2,2,2,2,2,2,1,1, , , ],
+      [ , , , ,1,1,1,1,1,1,1,1, , , , ],
+    ], [
+      [ , , , , , , ,1,1, , , , , , , ],
+      [ , , , , , , ,1,1, , , , , , , ],
+      [ , , , , , ,1,1,1,1, , , , , , ],
+      [ , , , , , ,1,1,1,1, , , , , , ],
+      [ , , , , ,1,1,1,2,1,1, , , , , ],
+      [ , , , ,1,1,1,2,2,1,1,1, , , , ],
+      [ , , , ,1,1,2,2,2,2,1,1,1, , , ],
+      [ , , ,1,1,2,2,2,2,3,2,1,1, , , ],
+      [ , ,1,1,2,2,2,2,3,3,3,2,1,1, , ],
+      [ , ,1,1,2,2,2,2,2,3,3,2,1,1, , ],
+      [ , ,1,1,2,2,2,2,2,2,2,2,1,1, , ],
+      [ , ,1,1,2,2,2,2,2,2,2,2,1,1, , ],
+      [ , ,1,1,2,2,2,2,2,2,2,2,1,1, , ],
+      [ , ,1,1,1,2,2,2,2,2,2,1,1, , , ],
+      [ , , ,1,1,1,1,1,1,1,1,1, , , , ],
+      [ , , , ,1,1,1,1,1,1,1, , , , , ],
+    ], [
+      [ , , , , , , , , , , , , , , , ],
+      [ , , , , , , , , , , , , , , , ],
+      [ , , , , , , ,1,1, , , , , , , ],
+      [ , , , , , ,1,1,1,1, , , , , , ],
+      [ , , , , ,1,1,2,2,1,1, , , , , ],
+      [ , , , , ,1,2,2,2,2,1,1, , , , ],
+      [ , , , ,1,1,2,1,2,2,2,1, , , , ],
+      [ , , , ,1,2,2,2,1,2,2,2,1, , , ],
+      [ , , ,1,2,2,2,2,2,2,1,1,2,1, , ],
+      [ , ,1,1,2,2,2,1,2,2,2,2,2,1, , ],
+      [ , ,1,2,2,1,1,2,2,1,2,2,2,2,1, ],
+      [ ,1,1,2,2,2,2,2,2,2,1,1,2,2,1, ],
+      [ ,1,2,2,2,2,2,1,1,2,2,2,2,2,1, ],
+      [ ,1,2,2,1,2,1,2,2,1,2,2,2,2,1, ],
+      [ , ,1,2,2,2,2,2,2,2,2,2,2,1, , ],
+      [ , ,1,1,1,1,1,1,1,1,1,1,1,1, , ],
+    ], [
+      [ , , , , , ,1,1,1,1, , , , , , ],
+      [ , , , , ,1,2,2,2,2,1, , , , , ],
+      [ , , , ,1,2,2,1,2,2,2,1, , , , ],
+      [ , , ,1,2,2,2,2,2,1,2,1, , , , ],
+      [ , ,1,1,1,2,2,2,2,2,2,1,1,1, , ],
+      [ ,1,2,2,2,1,2,2,2,2,1,2,2,2,1, ],
+      [ ,1,2,1,2,2,2,1,2,2,2,2,2,2,1, ],
+      [ ,1,2,2,2,1,2,2,2,1,2,2,2,2,1, ],
+      [ , ,1,1,1,1,2,1,2,1,1,2,2,1, , ],
+      [ , , , , ,1,2,1,2,1, ,1,1, , , ],
+      [ , , , , ,1,2,1,2,1, , , , , , ],
+      [ , , , , ,1,2,2,2,1, , , , , , ],
+      [ , , , , ,1,2,2,2,1, , , , , , ],
+      [ , , , ,1,2,2,1,2,2,1, , , , , ],
+      [ , , , ,1,2,1,2,1,2,1, , , , , ],
+      [ , , , ,1,1,1,1,1,1,1, , , , , ],
+    ]
+  ],
+
+  vacuum: {
+    size: { x: 300, y: 500 },
+    path: [ [70,460], [120,400], [160,445], [195,450, 185,380], [225,380], [230,510, 145,475] ],
+    fill: '#9e9e9e', 
+    stroke: '#474747',
+    line: 3,
+    box: {
+      pos: { x: 150, y: 50 },
+      size: { x: 110, y: 330 },
+      corner: 6,
+      fill: [158,158,158],
+      stroke: {
+        color: [71,71,71],
+        size: 2
+      }
+    }
+  }
+
+};
+
+$.Creator = $.Base.extend({}, {
+
+  getSprites: function(){
+    var sprites = $.sprites;
+
+    return {
+      spider: this.generate(sprites.spider, sprites.color, true, 3),
+      elements: this.generate(sprites.elements, sprites.colors),
+      vacuum: this.drawPath(sprites.vacuum)
+    };
+  },
+
+  generate: function(sprite, _color, multiple, _phases){
+    var img = new window.Image();
+    var phases = multiple ? _phases : sprite.length;
+    
+    var canvas = document.createElement('canvas');
+    
+    var lh = multiple ? sprite.length : sprite[0].length;
+    var lw = multiple ? sprite[0].length: sprite[0][0].length;
+    
+    var pw = 2, ph = 2;
+    
+    var w = pw*lh; 
+    var h = ph*lw;
+    
+    canvas.width = w*phases;
+    canvas.height = h;
+    var ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, w, h);
+    
+    for( var k = 0; k < phases; k++){
+      for( var y = 0; y < lh; y++ ) {
+        for( var x = 0; x < lw; x++ ) {
+          var v, sp, c;
+
+          if (multiple){
+            v = sprite[y][x];
+            c = _color;
+            sp = k+2;
+          }
+          else {
+            v = sprite[k][y][x];
+            c = _color[k][v];
+            sp = k;
+          }
+
+          if (
+            (multiple && (
+                (v===5 && (sp===2 || sp===3)) ||
+                (v===6 && (sp===3 || sp===4)) ||
+                (v===7 && (sp===2 || sp===4)) ||
+                (v===1 || v===sp))
+              ) ||
+            (!multiple && v) 
+          ){
+            ctx.save();
+            ctx.fillStyle = "#" + c;
+            ctx.fillRect( (x*pw) + w*k, y*ph, pw, ph );
+            ctx.restore();
+          }
+        }
+      }
+    }
+
+    img.src = canvas.toDataURL("image/png");
+    canvas = null;
+
+    return img;
+  },
+
+  drawPath: function(opts){
+    var img = new window.Image();
+
+    var path = opts.path
+      , fill = opts.fill
+      , stroke = opts.stroke
+      , line = opts.line
+      , size = opts.size;
+
+    var canvas = document.createElement('canvas');
+    
+    canvas.width = size.x;
+    canvas.height = size.y;
+
+    var ctx = canvas.getContext("2d");
+
+    ctx.beginPath();
+
+    var first = path[0];
+    ctx.moveTo(first[0], first[1]);
+
+    for (var i=1; i<path.length; i++){
+      var p = path[i];
+      if (p.length === 4){
+        ctx.quadraticCurveTo(p[0], p[1], p[2], p[3]);
+      }
+      else {
+        ctx.lineTo(p[0], p[1]);
+      }
+    }
+
+    ctx.lineTo(first[0], first[1]);
+
+    if (fill){
+      ctx.fillStyle = fill;
+      ctx.fill();
+    }
+
+    ctx.lineWidth = line;
+    ctx.strokeStyle = stroke;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+
+    ctx.closePath();
+
+    $.Renderer.drawRect(ctx, opts.box);
+
+    img.src = canvas.toDataURL("image/png");
+    canvas = null;
+
+    return img;
+  }
+
+});
+
+
+$.Manager = $.Base.extend({
+
+  start: function(){
+    this.cursor = new $.Cursor();
+    this.nodes = new $.Nodes();
+    this.paths = new $.Paths();
+    this.target = new $.Target();
+
+    this.vacuum = new $.Vacuum({
+      target: this.target
+    });
+
+    this.elements = new $.Elements();
+
+    this.spiders = new $.Spiders({
+      nodes: this.nodes
+    });
+
+    this.stats = new $.Stats();
+
+    this.target.setNodesInside(this.nodes.getNodes());
+  },
+
+  update: function(){
+    var cursor = this.cursor
+      , nodes = this.nodes
+      , spiders = this.spiders
+      , elements = this.elements;
+
+    cursor.update();
+
+    elements.current = cursor.element;
+    elements.active = cursor.active;
+
+    nodes.applyPos = null;
+    if (cursor.active){
+      nodes.applyPos = cursor.pos;
+      nodes.applyRatio = cursor.radius;
+      nodes.element = cursor.element;
+    }
+
+    nodes.update();
+    spiders.update();
+    this.target.update(spiders.getSpiders());
+    this.vacuum.update();
+    this.stats.update(spiders.stats);
+
+    elements.update();
+
+    //Particles.update();
+  },
+
+  draw: function(viewCtx, worldCtx, vacuumCtx){
+    var s = config.size;
+    var vs = config.vacuum.size;
+
+    viewCtx.clearRect(0, 0, s.x, s.y);
+    worldCtx.clearRect(0, 0, s.x, s.y);
+    vacuumCtx.clearRect(0, 0, vs.x, vs.y);
+
+    this.cursor.draw(viewCtx);
+    this.nodes.draw(worldCtx);
+    this.spiders.draw(worldCtx);
+    this.target.draw(worldCtx);
+
+    this.vacuum.draw(vacuumCtx);
+    this.stats.draw(viewCtx);
+    this.elements.draw(viewCtx);
+
+    //Particles.draw(viewCtx);
+  }
+
+});
+
+
+$.GameTime = $.Base.extend({
+
+  lastTime: null,
+  frameTime: 0,
+  deltaTime: 0,
+  typicalFrameTime: 20,
+  minFrameTime: 12,
+  time: 0,
+
+  start: function(){
+    this.lastTime = Date.now();
+  },
+
+  tick: function(){
+    var now = Date.now();
+    var delta = now - this.lastTime;
+
+    if (delta < this.minFrameTime ) {
+      return false;
+    }
+
+    if (delta > 2 * this.typicalFrameTime) { // +1 frame if too much time elapsed
+      this.frameTime = this.typicalFrameTime;
+    } else {  
+      this.frameTime = delta;      
+    }
+
+    this.deltaTime = this.frameTime/1000;
+    this.time += this.frameTime;
+    this.lastTime = now;
+
+    return true;
+  }
+
+});
+
+/*
+GameTime.prototype.reset = function() {
+  this.lastTime = Date.now();
+  this.frameTime = 0;
+  this.deltaTime = 0;
+  this.typicalFrameTime = 20;
+  this.minFrameTime = 12; 
+  this.time = 0;
+};
+*/
+
+$.Game = $.Base.extend({
+
+  viewCtx:  null,
+  worldCtx:  null,
+  vacuumCtx:  null,
+
+  tLoop:  null,
+  paused:  false,
+
+  start: function(options){
+    this.cview = options.viewport;
+    this.cworld = options.world;
+    this.cvacuum = options.vacuum;
+
+    this.boundGameRun = this.gameRun.bind(this);
+    this.initContexts();
+
+    this.manager = new $.Manager();
+  },
+
+  initContexts: function(){
+    var size = config.size
+      , vsize = config.vacuum.size;
+
+    function getContext(canvas, _size){
+      canvas.width = _size.x;
+      canvas.height = _size.y;
+      return canvas.getContext("2d");
+    }
+
+    this.viewCtx = getContext(this.cview, size);
+    this.worldCtx = getContext(this.cworld, size);
+    this.vacuumCtx = getContext(this.cvacuum, vsize);
+  },
+
+  loop: function(){
+    //console.log(Time.frameTime + "( " + Time.deltaTime + " ) / " + Time.time);
+    this.manager.update();
+    this.manager.draw(this.viewCtx, this.worldCtx, this.vacuumCtx);
+  },
+
+  play: function(){
+    this.paused = false;
+    Controls.enable();
+    this.gameRun();
+  },
+
+  stop: function(){
+    this.paused = true;
+    Controls.disable();
+    window.cancelAnimationFrame(this.tLoop);
+  },
+
+  gameRun: function(){
+    if (Time.tick()) { this.loop(); }
+    this.tLoop = window.requestAnimationFrame(this.boundGameRun);
+  },
+
+  onWin: function(cb){
+    this._onWin = cb;
+  },
+
+  onLoose: function(cb){
+    this._onLoose = cb;
+  }
+
+});
+
+
+(function(){
+  var w = window;
+  var doc = w.document;
+  
+  function $get(id){
+    return doc.getElementById(id);
+  }
+
+  //var Particles = require("./Particles");
+
+  function configGame(){
+    var ele = doc.documentElement
+      , body = doc.body;
+
+    function getSize(which){
+      var offset = "offset", scroll = "scroll";
+      return Math.max(
+        ele["client" + which], 
+        ele[scroll + which], 
+        ele[offset + which],
+        body[scroll + which], 
+        body[offset + which] 
+      );
+    }
+
+    var w = getSize("Width");
+    var h = getSize("Height");
+
+    var max = { x: 1250, y: 750 };
+
+    var size = {
+      x: (w > max.x ? max.x : w),
+      y: (h > max.y ? max.y : h)
+    };
+
+    var gameCtn = $get("game-ctn");
+    gameCtn.style.width = size.x + "px";
+    gameCtn.style.height = size.y + "px";
+
+    return {
+      size: size,
+      world: {
+        margin: { x: 150, y: 20 }
+      },
+      vacuum: {
+        size: { x: 300, y: 500 }
+      }
+    };
+  }
+
+  function initGame(){
+    var cviewport = $get("game-viewport");
+    var cworld = $get("game-world");
+    var cvacuum = $get("vacuum");
+
+    w.Time = new $.GameTime();
+
+    //w.Particles = new Particles();
+
+    w.Controls = new $.Controls({
+      container: $get("game-ctn")
+    });
+
+    w.game = new $.Game({
+      viewport: cviewport,
+      world: cworld,
+      vacuum: cvacuum
+    });
+
+    w.game.onWin(function(){
+      console.log("YOU WIN");
+      game.stop(); 
+    });
+
+    w.game.onLoose(function(){
+      console.log("YOU LOOSE");
+      game.stop(); 
+    });
+
+    function pauseGame(){
+      if (game.paused){
+        game.play();
+      }
+      else {
+        game.stop(); 
+      }
+    }
+
+    w.Controls.on('pause', pauseGame);
+  }
+
+  function onDocLoad(){
+    w.config = configGame();
+
+    $.repo = $.Creator.getSprites();
+
+    initGame();
+    w.game.play();
+  }
+
+  w.onload = onDocLoad;
+
+}());
