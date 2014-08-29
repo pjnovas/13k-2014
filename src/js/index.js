@@ -4,14 +4,6 @@
   var doc = w.document;
   var modal = document.querySelector(".bg-modal");
 
-  //require("./reqAnimFrame");
-  //require("./ng");
-
-  //w.prefabs = require("./prefabs");
-
-  //var Game = require("./Game");
-  //var GameTime = require("./GameTime");
-
   //var Particles = require("./Particles");
 
   function configGame(){
@@ -49,10 +41,6 @@
       },
       vacuum: {
         size: { x: 300, y: 500 }
-      },
-      images: {  
-          "spider": "images/spider.png"
-        , "elements": "images/elements.png"
       }
     };
   }
@@ -111,12 +99,10 @@
   function onDocLoad(){
     w.config = configGame();
 
-    $.Repo.addResources(w.config.images)
-      .onComplete(function(){
-        initGame();
-        w.game.play();
-      })
-      .load();
+    $.repo = $.Creator.getSprites();
+
+    initGame();
+    w.game.play();
   }
 
   w.onload = onDocLoad;

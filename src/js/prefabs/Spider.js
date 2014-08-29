@@ -44,7 +44,7 @@ $.Spider = $.Sprite.extend({
     this.speed = this.calmSpeed;
 
     this.move = [];
-    for(var i=0;i<4;i++){
+    for(var i=0;i<3;i++){
       this.move.push({ x: i*32, y: 0, w: 32, h: 32 });
     }
 
@@ -76,7 +76,7 @@ $.Spider = $.Sprite.extend({
 
       if (this.lastFrameTime <= 0){
         this.spriteIndex++;
-        if (this.spriteIndex > 3){
+        if (this.spriteIndex > 2){
           this.spriteIndex = 0;
         }
 

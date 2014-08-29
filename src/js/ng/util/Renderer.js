@@ -58,7 +58,7 @@ $.Renderer = $.Base.extend({ }, {
   },
 
   drawSprite: function(ctx, ps){
-    var img = $.Repo[ps.resource]
+    var img = $.repo[ps.resource]
       , p = $.V.origin(ps.pos, ps.size)
       , x = p.x
       , y = p.y

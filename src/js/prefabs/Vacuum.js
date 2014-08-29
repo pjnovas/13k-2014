@@ -18,17 +18,12 @@ $.Vacuum = $.Entity.extend({
   },
 
   createGraphics: function(){
-    var cPos = { x: this.offx + 150, y: this.offy + 50 };
+    var size = $.sprites.vacuum.size;
 
-    this.bgBack = new $.Rect({
-      pos: cPos,
-      size: { x: 110, y: 330 },
-      corner: 6,
-      fill: [158,158,158],
-      stroke: {
-        color: [71,71,71],
-        size: 2
-      }
+    this.bgBack = new $.Sprite({
+      resource: "vacuum",
+      pos: $.V.center({ x: this.offx, y: this.offy }, size),
+      size: size
     });
 
     var c = [187,187,249];
@@ -103,7 +98,7 @@ $.Vacuum = $.Entity.extend({
   },
 
   draw: function(ctx){
-    this.drawBG(ctx);
+    this.bgBack.draw(ctx);
     
     this.cilinder.draw(ctx);
     
@@ -114,46 +109,5 @@ $.Vacuum = $.Entity.extend({
     this.glass.draw(ctx);
     this.stats.draw(ctx);
   },
-
-  drawBG: function(ctx){
-    
-    var offx = this.offx
-      , offy = this.offy
-      , tube = [ [70,460], [120,400], [160,445], [195,450, 185,380], [225,380], [230,510, 145,475] ];
-
-    function drawPath(path, fill, stroke){
-      ctx.beginPath();
-
-      var first = path[0];
-      ctx.moveTo(offx + first[0], offy + first[1]);
-
-      for (var i=1; i<path.length; i++){
-        var p = path[i];
-        if (p.length === 4){
-          ctx.quadraticCurveTo(offx + p[0], offy + p[1], offx + p[2], offy + p[3]);
-        }
-        else {
-          ctx.lineTo(offx + p[0], offy + p[1]);
-        }
-      }
-
-      ctx.lineTo(offx + first[0], offy + first[1]);
-
-      if (fill){
-        ctx.fillStyle = fill;
-        ctx.fill();
-      }
-
-      ctx.lineWidth = 3;
-      ctx.strokeStyle = stroke;
-      ctx.lineCap = 'round';
-      ctx.stroke();
-
-      ctx.closePath();
-    }
-
-    drawPath(tube, '#9e9e9e', '#474747');
-    this.bgBack.draw(ctx);
-  }
 
 });

@@ -60,7 +60,6 @@ module.exports = function(grunt) {
           , '<%= paths.game.js %>ng/util/Color.js'
           , '<%= paths.game.js %>ng/util/Vector.js'
           , '<%= paths.game.js %>ng/util/Renderer.js'
-          , '<%= paths.game.js %>ng/util/Repo.js'
 
           // Shapes
 
@@ -93,6 +92,9 @@ module.exports = function(grunt) {
           , '<%= paths.game.js %>prefabs/Elements.js'
 
           // MAIN
+
+          , '<%= paths.game.js %>sprites.js'
+          , '<%= paths.game.js %>Creator.js'
           
           , '<%= paths.game.js %>Manager.js'
           , '<%= paths.game.js %>GameTime.js'

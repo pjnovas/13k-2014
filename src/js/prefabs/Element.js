@@ -18,10 +18,12 @@ $.Element = $.Collection.extend({
   },
 
   createElement: function(){
+    var size = this.size,
+      pos = this.pos;
     
     this.bg = new $.Rect({
-      pos: this.pos,
-      size: this.size,
+      pos: pos,
+      size: size,
       fill: this.color,
       stroke: { size: 4, color: [30,30,30,1] },
       corner: 8
@@ -30,14 +32,14 @@ $.Element = $.Collection.extend({
 
     this.icon = new $.Sprite({
       resource: "elements",
-      pos: $.V.center(this.pos, this.size),
-      size: this.size,
+      pos: $.V.center({ x: pos.x+3, y: pos.y+6 }, { x: 90, y: 90 }),
+      size: size,
       angle: 0,
       sprite: this.sprite
     });
     this.entities.push(this.icon);
 
-    var txtPos = { x: this.pos.x, y: this.pos.y + this.size.y * 1.1 };
+    var txtPos = { x: pos.x, y: pos.y + size.y * 1.1 };
     var txtSize = 20;
 
     this.ctrlKey = new $.Rect({
