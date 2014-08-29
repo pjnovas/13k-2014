@@ -12,11 +12,27 @@ $.Game = $.Base.extend({
     this.cview = options.viewport;
     this.cworld = options.world;
     this.cvacuum = options.vacuum;
+    this.cmodals = options.modals;
 
     this.boundGameRun = this.gameRun.bind(this);
     this.initContexts();
 
     this.manager = new $.Manager();
+
+    this.play();
+/*
+    this.mainModal = new $.Modal({
+      ctx: this.modalsCtx,
+      type: "main"
+    });
+
+    var self = this;
+    this.mainModal.onClick(function(){
+      self.play();
+    });
+
+    this.mainModal.show();
+*/
   },
 
   initContexts: function(){
@@ -32,6 +48,7 @@ $.Game = $.Base.extend({
     this.viewCtx = getContext(this.cview, size);
     this.worldCtx = getContext(this.cworld, size);
     this.vacuumCtx = getContext(this.cvacuum, vsize);
+    this.modalsCtx = getContext(this.cmodals, size);
   },
 
   loop: function(){

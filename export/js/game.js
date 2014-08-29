@@ -409,11 +409,44 @@ $.Renderer = $.Base.extend({ }, {
 
     draw();
   },
+/*
+  drawTextWrap: function(ctx, ps){
+    var x = ps.pos.x
+      , y = ps.pos.y
+      , maxWidth = ps.width
+      , lineHeight = ps.lineHeight
+      , text = ps.text;
 
+    var words = text.split(' ');
+    var line = '';
+
+    for(var n = 0; n < words.length; n++) {
+      var testLine = line + words[n] + ' ';
+      var metrics = ctx.measureText(testLine);
+      var testWidth = metrics.width;
+      if (testWidth > maxWidth && n > 0) {
+        ctx.fillText(line, x, y);
+        line = words[n] + ' ';
+        y += lineHeight;
+      }
+      else {
+        line = testLine;
+      }
+    }
+
+    ctx.fillText(line, x, y);
+  },
+*/
   drawText: function(ctx, ps){
     ctx.font = ps.size + 'pt Arial';
     ctx.textBaseline = ps.baseline || 'middle';
     ctx.fillStyle = ps.color;
+/*
+    if (ps.wrap){
+      this.drawTextWrap(ctx, ps);
+      return;
+    }
+*/
     ctx.fillText(ps.text, ps.pos.x, ps.pos.y);
   },
 
@@ -567,13 +600,20 @@ $.Text = $.Entity.extend({
 
   draw: function(ctx){
 
-    $.Renderer.drawText(ctx, {
+    var opts = {
       text: this.text,
       pos: this.pos,
       size: this.size,
       color: $.C.toRGBA(this.color)
-    });
-
+    };
+/*
+    if (this.wrap) {
+      opts.wrap = this.wrap;
+      opts.width = this.width || 100;
+      opts.lineHeight = this.lineHeight || 1;
+    }
+*/
+    $.Renderer.drawText(ctx, opts);
   },
 
 });
@@ -1975,7 +2015,8 @@ $.Element = $.Collection.extend({
 
     this.name = options.name;
     this.key = options.key;
-    this.color = [255,255,255,1];
+    this.showKeys = options.showKeys;
+    this.color = [255,255,255, 0.1];
     this.sprite = options.sprite;
 
     this.active = false;
@@ -1999,7 +2040,7 @@ $.Element = $.Collection.extend({
 
     this.icon = new $.Sprite({
       resource: "elements",
-      pos: $.V.center({ x: pos.x+3, y: pos.y+6 }, { x: 90, y: 90 }),
+      pos: $.V.center({ x: pos.x+3, y: pos.y+6 }, { x: size.x-6, y: size.y-6 }),
       size: size,
       angle: 0,
       sprite: this.sprite
@@ -2009,21 +2050,24 @@ $.Element = $.Collection.extend({
     var txtPos = { x: pos.x, y: pos.y + size.y * 1.1 };
     var txtSize = 20;
 
-    this.ctrlKey = new $.Rect({
-      pos: { x: txtPos.x - txtSize/2, y: txtPos.y - txtSize},
-      size: $.V.multiply($.V.one, txtSize*2),
-      fill: [0,0,0,1],
-      corner: 4
-    });
-    this.entities.push(this.ctrlKey);
+    if (this.showKeys){
 
-    this.txtKey = new $.Text({
-      text: this.key,
-      pos: txtPos,
-      size: txtSize,
-      color: [255,255,255,1]
-    });
-    this.entities.push(this.txtKey);
+      this.ctrlKey = new $.Rect({
+        pos: { x: txtPos.x - txtSize/2, y: txtPos.y - txtSize},
+        size: $.V.multiply($.V.one, txtSize*2),
+        fill: [0,0,0,1],
+        corner: 4
+      });
+      this.entities.push(this.ctrlKey);
+
+      this.txtKey = new $.Text({
+        text: this.key,
+        pos: txtPos,
+        size: txtSize,
+        color: [255,255,255,1]
+      });
+      this.entities.push(this.txtKey);
+    }
   },
 
   update: function(){
@@ -2037,6 +2081,9 @@ $.Element = $.Collection.extend({
 $.Elements = $.Collection.extend({
 
   pos: { x: 20, y: 50},
+  size: 96,
+  gap: 50,
+  showKeys: true,
 
   start: function(){
     this.entities = [];
@@ -2056,16 +2103,19 @@ $.Elements = $.Collection.extend({
   },
 
   createElements: function(){
-    var gap = 50
-      , size = 96;
+    var gap = this.gap
+      , size = this.size
+      , showKeys = this.showKeys;
 
     this.elements.forEach(function(ele, i){
 
       this.entities.push(new $.Element({
         pos: { x: this.pos.x, y: this.pos.y + (i * (size + gap)) },
+        size: { x: size, y: size },
         name: ele,
         key: this.keys[i],
-        sprite: this.sprites[ele]
+        sprite: this.sprites[ele],
+        showKeys: showKeys
       }));
 
     }, this);
@@ -2085,7 +2135,11 @@ $.Elements = $.Collection.extend({
       e.update();
     });
   },
-
+/*
+  draw: function(){
+    $.Elements._super.draw.apply(this, arguments);
+  }
+*/
 });
 
 
@@ -2345,6 +2399,138 @@ $.Creator = $.Base.extend({}, {
 });
 
 
+$.Modal = $.Base.extend({
+
+  start: function(options){
+    this.ctx = options.ctx;
+    this.type = options.type;
+
+    this.modalItems = {};
+
+    this.initBackDrop();
+    this["init" + this.type]();
+  },
+
+  onClick: function(cb){
+    this._onClick = cb;
+  },
+
+  initBackDrop: function(){
+    this.bg = new $.Rect({
+      pos: { x: 0, y: 0},
+      size: config.size,
+      corner: 10,
+      fill: [0,0,0,0.5]
+    });
+  },
+
+  initmain: function(){
+    var size = { x: 600, y: 500 };
+    var pos = $.V.center($.V.zero, config.size);
+    pos.x -= size.x/2;
+    pos.y -= size.y/2;
+
+    var items = this.modalItems.main = [];
+
+    items.push(new $.Rect({
+      pos: pos,
+      size: size,
+      fill: [30,30,30,1],
+      corner: 10,
+      stroke: {
+        size: 3,
+        color: [255,255,255,1]
+      }
+    }));
+
+    var title = {
+      text: "SPIDER BUSTERS",
+      pos: $.V.center(pos, size),
+      size: 20
+    };
+
+    title.pos.x -= (title.size*title.text.length*0.8)/2;
+    title.pos.y = pos.y + title.size*2;
+
+    items.push(new $.Text(title));
+
+    var sub = {
+      text: "Use The Elements to lead spiders into the Vacuum!",
+      pos: $.V.center(pos, size),
+      size: 15,
+    };
+
+    sub.pos.x -= (sub.size*sub.text.length*0.6)/2;
+    sub.pos.y = title.pos.y + sub.size*2.5 +10;
+
+    items.push(new $.Text(sub));
+
+    var elePos = { x: pos.x + 30, y: sub.pos.y + 35 };
+    items.push(new $.Elements({
+      pos: elePos,
+      size: 66,
+      gap: 15,
+      showKeys: false
+    }));
+
+    var textsTlts = [
+      "BURN",
+      "COOL",
+      "DIRTY",
+      "BLOW"
+    ];
+
+    var textsDesc = [
+      "Burn the web but could kill spiders too!",
+      "Fire propagates fast!, use the water to stop it",
+      "Stops the fire and won't let spiders re-build the web",
+      "Burn faster, annoys spiders and removes dirty"
+    ];
+
+    textsTlts.forEach(function(txt, i){
+      var p = { x: elePos.x + 80, y: (i * 80) + elePos.y + 20 };
+
+      items.push(new $.Text({
+        text: txt,
+        pos: p,
+        size: 15
+      }));
+
+      items.push(new $.Text({
+        text: textsDesc[i],
+        pos: { x: p.x, y: p.y + 25},
+        size: 15
+      }));
+    });
+
+    var enter = {
+      text: "-- PRESS ENTER --",
+      pos: $.V.center(pos, size),
+      size: 20,
+      color: [0,255,0,1]
+    };
+
+    enter.pos.x -= (enter.size*enter.text.length*0.7)/2;
+    enter.pos.y = size.y+50;
+    items.push(new $.Text(enter));
+  },
+
+  hide: function(){
+    var s = config.size;
+    this.ctx.clearRect(0, 0, s.x, s.y);
+  },
+
+  show: function(){
+    var ctx = this.ctx;
+    this.bg.draw(ctx);
+
+    this.modalItems[this.type].forEach(function(item){
+      item.draw(ctx);
+    });
+  }
+
+});
+
 $.Manager = $.Base.extend({
 
   start: function(){
@@ -2481,11 +2667,27 @@ $.Game = $.Base.extend({
     this.cview = options.viewport;
     this.cworld = options.world;
     this.cvacuum = options.vacuum;
+    this.cmodals = options.modals;
 
     this.boundGameRun = this.gameRun.bind(this);
     this.initContexts();
 
     this.manager = new $.Manager();
+
+    this.play();
+/*
+    this.mainModal = new $.Modal({
+      ctx: this.modalsCtx,
+      type: "main"
+    });
+
+    var self = this;
+    this.mainModal.onClick(function(){
+      self.play();
+    });
+
+    this.mainModal.show();
+*/
   },
 
   initContexts: function(){
@@ -2501,6 +2703,7 @@ $.Game = $.Base.extend({
     this.viewCtx = getContext(this.cview, size);
     this.worldCtx = getContext(this.cworld, size);
     this.vacuumCtx = getContext(this.cvacuum, vsize);
+    this.modalsCtx = getContext(this.cmodals, size);
   },
 
   loop: function(){
@@ -2563,8 +2766,10 @@ $.Game = $.Base.extend({
     }
 
     var w = getSize("Width");
-    var h = getSize("Height");
+    var h = getSize("Height") - 30;
 
+    //TODO: ADD MIN SIZE
+    
     var max = { x: 1250, y: 750 };
 
     var size = {
@@ -2593,6 +2798,7 @@ $.Game = $.Base.extend({
     var cviewport = $get("game-viewport");
     var cworld = $get("game-world");
     var cvacuum = $get("vacuum");
+    var cmodals = $get("modals");
 
     w.Time = new $.GameTime();
 
@@ -2605,7 +2811,8 @@ $.Game = $.Base.extend({
     w.game = new $.Game({
       viewport: cviewport,
       world: cworld,
-      vacuum: cvacuum
+      vacuum: cvacuum,
+      modals: cmodals
     });
 
     w.game.onWin(function(){
@@ -2637,7 +2844,7 @@ $.Game = $.Base.extend({
 
     initGame();
 
-    w.game.play();
+    //w.game.play();
   }
 
   w.onload = onDocLoad;

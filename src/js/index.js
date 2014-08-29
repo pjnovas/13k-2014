@@ -25,8 +25,10 @@
     }
 
     var w = getSize("Width");
-    var h = getSize("Height");
+    var h = getSize("Height") - 30;
 
+    //TODO: ADD MIN SIZE
+    
     var max = { x: 1250, y: 750 };
 
     var size = {
@@ -55,6 +57,7 @@
     var cviewport = $get("game-viewport");
     var cworld = $get("game-world");
     var cvacuum = $get("vacuum");
+    var cmodals = $get("modals");
 
     w.Time = new $.GameTime();
 
@@ -67,7 +70,8 @@
     w.game = new $.Game({
       viewport: cviewport,
       world: cworld,
-      vacuum: cvacuum
+      vacuum: cvacuum,
+      modals: cmodals
     });
 
     w.game.onWin(function(){
@@ -99,7 +103,7 @@
 
     initGame();
 
-    w.game.play();
+    //w.game.play();
   }
 
   w.onload = onDocLoad;

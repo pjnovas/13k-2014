@@ -2,6 +2,9 @@
 $.Elements = $.Collection.extend({
 
   pos: { x: 20, y: 50},
+  size: 96,
+  gap: 50,
+  showKeys: true,
 
   start: function(){
     this.entities = [];
@@ -21,16 +24,19 @@ $.Elements = $.Collection.extend({
   },
 
   createElements: function(){
-    var gap = 50
-      , size = 96;
+    var gap = this.gap
+      , size = this.size
+      , showKeys = this.showKeys;
 
     this.elements.forEach(function(ele, i){
 
       this.entities.push(new $.Element({
         pos: { x: this.pos.x, y: this.pos.y + (i * (size + gap)) },
+        size: { x: size, y: size },
         name: ele,
         key: this.keys[i],
-        sprite: this.sprites[ele]
+        sprite: this.sprites[ele],
+        showKeys: showKeys
       }));
 
     }, this);
@@ -50,5 +56,9 @@ $.Elements = $.Collection.extend({
       e.update();
     });
   },
-
+/*
+  draw: function(){
+    $.Elements._super.draw.apply(this, arguments);
+  }
+*/
 });

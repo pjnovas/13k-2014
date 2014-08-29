@@ -91,11 +91,44 @@ $.Renderer = $.Base.extend({ }, {
 
     draw();
   },
+/*
+  drawTextWrap: function(ctx, ps){
+    var x = ps.pos.x
+      , y = ps.pos.y
+      , maxWidth = ps.width
+      , lineHeight = ps.lineHeight
+      , text = ps.text;
 
+    var words = text.split(' ');
+    var line = '';
+
+    for(var n = 0; n < words.length; n++) {
+      var testLine = line + words[n] + ' ';
+      var metrics = ctx.measureText(testLine);
+      var testWidth = metrics.width;
+      if (testWidth > maxWidth && n > 0) {
+        ctx.fillText(line, x, y);
+        line = words[n] + ' ';
+        y += lineHeight;
+      }
+      else {
+        line = testLine;
+      }
+    }
+
+    ctx.fillText(line, x, y);
+  },
+*/
   drawText: function(ctx, ps){
     ctx.font = ps.size + 'pt Arial';
     ctx.textBaseline = ps.baseline || 'middle';
     ctx.fillStyle = ps.color;
+/*
+    if (ps.wrap){
+      this.drawTextWrap(ctx, ps);
+      return;
+    }
+*/
     ctx.fillText(ps.text, ps.pos.x, ps.pos.y);
   },
 

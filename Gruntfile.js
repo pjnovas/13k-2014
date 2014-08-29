@@ -96,6 +96,8 @@ module.exports = function(grunt) {
           , '<%= paths.game.js %>sprites.js'
           , '<%= paths.game.js %>Creator.js'
           
+          , '<%= paths.game.js %>Modal.js'
+
           , '<%= paths.game.js %>Manager.js'
           , '<%= paths.game.js %>GameTime.js'
           , '<%= paths.game.js %>Game.js'

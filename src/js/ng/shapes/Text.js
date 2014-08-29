@@ -13,13 +13,20 @@ $.Text = $.Entity.extend({
 
   draw: function(ctx){
 
-    $.Renderer.drawText(ctx, {
+    var opts = {
       text: this.text,
       pos: this.pos,
       size: this.size,
       color: $.C.toRGBA(this.color)
-    });
-
+    };
+/*
+    if (this.wrap) {
+      opts.wrap = this.wrap;
+      opts.width = this.width || 100;
+      opts.lineHeight = this.lineHeight || 1;
+    }
+*/
+    $.Renderer.drawText(ctx, opts);
   },
 
 });

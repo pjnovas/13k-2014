@@ -8,7 +8,8 @@ $.Element = $.Collection.extend({
 
     this.name = options.name;
     this.key = options.key;
-    this.color = [255,255,255,1];
+    this.showKeys = options.showKeys;
+    this.color = [255,255,255, 0.1];
     this.sprite = options.sprite;
 
     this.active = false;
@@ -32,7 +33,7 @@ $.Element = $.Collection.extend({
 
     this.icon = new $.Sprite({
       resource: "elements",
-      pos: $.V.center({ x: pos.x+3, y: pos.y+6 }, { x: 90, y: 90 }),
+      pos: $.V.center({ x: pos.x+3, y: pos.y+6 }, { x: size.x-6, y: size.y-6 }),
       size: size,
       angle: 0,
       sprite: this.sprite
@@ -42,21 +43,24 @@ $.Element = $.Collection.extend({
     var txtPos = { x: pos.x, y: pos.y + size.y * 1.1 };
     var txtSize = 20;
 
-    this.ctrlKey = new $.Rect({
-      pos: { x: txtPos.x - txtSize/2, y: txtPos.y - txtSize},
-      size: $.V.multiply($.V.one, txtSize*2),
-      fill: [0,0,0,1],
-      corner: 4
-    });
-    this.entities.push(this.ctrlKey);
+    if (this.showKeys){
 
-    this.txtKey = new $.Text({
-      text: this.key,
-      pos: txtPos,
-      size: txtSize,
-      color: [255,255,255,1]
-    });
-    this.entities.push(this.txtKey);
+      this.ctrlKey = new $.Rect({
+        pos: { x: txtPos.x - txtSize/2, y: txtPos.y - txtSize},
+        size: $.V.multiply($.V.one, txtSize*2),
+        fill: [0,0,0,1],
+        corner: 4
+      });
+      this.entities.push(this.ctrlKey);
+
+      this.txtKey = new $.Text({
+        text: this.key,
+        pos: txtPos,
+        size: txtSize,
+        color: [255,255,255,1]
+      });
+      this.entities.push(this.txtKey);
+    }
   },
 
   update: function(){
