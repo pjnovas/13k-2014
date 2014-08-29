@@ -1,11 +1,12 @@
 
 $.Vacuum = $.Entity.extend({
 
+  targetLen: 0,
+
   start: function(options){
     this.target = options.target;
     this.size = config.vacuum.size;
 
-    this.targetLen = 20;
     this.current = 0;
 
     this.offx = 30;
@@ -46,8 +47,8 @@ $.Vacuum = $.Entity.extend({
 
     this.stats = new $.Text({
       pos: { x: 180, y: 30 },
-      size: 20,
-      color: $.C.white
+      size: 25,
+      color: "#00ff00"
     });
 
   },
@@ -94,7 +95,7 @@ $.Vacuum = $.Entity.extend({
 
     }, this);
     
-    this.stats.text = _.pad(this.current, 3) + " / " + _.pad(this.targetLen, 3);
+    this.stats.text = _.pad(this.current, 2) + " / " + _.pad(this.targetLen, 2);
   },
 
   draw: function(ctx){

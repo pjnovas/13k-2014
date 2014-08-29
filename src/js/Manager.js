@@ -1,25 +1,50 @@
 
 $.Manager = $.Base.extend({
 
+  level: 0,
+
   start: function(){
+
+    var lvl = config.levels[this.level];
+    this.spidersAm = lvl[0];
+    this.spidersWin = lvl[1];
+    this.spidersKill = lvl[2];
+
     this.cursor = new $.Cursor();
     this.nodes = new $.Nodes();
     this.paths = new $.Paths();
     this.target = new $.Target();
 
     this.vacuum = new $.Vacuum({
-      target: this.target
+      target: this.target,
+      targetLen: this.spidersWin
     });
 
     this.elements = new $.Elements();
 
     this.spiders = new $.Spiders({
-      nodes: this.nodes
+      nodes: this.nodes,
+      amount: this.spidersAm
     });
 
-    this.stats = new $.Stats();
+    this.stats = new $.Stats({
+      maxKills: this.spidersKill,
+      total: this.spidersAm
+    });
 
     this.target.setNodesInside(this.nodes.getNodes());
+  },
+
+  checkState: function(){
+    var stat = this.stats.stats;
+
+    if (stat.saved >= this.spidersWin){
+      this.onEnd(stat, true);
+    }
+    
+    if (stat.killed >= this.spidersKill){
+      this.onEnd(stat, false);
+    }
   },
 
   update: function(){
@@ -50,6 +75,8 @@ $.Manager = $.Base.extend({
     elements.update();
 
     //Particles.update();
+
+    this.checkState();
   },
 
   draw: function(viewCtx, worldCtx, vacuumCtx){

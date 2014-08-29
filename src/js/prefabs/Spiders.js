@@ -5,7 +5,7 @@ $.Spiders = $.Collection.extend({
   spidersExit: 0,
   spidersKilled: 0,
   stats: {},
-  amount: 50,
+  amount: 0,
 
   applyPos: null,
   applyRatio: 0,
@@ -14,8 +14,6 @@ $.Spiders = $.Collection.extend({
   start: function(options){
     this.entities = [];
     this.nodes = options.nodes;
-
-    this.onExitSpider = options.onExitSpider;
 
     this.generateSpiders();
     this.updateGUI();

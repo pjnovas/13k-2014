@@ -6,7 +6,7 @@ $.Modal = $.Base.extend({
     this.type = options.type;
     this._onExit = options.onExit;
 
-    this.modalItems = {};
+    this.modalItems = [];
 
     this.initBackDrop();
     this["init" + this.type]();
@@ -15,11 +15,49 @@ $.Modal = $.Base.extend({
   },
 
   _onKeyUp: function(e){
-    var key = (e.which || e.keyCode);
-    if (key === 13 && window.modal === this.type && this._onExit){
-      this.hide();
-      this._onExit();
+    var curr = window.modal;
+    if (curr !== this.type){
+      return;
     }
+
+    var key = (e.which || e.keyCode);
+
+    switch (key){
+      case 40: //down
+        if (curr === "level"){
+          this.levelIndex++;
+        }
+      break;
+      case 38: //up
+        if (curr === "level"){
+          this.levelIndex--;
+        }
+      break;
+      case 13: //intro
+        if (this._onExit){
+          this.hide();
+          this._onExit();
+          return;
+        }
+      break;
+    }
+
+    if (this.levelIndex < 0){
+      this.levelIndex = 3;
+    }
+    else if (this.levelIndex > 3){
+      this.levelIndex = 0;
+    }
+
+    this.updateLevel();
+  },
+
+  updateLevel: function(){
+    this.levels.forEach(function(lvl, i){
+      lvl.color = (i === this.levelIndex ? "#00ff00" : "#fff");
+    }, this);
+
+    this.redraw();
   },
 
   initBackDrop: function(){
@@ -31,15 +69,25 @@ $.Modal = $.Base.extend({
     });
   },
 
-  initmain: function(){
-    var size = { x: 600, y: 500 };
+  initPressKey: function(pos){
+    var enter = {
+      text: "-- PRESS ENTER --",
+      pos: pos,
+      size: 20,
+      color: [0,255,0,1]
+    };
+
+    enter.pos.x += (enter.size*enter.text.length)/2;
+
+    this.pressKey = new $.Text(enter);
+  },
+
+  createHolder: function(size, txt, center){
     var pos = $.V.center($.V.zero, config.size);
     pos.x -= size.x/2;
     pos.y -= size.y/2;
 
-    var items = this.modalItems.main = [];
-
-    items.push(new $.Rect({
+    var holder = new $.Rect({
       pos: pos,
       size: size,
       fill: [30,30,30,1],
@@ -48,18 +96,35 @@ $.Modal = $.Base.extend({
         size: 3,
         color: [255,255,255,1]
       }
-    }));
+    });
 
     var title = {
-      text: document.title,
+      text: txt,
       pos: $.V.center(pos, size),
       size: 20
     };
 
-    title.pos.x -= (title.size*title.text.length*0.8)/2;
+    title.pos.x -= (title.size*title.text.length*center)/2;
     title.pos.y = pos.y + title.size*2;
 
-    items.push(new $.Text(title));
+    var tlt = new $.Text(title);
+
+    this.modalItems.push(holder);
+    this.modalItems.push(tlt);
+
+    return {
+      holder: holder,
+      title: tlt
+    };
+  },
+
+  initmain: function(){ 
+    var items = this.modalItems = [];
+
+    var size = { x: 600, y: 500 };
+    var holderCtn = this.createHolder(size, document.title, 0.8);
+    var pos = holderCtn.holder.pos;
+    var tltPos = holderCtn.title.pos;
 
     var sub = {
       text: "Use The Elements to lead spiders into the Vacuum!",
@@ -68,7 +133,7 @@ $.Modal = $.Base.extend({
     };
 
     sub.pos.x -= (sub.size*sub.text.length*0.6)/2;
-    sub.pos.y = title.pos.y + sub.size*2.5 +10;
+    sub.pos.y = tltPos.y + sub.size*2.5 +10;
 
     items.push(new $.Text(sub));
 
@@ -110,16 +175,49 @@ $.Modal = $.Base.extend({
       }));
     });
 
-    var enter = {
-      text: "-- PRESS ENTER --",
-      pos: $.V.clone(pos),
-      size: 20,
-      color: [0,255,0,1]
-    };
+    var enter = $.V.clone(pos);
+    enter.y += size.y-30;
+    this.initPressKey(enter);
+  },
 
-    enter.pos.x += (enter.size*enter.text.length)/2;
-    enter.pos.y += size.y-30;
-    items.push(new $.Text(enter));
+  initlevel: function(){
+    var items = this.modalItems = [];
+    var levels = this.levels = [];
+
+    var size = { x: 600, y: 500 };
+    var holderCtn = this.createHolder(size, "How good you think you are?", 0.65);
+    var pos = holderCtn.holder.pos;
+    var tltPos = holderCtn.title.pos;
+
+    var textsOpts = [
+      "    AMATEUR",
+      "PRETTY GOOD",
+      "EXPERIENCED",
+      "     BUSTER!"
+    ];
+
+    var posOpts = { x: pos.x + size.x/2 - 80 , y: tltPos.y + 100 };
+    textsOpts.forEach(function(txt, i){
+      var p = { x: posOpts.x, y: (i * 60) + posOpts.y + 10 };
+
+      var txtLvl = new $.Text({
+        text: txt,
+        pos: p,
+        size: 15,
+        color: "#fff"
+      });
+
+      items.push(txtLvl);
+      levels.push(txtLvl);
+    });
+
+    this.levelIndex = 0;
+
+    var enter = $.V.clone(pos);
+    enter.y += size.y-30;
+    this.initPressKey(enter);
+
+    this.updateLevel();
   },
 
   hide: function(){
@@ -133,11 +231,18 @@ $.Modal = $.Base.extend({
     var ctx = this.ctx;
     this.bg.draw(ctx);
 
-    this.modalItems[this.type].forEach(function(item){
+    this.modalItems.forEach(function(item){
       item.draw(ctx);
     });
 
+    this.pressKey.draw(ctx);
+
     window.modal = this.type;
+  },
+
+  redraw: function(){
+    this.hide();
+    this.show();
   }
 
 });

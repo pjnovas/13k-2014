@@ -4,7 +4,10 @@ $.C = $.Base.extend({ }, {
   white: [255,255,255,1],
 
   toRGBA: function(arr){
-    return "rgba(" + arr[0] + "," + arr[1] + "," + arr[2] + "," + (arr[3] || 1) + ")";
+    if (Array.isArray(arr)){
+      return "rgba(" + arr[0] + "," + arr[1] + "," + arr[2] + "," + (arr[3] || 1) + ")";
+    }
+    return arr;
   },
 
   lerp: function(from, to, t){

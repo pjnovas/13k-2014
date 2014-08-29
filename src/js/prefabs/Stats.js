@@ -3,17 +3,19 @@ $.Stats = $.Collection.extend({
 
   pos: { x: 1, y: 0 },
 
-  marginW: 40,
+  marginW: 30,
   marginH: 40,
 
   colors: {
-    kills: [255,0,0,1],
-    alives: [0,255,0,1]
+    kills: "#ff0000",
+    alives: ""
   },
 
   start: function(){
     this.entities = [];
     this.pos = $.V.prod(this.pos, config.size);
+
+    this.colors.alives = "#" + $.sprites.color;
 
     this.stats = {
       saved: 0,
@@ -77,14 +79,14 @@ $.Stats = $.Collection.extend({
     var txtSize = 30;
 
     this.textKills = new $.Text({
-      pos: { x: this.iconKills.pos.x - txtSize*3, y: this.iconKills.pos.y },
+      pos: { x: this.iconKills.pos.x - txtSize*3.5, y: this.iconKills.pos.y },
       size: txtSize,
       color: this.colors.kills
     });
     this.entities.push(this.textKills);
 
     this.textAlives = new $.Text({
-      pos: { x: this.iconAlives.pos.x - txtSize*3, y: this.iconAlives.pos.y },
+      pos: { x: this.iconAlives.pos.x - txtSize*2.5, y: this.iconAlives.pos.y },
       size: txtSize,
       color: this.colors.alives
     });
@@ -95,8 +97,9 @@ $.Stats = $.Collection.extend({
   update: function(stats){
     this.stats = stats;
 
-    this.textKills.text = _.pad(this.stats.killed, 3);
-    this.textAlives.text = _.pad(this.stats.alives, 3);
+    //this.textKills.text = _.pad(stats.killed, 2) + " / " + _.pad(this.maxKills, 2);
+    this.textKills.text = stats.killed + " / " + this.maxKills;
+    this.textAlives.text = _.pad(stats.alives, 2);
   },
 
 });

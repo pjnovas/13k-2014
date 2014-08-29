@@ -184,7 +184,10 @@ $.C = $.Base.extend({ }, {
   white: [255,255,255,1],
 
   toRGBA: function(arr){
-    return "rgba(" + arr[0] + "," + arr[1] + "," + arr[2] + "," + (arr[3] || 1) + ")";
+    if (Array.isArray(arr)){
+      return "rgba(" + arr[0] + "," + arr[1] + "," + arr[2] + "," + (arr[3] || 1) + ")";
+    }
+    return arr;
   },
 
   lerp: function(from, to, t){
@@ -550,8 +553,8 @@ $.Rect = $.Entity.extend({
   pos: { x: 0, y: 0 },
   size: { x: 20, y: 20},
   fill: null,
-  stroke: null,
-  corner: null,
+  //stroke: null,
+  //corner: null,
 
   start: function(){},
 
@@ -1563,7 +1566,7 @@ $.Spiders = $.Collection.extend({
   spidersExit: 0,
   spidersKilled: 0,
   stats: {},
-  amount: 50,
+  amount: 0,
 
   applyPos: null,
   applyRatio: 0,
@@ -1572,8 +1575,6 @@ $.Spiders = $.Collection.extend({
   start: function(options){
     this.entities = [];
     this.nodes = options.nodes;
-
-    this.onExitSpider = options.onExitSpider;
 
     this.generateSpiders();
     this.updateGUI();
@@ -1791,11 +1792,12 @@ $.Target = $.Circle.extend({
 
 $.Vacuum = $.Entity.extend({
 
+  targetLen: 0,
+
   start: function(options){
     this.target = options.target;
     this.size = config.vacuum.size;
 
-    this.targetLen = 20;
     this.current = 0;
 
     this.offx = 30;
@@ -1836,8 +1838,8 @@ $.Vacuum = $.Entity.extend({
 
     this.stats = new $.Text({
       pos: { x: 180, y: 30 },
-      size: 20,
-      color: $.C.white
+      size: 25,
+      color: "#00ff00"
     });
 
   },
@@ -1884,7 +1886,7 @@ $.Vacuum = $.Entity.extend({
 
     }, this);
     
-    this.stats.text = _.pad(this.current, 3) + " / " + _.pad(this.targetLen, 3);
+    this.stats.text = _.pad(this.current, 2) + " / " + _.pad(this.targetLen, 2);
   },
 
   draw: function(ctx){
@@ -1907,17 +1909,19 @@ $.Stats = $.Collection.extend({
 
   pos: { x: 1, y: 0 },
 
-  marginW: 40,
+  marginW: 30,
   marginH: 40,
 
   colors: {
-    kills: [255,0,0,1],
-    alives: [0,255,0,1]
+    kills: "#ff0000",
+    alives: ""
   },
 
   start: function(){
     this.entities = [];
     this.pos = $.V.prod(this.pos, config.size);
+
+    this.colors.alives = "#" + $.sprites.color;
 
     this.stats = {
       saved: 0,
@@ -1981,14 +1985,14 @@ $.Stats = $.Collection.extend({
     var txtSize = 30;
 
     this.textKills = new $.Text({
-      pos: { x: this.iconKills.pos.x - txtSize*3, y: this.iconKills.pos.y },
+      pos: { x: this.iconKills.pos.x - txtSize*3.5, y: this.iconKills.pos.y },
       size: txtSize,
       color: this.colors.kills
     });
     this.entities.push(this.textKills);
 
     this.textAlives = new $.Text({
-      pos: { x: this.iconAlives.pos.x - txtSize*3, y: this.iconAlives.pos.y },
+      pos: { x: this.iconAlives.pos.x - txtSize*2.5, y: this.iconAlives.pos.y },
       size: txtSize,
       color: this.colors.alives
     });
@@ -1999,8 +2003,9 @@ $.Stats = $.Collection.extend({
   update: function(stats){
     this.stats = stats;
 
-    this.textKills.text = _.pad(this.stats.killed, 3);
-    this.textAlives.text = _.pad(this.stats.alives, 3);
+    //this.textKills.text = _.pad(stats.killed, 2) + " / " + _.pad(this.maxKills, 2);
+    this.textKills.text = stats.killed + " / " + this.maxKills;
+    this.textAlives.text = _.pad(stats.alives, 2);
   },
 
 });
@@ -2411,7 +2416,7 @@ $.Modal = $.Base.extend({
     this.type = options.type;
     this._onExit = options.onExit;
 
-    this.modalItems = {};
+    this.modalItems = [];
 
     this.initBackDrop();
     this["init" + this.type]();
@@ -2420,11 +2425,49 @@ $.Modal = $.Base.extend({
   },
 
   _onKeyUp: function(e){
-    var key = (e.which || e.keyCode);
-    if (key === 13 && window.modal === this.type && this._onExit){
-      this.hide();
-      this._onExit();
+    var curr = window.modal;
+    if (curr !== this.type){
+      return;
     }
+
+    var key = (e.which || e.keyCode);
+
+    switch (key){
+      case 40: //down
+        if (curr === "level"){
+          this.levelIndex++;
+        }
+      break;
+      case 38: //up
+        if (curr === "level"){
+          this.levelIndex--;
+        }
+      break;
+      case 13: //intro
+        if (this._onExit){
+          this.hide();
+          this._onExit();
+          return;
+        }
+      break;
+    }
+
+    if (this.levelIndex < 0){
+      this.levelIndex = 3;
+    }
+    else if (this.levelIndex > 3){
+      this.levelIndex = 0;
+    }
+
+    this.updateLevel();
+  },
+
+  updateLevel: function(){
+    this.levels.forEach(function(lvl, i){
+      lvl.color = (i === this.levelIndex ? "#00ff00" : "#fff");
+    }, this);
+
+    this.redraw();
   },
 
   initBackDrop: function(){
@@ -2436,15 +2479,25 @@ $.Modal = $.Base.extend({
     });
   },
 
-  initmain: function(){
-    var size = { x: 600, y: 500 };
+  initPressKey: function(pos){
+    var enter = {
+      text: "-- PRESS ENTER --",
+      pos: pos,
+      size: 20,
+      color: [0,255,0,1]
+    };
+
+    enter.pos.x += (enter.size*enter.text.length)/2;
+
+    this.pressKey = new $.Text(enter);
+  },
+
+  createHolder: function(size, txt, center){
     var pos = $.V.center($.V.zero, config.size);
     pos.x -= size.x/2;
     pos.y -= size.y/2;
 
-    var items = this.modalItems.main = [];
-
-    items.push(new $.Rect({
+    var holder = new $.Rect({
       pos: pos,
       size: size,
       fill: [30,30,30,1],
@@ -2453,18 +2506,35 @@ $.Modal = $.Base.extend({
         size: 3,
         color: [255,255,255,1]
       }
-    }));
+    });
 
     var title = {
-      text: document.title,
+      text: txt,
       pos: $.V.center(pos, size),
       size: 20
     };
 
-    title.pos.x -= (title.size*title.text.length*0.8)/2;
+    title.pos.x -= (title.size*title.text.length*center)/2;
     title.pos.y = pos.y + title.size*2;
 
-    items.push(new $.Text(title));
+    var tlt = new $.Text(title);
+
+    this.modalItems.push(holder);
+    this.modalItems.push(tlt);
+
+    return {
+      holder: holder,
+      title: tlt
+    };
+  },
+
+  initmain: function(){ 
+    var items = this.modalItems = [];
+
+    var size = { x: 600, y: 500 };
+    var holderCtn = this.createHolder(size, document.title, 0.8);
+    var pos = holderCtn.holder.pos;
+    var tltPos = holderCtn.title.pos;
 
     var sub = {
       text: "Use The Elements to lead spiders into the Vacuum!",
@@ -2473,7 +2543,7 @@ $.Modal = $.Base.extend({
     };
 
     sub.pos.x -= (sub.size*sub.text.length*0.6)/2;
-    sub.pos.y = title.pos.y + sub.size*2.5 +10;
+    sub.pos.y = tltPos.y + sub.size*2.5 +10;
 
     items.push(new $.Text(sub));
 
@@ -2515,16 +2585,49 @@ $.Modal = $.Base.extend({
       }));
     });
 
-    var enter = {
-      text: "-- PRESS ENTER --",
-      pos: $.V.clone(pos),
-      size: 20,
-      color: [0,255,0,1]
-    };
+    var enter = $.V.clone(pos);
+    enter.y += size.y-30;
+    this.initPressKey(enter);
+  },
 
-    enter.pos.x += (enter.size*enter.text.length)/2;
-    enter.pos.y += size.y-30;
-    items.push(new $.Text(enter));
+  initlevel: function(){
+    var items = this.modalItems = [];
+    var levels = this.levels = [];
+
+    var size = { x: 600, y: 500 };
+    var holderCtn = this.createHolder(size, "How good you think you are?", 0.65);
+    var pos = holderCtn.holder.pos;
+    var tltPos = holderCtn.title.pos;
+
+    var textsOpts = [
+      "    AMATEUR",
+      "PRETTY GOOD",
+      "EXPERIENCED",
+      "     BUSTER!"
+    ];
+
+    var posOpts = { x: pos.x + size.x/2 - 80 , y: tltPos.y + 100 };
+    textsOpts.forEach(function(txt, i){
+      var p = { x: posOpts.x, y: (i * 60) + posOpts.y + 10 };
+
+      var txtLvl = new $.Text({
+        text: txt,
+        pos: p,
+        size: 15,
+        color: "#fff"
+      });
+
+      items.push(txtLvl);
+      levels.push(txtLvl);
+    });
+
+    this.levelIndex = 0;
+
+    var enter = $.V.clone(pos);
+    enter.y += size.y-30;
+    this.initPressKey(enter);
+
+    this.updateLevel();
   },
 
   hide: function(){
@@ -2538,36 +2641,68 @@ $.Modal = $.Base.extend({
     var ctx = this.ctx;
     this.bg.draw(ctx);
 
-    this.modalItems[this.type].forEach(function(item){
+    this.modalItems.forEach(function(item){
       item.draw(ctx);
     });
 
+    this.pressKey.draw(ctx);
+
     window.modal = this.type;
+  },
+
+  redraw: function(){
+    this.hide();
+    this.show();
   }
 
 });
 
 $.Manager = $.Base.extend({
 
+  level: 0,
+
   start: function(){
+
+    var lvl = config.levels[this.level];
+    this.spidersAm = lvl[0];
+    this.spidersWin = lvl[1];
+    this.spidersKill = lvl[2];
+
     this.cursor = new $.Cursor();
     this.nodes = new $.Nodes();
     this.paths = new $.Paths();
     this.target = new $.Target();
 
     this.vacuum = new $.Vacuum({
-      target: this.target
+      target: this.target,
+      targetLen: this.spidersWin
     });
 
     this.elements = new $.Elements();
 
     this.spiders = new $.Spiders({
-      nodes: this.nodes
+      nodes: this.nodes,
+      amount: this.spidersAm
     });
 
-    this.stats = new $.Stats();
+    this.stats = new $.Stats({
+      maxKills: this.spidersKill,
+      total: this.spidersAm
+    });
 
     this.target.setNodesInside(this.nodes.getNodes());
+  },
+
+  checkState: function(){
+    var stat = this.stats.stats;
+
+    if (stat.saved >= this.spidersWin){
+      this.onEnd(stat, true);
+    }
+    
+    if (stat.killed >= this.spidersKill){
+      this.onEnd(stat, false);
+    }
   },
 
   update: function(){
@@ -2598,6 +2733,8 @@ $.Manager = $.Base.extend({
     elements.update();
 
     //Particles.update();
+
+    this.checkState();
   },
 
   draw: function(viewCtx, worldCtx, vacuumCtx){
@@ -2679,15 +2816,50 @@ $.Game = $.Base.extend({
     this.boundGameRun = this.gameRun.bind(this);
     this.initContexts();
 
-    this.manager = new $.Manager();
+    this.started = false;
+
+    var self = this;
+
+    this.levelModal = new $.Modal({
+      ctx: this.modalsCtx,
+      type: "level",
+      onExit: function(){
+        self.createManager();
+        
+        self.started = true;
+        self.play();
+      }
+    });
 
     this.mainModal = new $.Modal({
       ctx: this.modalsCtx,
       type: "main",
-      onExit: this.play.bind(this)
+      onExit: function(){
+        if (self.started){
+          self.play();
+        }
+        else {
+          self.levelModal.show();
+        }
+      }
     });
 
     this.mainModal.show();
+  },
+
+  createManager: function(){
+    this.manager = null;
+    this.manager = new $.Manager({
+      onEnd: this._endGame.bind(this),
+      level: this.levelModal.levelIndex
+    });
+  },
+
+  _endGame: function(stats, won){
+    console.log("END GAME!! > YOU " + ( won ? "WIN!" : "LOOSE!" ) );
+    console.log("Collected: " + stats.saved + " || Kills: " + stats.killed);
+
+    this.stop();
   },
 
   initContexts: function(){
@@ -2725,17 +2897,11 @@ $.Game = $.Base.extend({
   },
 
   gameRun: function(){
-    if (Time.tick()) { this.loop(); }
-    this.tLoop = window.requestAnimationFrame(this.boundGameRun);
+    if (!this.paused){
+      if (Time.tick()) { this.loop(); }
+      this.tLoop = window.requestAnimationFrame(this.boundGameRun);
+    }
   },
-
-  onWin: function(cb){
-    this._onWin = cb;
-  },
-
-  onLoose: function(cb){
-    this._onLoose = cb;
-  }
 
 });
 
@@ -2802,6 +2968,9 @@ $.Game = $.Base.extend({
       vacuum: {
         size: { x: 300, y: 500 }
       },
+      levels:[ 
+        [10, 5, 5], [25, 20, 5], [50, 40, 5], [80, 80, 2]
+      ],
       elements: ["fire", "water", "earth", "air"],
       methods: ["burn", "cool", "dirty", "blow"]
     };
@@ -2822,16 +2991,6 @@ $.Game = $.Base.extend({
       cworld: $newCanvas("world"),
       cvacuum: $newCanvas("vacuum"),
       cmodals: $newCanvas("modals")
-    });
-
-    w.game.onWin(function(){
-      console.log("YOU WIN");
-      game.stop(); 
-    });
-
-    w.game.onLoose(function(){
-      console.log("YOU LOOSE");
-      game.stop(); 
     });
 
     function pauseGame(){

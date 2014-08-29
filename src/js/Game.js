@@ -8,15 +8,50 @@ $.Game = $.Base.extend({
     this.boundGameRun = this.gameRun.bind(this);
     this.initContexts();
 
-    this.manager = new $.Manager();
+    this.started = false;
+
+    var self = this;
+
+    this.levelModal = new $.Modal({
+      ctx: this.modalsCtx,
+      type: "level",
+      onExit: function(){
+        self.createManager();
+        
+        self.started = true;
+        self.play();
+      }
+    });
 
     this.mainModal = new $.Modal({
       ctx: this.modalsCtx,
       type: "main",
-      onExit: this.play.bind(this)
+      onExit: function(){
+        if (self.started){
+          self.play();
+        }
+        else {
+          self.levelModal.show();
+        }
+      }
     });
 
     this.mainModal.show();
+  },
+
+  createManager: function(){
+    this.manager = null;
+    this.manager = new $.Manager({
+      onEnd: this._endGame.bind(this),
+      level: this.levelModal.levelIndex
+    });
+  },
+
+  _endGame: function(stats, won){
+    console.log("END GAME!! > YOU " + ( won ? "WIN!" : "LOOSE!" ) );
+    console.log("Collected: " + stats.saved + " || Kills: " + stats.killed);
+
+    this.stop();
   },
 
   initContexts: function(){
@@ -54,16 +89,10 @@ $.Game = $.Base.extend({
   },
 
   gameRun: function(){
-    if (Time.tick()) { this.loop(); }
-    this.tLoop = window.requestAnimationFrame(this.boundGameRun);
+    if (!this.paused){
+      if (Time.tick()) { this.loop(); }
+      this.tLoop = window.requestAnimationFrame(this.boundGameRun);
+    }
   },
-
-  onWin: function(cb){
-    this._onWin = cb;
-  },
-
-  onLoose: function(cb){
-    this._onLoose = cb;
-  }
 
 });

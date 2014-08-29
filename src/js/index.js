@@ -61,6 +61,9 @@
       vacuum: {
         size: { x: 300, y: 500 }
       },
+      levels:[ 
+        [10, 5, 5], [25, 20, 5], [50, 40, 5], [80, 80, 2]
+      ],
       elements: ["fire", "water", "earth", "air"],
       methods: ["burn", "cool", "dirty", "blow"]
     };
@@ -81,16 +84,6 @@
       cworld: $newCanvas("world"),
       cvacuum: $newCanvas("vacuum"),
       cmodals: $newCanvas("modals")
-    });
-
-    w.game.onWin(function(){
-      console.log("YOU WIN");
-      game.stop(); 
-    });
-
-    w.game.onLoose(function(){
-      console.log("YOU LOOSE");
-      game.stop(); 
     });
 
     function pauseGame(){
