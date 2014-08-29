@@ -19,20 +19,13 @@ $.Game = $.Base.extend({
 
     this.manager = new $.Manager();
 
-    this.play();
-/*
     this.mainModal = new $.Modal({
       ctx: this.modalsCtx,
-      type: "main"
-    });
-
-    var self = this;
-    this.mainModal.onClick(function(){
-      self.play();
+      type: "main",
+      onExit: this.play.bind(this)
     });
 
     this.mainModal.show();
-*/
   },
 
   initContexts: function(){

@@ -6,12 +6,13 @@ $.Creator = $.Base.extend({}, {
 
     return {
       spider: this.generate(sprites.spider, sprites.color, true, 3),
+      favicon: this.generate(sprites.spider, sprites.color, true, 1, 1, true),
       elements: this.generate(sprites.elements, sprites.colors),
       vacuum: this.drawPath(sprites.vacuum)
     };
   },
 
-  generate: function(sprite, _color, multiple, _phases){
+  generate: function(sprite, _color, multiple, _phases, bSize, url){
     var img = new window.Image();
     var phases = multiple ? _phases : sprite.length;
     
@@ -20,7 +21,7 @@ $.Creator = $.Base.extend({}, {
     var lh = multiple ? sprite.length : sprite[0].length;
     var lw = multiple ? sprite[0].length: sprite[0][0].length;
     
-    var pw = 2, ph = 2;
+    var pw = bSize || 2, ph = bSize || 2;
     
     var w = pw*lh; 
     var h = ph*lw;
@@ -64,6 +65,10 @@ $.Creator = $.Base.extend({}, {
       }
     }
 
+    if (url){
+      return canvas.toDataURL();
+    }
+    
     img.src = canvas.toDataURL("image/png");
     canvas = null;
 

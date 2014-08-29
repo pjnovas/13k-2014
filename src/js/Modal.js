@@ -4,15 +4,22 @@ $.Modal = $.Base.extend({
   start: function(options){
     this.ctx = options.ctx;
     this.type = options.type;
+    this._onExit = options.onExit;
 
     this.modalItems = {};
 
     this.initBackDrop();
     this["init" + this.type]();
+
+    document.addEventListener("keyup", this._onKeyUp.bind(this));
   },
 
-  onClick: function(cb){
-    this._onClick = cb;
+  _onKeyUp: function(e){
+    var key = (e.which || e.keyCode);
+    if (key === 13 && window.modal === this.type && this._onExit){
+      this.hide();
+      this._onExit();
+    }
   },
 
   initBackDrop: function(){
@@ -105,19 +112,21 @@ $.Modal = $.Base.extend({
 
     var enter = {
       text: "-- PRESS ENTER --",
-      pos: $.V.center(pos, size),
+      pos: $.V.clone(pos),
       size: 20,
       color: [0,255,0,1]
     };
 
-    enter.pos.x -= (enter.size*enter.text.length*0.7)/2;
-    enter.pos.y = size.y+50;
+    enter.pos.x += (enter.size*enter.text.length)/2;
+    enter.pos.y += size.y-30;
     items.push(new $.Text(enter));
   },
 
   hide: function(){
     var s = config.size;
     this.ctx.clearRect(0, 0, s.x, s.y);
+
+    window.modal = "";
   },
 
   show: function(){
@@ -127,6 +136,8 @@ $.Modal = $.Base.extend({
     this.modalItems[this.type].forEach(function(item){
       item.draw(ctx);
     });
+
+    window.modal = this.type;
   }
 
 });

@@ -18,7 +18,7 @@ $.Controls = $.Base.extend({
     c.onmouseup = this._onMouseEvent.bind(this, "release");
     c.onmousedown = this._onMouseEvent.bind(this, "pressing");
     c.onmousemove = this._onMouseEvent.bind(this, "moving");
-    doc.onkeyup = this._onKeyUp.bind(this);
+    doc.addEventListener("keyup", this._onKeyUp.bind(this));
   },
 
   enable: function(){

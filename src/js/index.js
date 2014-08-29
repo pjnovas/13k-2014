@@ -3,6 +3,8 @@
   var w = window;
   var doc = w.document;
   doc.title = "SPIDER BUSTERS";
+
+  w.modal = "";
   
   function $get(id){
     return doc.getElementById(id);
@@ -93,9 +95,11 @@
 
     function pauseGame(){
       if (game.paused){
+        game.mainModal.hide();
         game.play();
       }
       else {
+        game.mainModal.show();
         game.stop(); 
       }
     }
@@ -107,6 +111,9 @@
     w.config = configGame();
 
     $.repo = $.Creator.getSprites();
+
+    var favicon = $get("favicon");
+    favicon.href = $.repo.favicon;
 
     initGame();
 
