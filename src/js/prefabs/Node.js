@@ -98,13 +98,13 @@ $.Node = $.Circle.extend({
     }
   },
 
-  applyEarth: function(){
+  dirty: function(){
     if (!this.burned){
       this.hasEarth = true;
     }
   },
 
-  applyAir: function(){
+  blow: function(){
     if (!this.burned){
       this.blowing = true;
       this.hasEarth = false;

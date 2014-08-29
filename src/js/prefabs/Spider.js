@@ -69,6 +69,10 @@ $.Spider = $.Sprite.extend({
     }
   },
 
+  burn: function(){
+    this.setDead();
+  },
+
   animate: function(){
 
     if (!this.staying){
@@ -87,8 +91,17 @@ $.Spider = $.Sprite.extend({
   },
 
   updateTemp: function(){
-    var nfromT = this.nFrom.temp;
-    var ntoT = this.nTo.temp;
+    var nfrom = this.nFrom
+      , nto = this.nTo
+      , nfromT = nfrom.temp
+      , ntoT = nto.temp
+      , nfromB = nfrom.blowing
+      , ntoB = nfrom.blowing;
+
+    if (nfromB || ntoB){
+      this.temp = 0.1;
+      return;
+    }
 
     if (nfromT === 0 && ntoT === 0){
       this.temp = 0;

@@ -35,7 +35,7 @@ $.Cursor = $.Circle.extend({
   },
 
   update: function(){
-    var elements = ["fire", "water", "earth", "air"]
+    var elements = config.elements
       , alpha = 0.4
       , sizes = [20,20,20,50]
       , colors = [

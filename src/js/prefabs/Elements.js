@@ -10,7 +10,7 @@ $.Elements = $.Collection.extend({
     this.active = false;
 
     this.keys = ["Q", "W", "E", "R"];
-    this.elements = ["fire", "water", "earth", "air"];
+    this.elements = config.elements;
 
     this.sprites = {};
     for(var i=0;i<4;i++){

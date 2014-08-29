@@ -33,11 +33,12 @@ $.Manager = $.Base.extend({
     elements.current = cursor.element;
     elements.active = cursor.active;
 
-    nodes.applyPos = null;
+    spiders.applyPos = nodes.applyPos = null;
+
     if (cursor.active){
-      nodes.applyPos = cursor.pos;
-      nodes.applyRatio = cursor.radius;
-      nodes.element = cursor.element;
+      spiders.applyPos = nodes.applyPos = cursor.pos;
+      spiders.applyRatio = nodes.applyRatio = cursor.radius;
+      spiders.element = nodes.element = cursor.element;
     }
 
     nodes.update();

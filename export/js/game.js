@@ -846,13 +846,13 @@ $.Node = $.Circle.extend({
     }
   },
 
-  applyEarth: function(){
+  dirty: function(){
     if (!this.burned){
       this.hasEarth = true;
     }
   },
 
-  applyAir: function(){
+  blow: function(){
     if (!this.burned){
       this.blowing = true;
       this.hasEarth = false;
@@ -1099,15 +1099,13 @@ $.Nodes = $.Collection.extend({
 
   },
 
-  elements: ["fire", "water", "earth", "air"],
-  applyMethods: ["burn", "cool", "applyEarth", "applyAir"],
-
   findNodeByCollider: function(){
+    var elements = config.elements
+      , methods = config.methods;
+
     this.entities.forEach(function (node) {
       if (this.applyPos && $.V.pointInCircle(this.applyPos, node.pos, this.applyRatio)) {
-        var methodIdx = this.elements.indexOf(this.element);
-        var method = this.applyMethods[methodIdx];
-        node[method]();
+        node[methods[elements.indexOf(this.element)]]();
       }
     }, this);
   },
@@ -1277,7 +1275,7 @@ $.Cursor = $.Circle.extend({
   },
 
   update: function(){
-    var elements = ["fire", "water", "earth", "air"]
+    var elements = config.elements
       , alpha = 0.4
       , sizes = [20,20,20,50]
       , colors = [
@@ -1366,6 +1364,10 @@ $.Spider = $.Sprite.extend({
     }
   },
 
+  burn: function(){
+    this.setDead();
+  },
+
   animate: function(){
 
     if (!this.staying){
@@ -1384,8 +1386,17 @@ $.Spider = $.Sprite.extend({
   },
 
   updateTemp: function(){
-    var nfromT = this.nFrom.temp;
-    var ntoT = this.nTo.temp;
+    var nfrom = this.nFrom
+      , nto = this.nTo
+      , nfromT = nfrom.temp
+      , ntoT = nto.temp
+      , nfromB = nfrom.blowing
+      , ntoB = nfrom.blowing;
+
+    if (nfromB || ntoB){
+      this.temp = 0.1;
+      return;
+    }
 
     if (nfromT === 0 && ntoT === 0){
       this.temp = 0;
@@ -1514,6 +1525,10 @@ $.Spiders = $.Collection.extend({
   stats: {},
   amount: 50,
 
+  applyPos: null,
+  applyRatio: 0,
+  element: null,
+
   start: function(options){
     this.entities = [];
     this.nodes = options.nodes;
@@ -1601,7 +1616,23 @@ $.Spiders = $.Collection.extend({
     }
   },
 
+  findSpidersByCollider: function(){
+    var elements = config.elements
+      , methods = config.methods;
+
+    this.entities.forEach(function (spider) {
+      if (this.applyPos && $.V.pointInCircle(this.applyPos, spider.pos, this.applyRatio)) {
+        spider[methods[elements.indexOf(this.element)]]();
+      }
+    }, this);
+  },
+
   update: function(){
+
+    if (this.applyPos && this.element === "fire"){
+      // only interact with fire so far
+      this.findSpidersByCollider();
+    }
     
     var nodes = this.nodes.getNodes();
 
@@ -2014,7 +2045,7 @@ $.Elements = $.Collection.extend({
     this.active = false;
 
     this.keys = ["Q", "W", "E", "R"];
-    this.elements = ["fire", "water", "earth", "air"];
+    this.elements = config.elements;
 
     this.sprites = {};
     for(var i=0;i<4;i++){
@@ -2348,11 +2379,12 @@ $.Manager = $.Base.extend({
     elements.current = cursor.element;
     elements.active = cursor.active;
 
-    nodes.applyPos = null;
+    spiders.applyPos = nodes.applyPos = null;
+
     if (cursor.active){
-      nodes.applyPos = cursor.pos;
-      nodes.applyRatio = cursor.radius;
-      nodes.element = cursor.element;
+      spiders.applyPos = nodes.applyPos = cursor.pos;
+      spiders.applyRatio = nodes.applyRatio = cursor.radius;
+      spiders.element = nodes.element = cursor.element;
     }
 
     nodes.update();
@@ -2551,7 +2583,9 @@ $.Game = $.Base.extend({
       },
       vacuum: {
         size: { x: 300, y: 500 }
-      }
+      },
+      elements: ["fire", "water", "earth", "air"],
+      methods: ["burn", "cool", "dirty", "blow"]
     };
   }
 
@@ -2602,6 +2636,7 @@ $.Game = $.Base.extend({
     $.repo = $.Creator.getSprites();
 
     initGame();
+
     w.game.play();
   }
 

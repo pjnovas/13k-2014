@@ -149,15 +149,13 @@ $.Nodes = $.Collection.extend({
 
   },
 
-  elements: ["fire", "water", "earth", "air"],
-  applyMethods: ["burn", "cool", "applyEarth", "applyAir"],
-
   findNodeByCollider: function(){
+    var elements = config.elements
+      , methods = config.methods;
+
     this.entities.forEach(function (node) {
       if (this.applyPos && $.V.pointInCircle(this.applyPos, node.pos, this.applyRatio)) {
-        var methodIdx = this.elements.indexOf(this.element);
-        var method = this.applyMethods[methodIdx];
-        node[method]();
+        node[methods[elements.indexOf(this.element)]]();
       }
     }, this);
   },

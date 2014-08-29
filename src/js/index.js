@@ -45,7 +45,9 @@
       },
       vacuum: {
         size: { x: 300, y: 500 }
-      }
+      },
+      elements: ["fire", "water", "earth", "air"],
+      methods: ["burn", "cool", "dirty", "blow"]
     };
   }
 
@@ -96,6 +98,7 @@
     $.repo = $.Creator.getSprites();
 
     initGame();
+
     w.game.play();
   }
 

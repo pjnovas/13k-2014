@@ -7,6 +7,10 @@ $.Spiders = $.Collection.extend({
   stats: {},
   amount: 50,
 
+  applyPos: null,
+  applyRatio: 0,
+  element: null,
+
   start: function(options){
     this.entities = [];
     this.nodes = options.nodes;
@@ -94,7 +98,23 @@ $.Spiders = $.Collection.extend({
     }
   },
 
+  findSpidersByCollider: function(){
+    var elements = config.elements
+      , methods = config.methods;
+
+    this.entities.forEach(function (spider) {
+      if (this.applyPos && $.V.pointInCircle(this.applyPos, spider.pos, this.applyRatio)) {
+        spider[methods[elements.indexOf(this.element)]]();
+      }
+    }, this);
+  },
+
   update: function(){
+
+    if (this.applyPos && this.element === "fire"){
+      // only interact with fire so far
+      this.findSpidersByCollider();
+    }
     
     var nodes = this.nodes.getNodes();
 
