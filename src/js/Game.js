@@ -1,19 +1,10 @@
 
 $.Game = $.Base.extend({
 
-  viewCtx:  null,
-  worldCtx:  null,
-  vacuumCtx:  null,
-
   tLoop:  null,
   paused:  false,
 
-  start: function(options){
-    this.cview = options.viewport;
-    this.cworld = options.world;
-    this.cvacuum = options.vacuum;
-    this.cmodals = options.modals;
-
+  start: function(){
     this.boundGameRun = this.gameRun.bind(this);
     this.initContexts();
 

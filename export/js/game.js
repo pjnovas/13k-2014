@@ -2672,19 +2672,10 @@ GameTime.prototype.reset = function() {
 
 $.Game = $.Base.extend({
 
-  viewCtx:  null,
-  worldCtx:  null,
-  vacuumCtx:  null,
-
   tLoop:  null,
   paused:  false,
 
-  start: function(options){
-    this.cview = options.viewport;
-    this.cworld = options.world;
-    this.cvacuum = options.vacuum;
-    this.cmodals = options.modals;
-
+  start: function(){
     this.boundGameRun = this.gameRun.bind(this);
     this.initContexts();
 
@@ -2827,10 +2818,10 @@ $.Game = $.Base.extend({
     });
 
     w.game = new $.Game({
-      viewport: $newCanvas("viewport"),
-      world: $newCanvas("world"),
-      vacuum: $newCanvas("vacuum"),
-      modals: $newCanvas("modals")
+      cview: $newCanvas("viewport"),
+      cworld: $newCanvas("world"),
+      cvacuum: $newCanvas("vacuum"),
+      cmodals: $newCanvas("modals")
     });
 
     w.game.onWin(function(){
@@ -2866,8 +2857,6 @@ $.Game = $.Base.extend({
     favicon.href = $.repo.favicon;
 
     initGame();
-
-    //w.game.play();
   }
 
   w.onload = onDocLoad;

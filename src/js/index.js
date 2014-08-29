@@ -77,10 +77,10 @@
     });
 
     w.game = new $.Game({
-      viewport: $newCanvas("viewport"),
-      world: $newCanvas("world"),
-      vacuum: $newCanvas("vacuum"),
-      modals: $newCanvas("modals")
+      cview: $newCanvas("viewport"),
+      cworld: $newCanvas("world"),
+      cvacuum: $newCanvas("vacuum"),
+      cmodals: $newCanvas("modals")
     });
 
     w.game.onWin(function(){
@@ -116,8 +116,6 @@
     favicon.href = $.repo.favicon;
 
     initGame();
-
-    //w.game.play();
   }
 
   w.onload = onDocLoad;
