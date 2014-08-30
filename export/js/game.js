@@ -812,7 +812,7 @@ $.Node = $.Circle.extend({
   blowingEnd: 0,
 
   colors: {
-      cold: [255,255,255,1]
+      cold: [200,200,200,1]
     , burn: [255,0,0,1]
     , burned: [0,0,0,0.2]
     , earth: [190,160,40,1]
@@ -1181,24 +1181,16 @@ $.Path = $.Line.extend({
   to: { x: 0, y: 0 },
 
   size: 2,
-  color: $.C.white,
 
   tBurn: 0.5,
   burned: false,
   heat: null,
 
-  na: null,
-  nb: null,
-/*
-  start: function(){
-    //TODO: check Heat Line if it should be created as another line or not.
-  },
-*/
   setHeat: function(from, to, t){
-    this.heat = {
-      from: from.pos,
-      to: $.V.round($.V.lerp(from.pos, to.pos, t * 2 > 1 ? 1 : t * 2 ))
-    };
+    var h = this.heat || {};
+    h.from = from.pos;
+    h.to = $.V.round($.V.lerp(from.pos, to.pos, t * 2 > 1 ? 1 : t * 2 ));
+    this.heat = h;
   },
 
   update: function(){
@@ -1233,7 +1225,7 @@ $.Path = $.Line.extend({
     if (na.burned || nb.burned) {
       this.heat = null;
       this.burned = true;
-      this.color = [0,0,0,0.2];
+      this.color = [0,0,0,0.5];
     }
 
     this.pos = this.na.pos;
@@ -2463,9 +2455,11 @@ $.Modal = $.Base.extend({
   },
 
   updateLevel: function(){
-    this.levels.forEach(function(lvl, i){
-      lvl.color = (i === this.levelIndex ? "#00ff00" : "#fff");
-    }, this);
+    if (this.levels){
+      this.levels.forEach(function(lvl, i){
+        lvl.color = (i === this.levelIndex ? "#00ff00" : "#fff");
+      }, this);
+    }
 
     this.redraw();
   },

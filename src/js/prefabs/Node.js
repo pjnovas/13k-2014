@@ -21,7 +21,7 @@ $.Node = $.Circle.extend({
   blowingEnd: 0,
 
   colors: {
-      cold: [255,255,255,1]
+      cold: [200,200,200,1]
     , burn: [255,0,0,1]
     , burned: [0,0,0,0.2]
     , earth: [190,160,40,1]

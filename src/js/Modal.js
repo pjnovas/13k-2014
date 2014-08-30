@@ -53,9 +53,11 @@ $.Modal = $.Base.extend({
   },
 
   updateLevel: function(){
-    this.levels.forEach(function(lvl, i){
-      lvl.color = (i === this.levelIndex ? "#00ff00" : "#fff");
-    }, this);
+    if (this.levels){
+      this.levels.forEach(function(lvl, i){
+        lvl.color = (i === this.levelIndex ? "#00ff00" : "#fff");
+      }, this);
+    }
 
     this.redraw();
   },
