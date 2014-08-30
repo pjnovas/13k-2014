@@ -48,7 +48,7 @@ $.Element = $.Collection.extend({
       this.ctrlKey = new $.Rect({
         pos: { x: txtPos.x - txtSize/2, y: txtPos.y - txtSize},
         size: $.V.multiply($.V.one, txtSize*2),
-        fill: [0,0,0,1],
+        fill: [,,,1],
         corner: 4
       });
       this.entities.push(this.ctrlKey);
@@ -57,15 +57,15 @@ $.Element = $.Collection.extend({
         text: this.key,
         pos: txtPos,
         size: txtSize,
-        color: [255,255,255,1]
+        color: $.C.white
       });
       this.entities.push(this.txtKey);
     }
   },
 
   update: function(){
-    this.bg.fill = this.active ? [255,255,255,1] : [255,255,255, 0.1];
-    this.bg.stroke.color = this.current ? [255,255,255,1] : [0,0,0,1];
+    this.bg.fill = [255,255,255, this.active ? 1 : 0.1];
+    this.bg.stroke.color = this.current ? $.C.white : [,,,1];
   },
 
 });

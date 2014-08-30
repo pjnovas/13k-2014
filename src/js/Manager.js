@@ -28,8 +28,7 @@ $.Manager = $.Base.extend({
     });
 
     this.stats = new $.Stats({
-      maxKills: this.spidersKill,
-      total: this.spidersAm
+      maxKills: this.spidersKill
     });
 
     this.target.setNodesInside(this.nodes.getNodes());

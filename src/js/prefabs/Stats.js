@@ -97,7 +97,6 @@ $.Stats = $.Collection.extend({
   update: function(stats){
     this.stats = stats;
 
-    //this.textKills.text = _.pad(stats.killed, 2) + " / " + _.pad(this.maxKills, 2);
     this.textKills.text = stats.killed + " / " + this.maxKills;
     this.textAlives.text = _.pad(stats.alives, 2);
   },

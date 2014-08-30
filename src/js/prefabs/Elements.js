@@ -56,9 +56,5 @@ $.Elements = $.Collection.extend({
       e.update();
     });
   },
-/*
-  draw: function(){
-    $.Elements._super.draw.apply(this, arguments);
-  }
-*/
+
 });

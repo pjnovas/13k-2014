@@ -20,39 +20,22 @@ $.Modal = $.Base.extend({
       return;
     }
 
-    var level = "level";
     var idx = this.levelIndex;
     var key = (e.which || e.keyCode);
 
-    switch (key){
-      case 40: //down
-        if (curr === level){
-          idx++;
-        }
-      break;
-      case 38: //up
-        if (curr === level){
-          idx--;
-        }
-      break;
-      case 13: //intro
-        if (this._onExit){
-          this.hide();
-          this._onExit();
-          return;
-        }
-      break;
+    if (key === 13){
+      this.hide();
+      this._onExit();
+      return;
     }
 
-    if (idx < 0){
-      idx = 3;
+    if (curr === "level"){
+      idx = ( key === 40 ? idx+1 : (key === 38 ? idx-1 : idx));
+      idx = ( idx < 0 ? 3 : ( idx > 3 ? 0 : idx ));
+      
+      this.levelIndex = idx;
+      this.updateLevel();
     }
-    else if (idx > 3){
-      idx = 0;
-    }
-
-    this.levelIndex = idx;
-    this.updateLevel();
   },
 
   updateLevel: function(){
