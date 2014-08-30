@@ -74,6 +74,8 @@ module.exports = function(grunt) {
 
           , '<%= paths.game.js %>prefabs/Controls.js'
 
+          , '<%= paths.game.js %>prefabs/Particles.js'
+
           , '<%= paths.game.js %>prefabs/Node.js'
           , '<%= paths.game.js %>prefabs/Nodes.js'
 
@@ -156,6 +158,8 @@ module.exports = function(grunt) {
             , $ :true
 
             ,Time: true
+            ,Particles: true
+            
             ,game: true
 
             ,Controls: true

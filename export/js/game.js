@@ -147,6 +147,10 @@ $.M = $.Base.extend({ }, {
     return Math.random();
   },
 
+  rnd11: function(){
+    return Math.random() > 0.5 ? 1 : -1;
+  },
+
   rndInCircle: function(radius){
     var angle = Math.random() * Math.PI * 2;
     var rad = $.M.rnd(0, radius);
@@ -185,7 +189,7 @@ $.C = $.Base.extend({ }, {
 
   toRGBA: function(arr){
     if (Array.isArray(arr)){
-      return "rgba(" + arr[0] + "," + arr[1] + "," + arr[2] + "," + (arr[3] || 1) + ")";
+      return "rgba(" + (arr[0] || 0) + "," + (arr[1] || 0) + "," + (arr[2] || 0) + "," + (arr[3] || 1).toFixed(1) + ")";
     }
     return arr;
   },
@@ -790,6 +794,205 @@ $.Controls = $.Base.extend({
 });
 
 
+
+$.Particles = $.Collection.extend({
+
+  max: 100, //max particles in world
+
+  start: function(){
+    this.entities = [];
+    this.emitters = {};
+
+    this.init(this.max);
+  },
+
+  init: function(max){
+    for (var i=0; i<max; i++){
+      this.entities.push({
+        active: false
+      });
+    }  
+  },
+
+  createEmitter: function(emitter, ops){
+    var e = this.emitters[emitter.cid] = {
+      emitter: emitter,
+      options: ops,
+      count: 0,
+      lastr: 0,
+      active: (ops.auto ? true : false)
+    };
+
+    return e;
+  },
+
+  toggleEmiter: function(eid, active){
+    this.emitters[eid].active = active;
+  },
+
+  playEmiter: function(emitter){
+    this.toggleEmiter(emitter.cid, true);
+  },
+
+  stopEmiter: function(emitter){
+    this.toggleEmiter(emitter.cid, false);
+  },
+
+  removeEmitter: function(emitterId){
+    this.emitters[emitterId].active = false;
+/*
+    this.entities.forEach(function(p){
+      if (p.emitter.id === emitterId){
+        p.active = false;
+      }
+    });
+
+    this.emitters[emitterId] = null;
+*/
+  },
+
+  createEmitterParticles: function(cid, howMany){
+    for (var i=0; i<howMany; i++){
+      var e = this.emitters[cid];
+      if (!this.initParticle(e.emitter, e.options)){
+        return;
+      }
+    }
+  },
+
+  runEmitters: function(){
+    var dt = Time.deltaTime;
+
+    for (var cid in this.emitters){
+      var e = this.emitters[cid];
+      e.lastr -= dt;
+
+      if (e.active && e.count < e.options.max && e.lastr <= 0){
+        e.lastr = e.options.rate;
+        var am = e.options.ratep;
+        this.createEmitterParticles(cid, am);
+        e.count += am;
+      }
+    }
+  },
+
+  initParticle: function(emitter, opts){
+    var p = this.getParticle();
+    
+    if (p){
+
+      p.active = true;
+      
+      p.type = opts.type;
+
+      //p.pos = opts.pos;
+      p.g = opts.g || $.V.one;
+      p.d = opts.d || $.V.one;
+      p.f = opts.f || $.V.one;
+
+      p.pos = emitter.pos;
+
+      if (opts.rad) {
+
+        var rX = $.M.rnd(0, opts.rad) * $.M.rnd11();
+        var rY = $.M.rnd(0, opts.rad) * $.M.rnd11();
+        
+        p.pos = { x: emitter.pos.x+rX, y: emitter.pos.y+rY };
+      }
+
+      p.cFrom = opts.cFrom;
+      p.cTo = opts.cTo;
+
+      p.life = opts.life;
+      p.tlife = opts.life;
+      p.size = opts.size;
+
+      p.emitter = emitter;
+      
+      return true;
+    }
+
+    return false;
+  },
+
+  getParticle: function(){
+    var ps = this.entities
+      , len = ps.length;
+
+    for(var i = 0; i< len; i++){
+      if (!ps[i].active){
+        return ps[i];
+      }
+    }
+
+    return null;
+  },
+
+  updateParticle: function(p){
+    var dt = Time.deltaTime;
+
+    p.f = $.V.multiply(p.g, dt);
+    p.d = $.V.add(p.d, p.f);
+    p.pos = $.V.add(p.pos, $.V.multiply(p.d, dt));
+
+    if (!p.size) {
+      p.size = 1;
+    }
+
+    //p.size += p.deltaScale * dt;
+
+    if (p.cFrom && p.cTo) {
+      p.color = $.C.lerp(p.cFrom, p.cTo, 1 - ((p.life*100) / p.tlife)/100);
+    }
+
+    p.life -= dt;
+  },
+
+  drawParticle: function(ctx, p){
+
+    switch(p.type){
+      case "circle":
+        $.Renderer.drawCircle(ctx, {
+          pos: p.pos,
+          radius: p.size,
+          fill: $.C.toRGBA(p.color)
+        });
+      break;
+    }
+  },
+
+  update: function(){
+    this.runEmitters();
+
+    this.entities.forEach(function(p){
+      if (p.life <= 0){
+        p.active = false;
+      }
+
+      if (p.active){
+        this.updateParticle(p);
+      }
+      else if (p.emitter) {
+        var e = this.emitters[p.emitter.cid];
+        if (e && e.active) {
+          e.count--;
+        }
+      }
+    }, this);
+  },
+
+  draw: function(ctx){
+    this.entities.forEach(function(p){
+      if (p.active){
+        this.drawParticle(ctx, p);
+      }
+    }, this);
+  }
+
+
+});
+
+
 $.Node = $.Circle.extend({
 
   radius: 3,
@@ -1281,7 +1484,6 @@ $.Paths = $.Collection.extend({
 
 $.Cursor = $.Circle.extend({
 
-  radius: 20,
   stroke: {
     color: "#fff",
     size: 2
@@ -1291,27 +1493,61 @@ $.Cursor = $.Circle.extend({
   element: "fire",
 
   start: function(){
-    Controls.on("pressing", this.onPressing.bind(this));
-    Controls.on("moving", this.onMoving.bind(this));
-    Controls.on("release", this.onRelease.bind(this));
-    Controls.on("element", this.onElement.bind(this));
+    var self = this;
+
+    Controls
+      .on("pressing", function(pos){
+        self.pos = pos;
+        self.active = true;
+      })
+      .on("moving", function(pos){
+        self.pos = pos;
+      })
+      .on("release", function(){
+        self.active = false;
+      })
+      .on("element", function(element){
+        self.element = element;
+        self.setEmitter();        
+      });
+
+    this.emiter = Particles.createEmitter(this, {
+      type: "circle",
+      max: 50,
+      rate: 0.1,
+      ratep: 2,
+      life: 1,
+      size: 5,
+      rad: 5,
+      g: { x: 0, y: 0}
+    });
+
+    this.setEmitter();
   },
 
-  onPressing: function(pos){
-    this.pos = pos;
-    this.active = true;
-  },
+  setEmitter: function(){
+    var effects = [
+        [ -100, [100,,,0.8] ]
+      , [ 100, [,,200,0.8], [200,200,250,0.1] ]
+      , [ 100, [165,140,80,0.8] ]
+    ]
+      , e = this.emiter.options
+      , effect = effects[config.elements.indexOf(this.element)];
 
-  onMoving: function(pos){
-    this.pos = pos;
-  },
+    function set(g, from, to){
+      to = to || [10,10,10,0.1];
+      e.g.y = g;
+      e.cFrom = from;
+      e.cTo = to;
+    }
 
-  onRelease: function(){
-    this.active = false;
-  },
+    if (effect){
+      Particles.playEmiter(this);
+      set.apply(null, effect);
+      return;
+    }
 
-  onElement: function(element){
-    this.element = element;
+    Particles.stopEmiter(this);
   },
 
   update: function(){
@@ -1319,17 +1555,15 @@ $.Cursor = $.Circle.extend({
       , alpha = 0.4
       , sizes = [20,20,20,50]
       , colors = [
-          [255,0,0, alpha]
-        , [0,0,255, alpha]
+          [255,,, alpha]
+        , [,,255, alpha]
         , [165,140,80, alpha]
-        , [0,220,255, alpha]
+        , [,220,255, alpha]
       ];
 
     this.color = colors[elements.indexOf(this.element)];
     this.radius = sizes[elements.indexOf(this.element)];
   },
-
-  //draw is used from inheritance by the Circle class
 
 });
 
@@ -2766,7 +3000,7 @@ $.Manager = $.Base.extend({
 
     elements.update();
 
-    //Particles.update();
+    Particles.update();
 
     this.checkState();
   },
@@ -2788,7 +3022,7 @@ $.Manager = $.Base.extend({
     this.stats.draw(viewCtx);
     this.elements.draw(viewCtx);
 
-    //Particles.draw(viewCtx);
+    Particles.draw(viewCtx);
   },
 
   destroy: function(){
@@ -2991,8 +3225,6 @@ $.Game = $.Base.extend({
     return cv;
   }
 
-  //var Particles = require("./Particles");
-
   function configGame(){
     var ele = doc.documentElement
       , body = doc.body;
@@ -3044,8 +3276,7 @@ $.Game = $.Base.extend({
   function initGame(){
 
     w.Time = new $.GameTime();
-
-    //w.Particles = new Particles();
+    w.Particles = new $.Particles();
 
     w.Controls = new $.Controls({
       container: gameCtn

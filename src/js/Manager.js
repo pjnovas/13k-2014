@@ -74,7 +74,7 @@ $.Manager = $.Base.extend({
 
     elements.update();
 
-    //Particles.update();
+    Particles.update();
 
     this.checkState();
   },
@@ -96,7 +96,7 @@ $.Manager = $.Base.extend({
     this.stats.draw(viewCtx);
     this.elements.draw(viewCtx);
 
-    //Particles.draw(viewCtx);
+    Particles.draw(viewCtx);
   },
 
   destroy: function(){

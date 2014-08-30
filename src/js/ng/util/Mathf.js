@@ -9,6 +9,10 @@ $.M = $.Base.extend({ }, {
     return Math.random();
   },
 
+  rnd11: function(){
+    return Math.random() > 0.5 ? 1 : -1;
+  },
+
   rndInCircle: function(radius){
     var angle = Math.random() * Math.PI * 2;
     var rad = $.M.rnd(0, radius);

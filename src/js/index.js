@@ -19,8 +19,6 @@
     return cv;
   }
 
-  //var Particles = require("./Particles");
-
   function configGame(){
     var ele = doc.documentElement
       , body = doc.body;
@@ -72,8 +70,7 @@
   function initGame(){
 
     w.Time = new $.GameTime();
-
-    //w.Particles = new Particles();
+    w.Particles = new $.Particles();
 
     w.Controls = new $.Controls({
       container: gameCtn

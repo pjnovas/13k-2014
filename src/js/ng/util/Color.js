@@ -5,7 +5,7 @@ $.C = $.Base.extend({ }, {
 
   toRGBA: function(arr){
     if (Array.isArray(arr)){
-      return "rgba(" + arr[0] + "," + arr[1] + "," + arr[2] + "," + (arr[3] || 1) + ")";
+      return "rgba(" + (arr[0] || 0) + "," + (arr[1] || 0) + "," + (arr[2] || 0) + "," + (arr[3] || 1).toFixed(1) + ")";
     }
     return arr;
   },
