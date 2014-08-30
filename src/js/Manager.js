@@ -97,6 +97,17 @@ $.Manager = $.Base.extend({
     this.elements.draw(viewCtx);
 
     //Particles.draw(viewCtx);
+  },
+
+  destroy: function(){
+    this.cursor = null;
+    this.nodes = null;
+    this.paths = null;
+    this.target = null;
+    this.vacuum = null;
+    this.elements = null;
+    this.spiders = null;
+    this.stats = null;
   }
 
 });

@@ -9,6 +9,7 @@ $.Nodes = $.Collection.extend({
   element: null,
 
   start: function(){
+    this.entities = [];
     this.paths = new $.Paths();
 
     var marginW = config.world.margin.x;

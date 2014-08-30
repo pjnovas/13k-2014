@@ -62,7 +62,7 @@
         size: { x: 300, y: 500 }
       },
       levels:[ 
-        [10, 5, 5], [25, 20, 5], [50, 40, 5], [80, 80, 2]
+        [10, 5, 5], [25, 20, 5], [50, 40, 5], [80, 70, 2]
       ],
       elements: ["fire", "water", "earth", "air"],
       methods: ["burn", "cool", "dirty", "blow"]

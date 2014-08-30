@@ -1,6 +1,10 @@
 
 $.Paths = $.Collection.extend({
 
+  start: function(){
+    this.entities = [];
+  },
+
   hasOne: function(naId, nbId){
     return this.entities.some(function(path){
       var pa = path.na.cid, pb = path.nb.cid;

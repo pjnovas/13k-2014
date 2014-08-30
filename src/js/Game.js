@@ -36,11 +36,20 @@ $.Game = $.Base.extend({
       }
     });
 
+    this.endModal = new $.Modal({
+      ctx: this.modalsCtx,
+      type: "end"
+    });
+
     this.mainModal.show();
   },
 
   createManager: function(){
-    this.manager = null;
+    if (this.manager){
+      this.manager.destroy();
+      this.manager = null;
+    }
+    
     this.manager = new $.Manager({
       onEnd: this._endGame.bind(this),
       level: this.levelModal.levelIndex
@@ -48,9 +57,20 @@ $.Game = $.Base.extend({
   },
 
   _endGame: function(stats, won){
-    console.log("END GAME!! > YOU " + ( won ? "WIN!" : "LOOSE!" ) );
-    console.log("Collected: " + stats.saved + " || Kills: " + stats.killed);
+    var self = this;
+    this.endModal.won = won;
+    
+    this.endModal._onExit = function(){
+      if (won){
+        self.levelModal.show();
+      }
+      else {
+        self.createManager();
+        self.play();
+      }
+    };
 
+    this.endModal.show();
     this.stop();
   },
 

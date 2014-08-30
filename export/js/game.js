@@ -1002,6 +1002,7 @@ $.Nodes = $.Collection.extend({
   element: null,
 
   start: function(){
+    this.entities = [];
     this.paths = new $.Paths();
 
     var marginW = config.world.margin.x;
@@ -1250,6 +1251,10 @@ $.Path = $.Line.extend({
 
 
 $.Paths = $.Collection.extend({
+
+  start: function(){
+    this.entities = [];
+  },
 
   hasOne: function(naId, nbId){
     return this.entities.some(function(path){
@@ -2422,17 +2427,19 @@ $.Modal = $.Base.extend({
       return;
     }
 
+    var level = "level";
+    var idx = this.levelIndex;
     var key = (e.which || e.keyCode);
 
     switch (key){
       case 40: //down
-        if (curr === "level"){
-          this.levelIndex++;
+        if (curr === level){
+          idx++;
         }
       break;
       case 38: //up
-        if (curr === "level"){
-          this.levelIndex--;
+        if (curr === level){
+          idx--;
         }
       break;
       case 13: //intro
@@ -2444,13 +2451,14 @@ $.Modal = $.Base.extend({
       break;
     }
 
-    if (this.levelIndex < 0){
-      this.levelIndex = 3;
+    if (idx < 0){
+      idx = 3;
     }
-    else if (this.levelIndex > 3){
-      this.levelIndex = 0;
+    else if (idx > 3){
+      idx = 0;
     }
 
+    this.levelIndex = idx;
     this.updateLevel();
   },
 
@@ -2481,7 +2489,7 @@ $.Modal = $.Base.extend({
       color: [0,255,0,1]
     };
 
-    enter.pos.x += (enter.size*enter.text.length)/2;
+    enter.pos.x += (enter.size*enter.text.length*1.1)/2;
 
     this.pressKey = new $.Text(enter);
   },
@@ -2624,6 +2632,30 @@ $.Modal = $.Base.extend({
     this.updateLevel();
   },
 
+  initend: function(){
+    var items = this.modalItems = [];
+
+    var size = { x: 600, y: 250 };
+    var holderCtn = this.createHolder(size, "LEVEL COMPLETED!", 0.85);
+    var pos = holderCtn.holder.pos;
+    var tltPos = holderCtn.title.pos;
+
+    var sub = {
+      text: "Good Job. Try a harder level.",
+      pos: $.V.center(pos, size),
+      size: 15,
+    };
+
+    sub.pos.x -= (sub.size*sub.text.length*0.6)/2;
+    sub.pos.y = tltPos.y + sub.size*4 +10;
+
+    items.push(new $.Text(sub));
+
+    var enter = $.V.clone(pos);
+    enter.y += size.y-30;
+    this.initPressKey(enter);
+  },
+
   hide: function(){
     var s = config.size;
     this.ctx.clearRect(0, 0, s.x, s.y);
@@ -2633,9 +2665,17 @@ $.Modal = $.Base.extend({
 
   show: function(){
     var ctx = this.ctx;
+    var items = this.modalItems;
+
     this.bg.draw(ctx);
 
-    this.modalItems.forEach(function(item){
+    if (this.type === "end"){
+      items[1].text = this.won ? "LEVEL COMPLETED!" : "SPIDER MURDERER!";
+      items[2].text = this.won ? 
+        "Good Job. Try a harder level." : "Don't kill them!. Let's try again";
+    }
+
+    items.forEach(function(item){
       item.draw(ctx);
     });
 
@@ -2749,6 +2789,17 @@ $.Manager = $.Base.extend({
     this.elements.draw(viewCtx);
 
     //Particles.draw(viewCtx);
+  },
+
+  destroy: function(){
+    this.cursor = null;
+    this.nodes = null;
+    this.paths = null;
+    this.target = null;
+    this.vacuum = null;
+    this.elements = null;
+    this.spiders = null;
+    this.stats = null;
   }
 
 });
@@ -2838,11 +2889,20 @@ $.Game = $.Base.extend({
       }
     });
 
+    this.endModal = new $.Modal({
+      ctx: this.modalsCtx,
+      type: "end"
+    });
+
     this.mainModal.show();
   },
 
   createManager: function(){
-    this.manager = null;
+    if (this.manager){
+      this.manager.destroy();
+      this.manager = null;
+    }
+    
     this.manager = new $.Manager({
       onEnd: this._endGame.bind(this),
       level: this.levelModal.levelIndex
@@ -2850,9 +2910,20 @@ $.Game = $.Base.extend({
   },
 
   _endGame: function(stats, won){
-    console.log("END GAME!! > YOU " + ( won ? "WIN!" : "LOOSE!" ) );
-    console.log("Collected: " + stats.saved + " || Kills: " + stats.killed);
+    var self = this;
+    this.endModal.won = won;
+    
+    this.endModal._onExit = function(){
+      if (won){
+        self.levelModal.show();
+      }
+      else {
+        self.createManager();
+        self.play();
+      }
+    };
 
+    this.endModal.show();
     this.stop();
   },
 
@@ -2963,7 +3034,7 @@ $.Game = $.Base.extend({
         size: { x: 300, y: 500 }
       },
       levels:[ 
-        [10, 5, 5], [25, 20, 5], [50, 40, 5], [80, 80, 2]
+        [10, 5, 5], [25, 20, 5], [50, 40, 5], [80, 70, 2]
       ],
       elements: ["fire", "water", "earth", "air"],
       methods: ["burn", "cool", "dirty", "blow"]
