@@ -2,8 +2,6 @@
 $.Modal = $.Base.extend({
 
   start: function(options){
-    this.ctx = options.ctx;
-    this.type = options.type;
     this._onExit = options.onExit;
 
     this.modalItems = [];
@@ -240,6 +238,8 @@ $.Modal = $.Base.extend({
   },
 
   show: function(){
+    this.hide();
+
     var ctx = this.ctx;
     var items = this.modalItems;
 

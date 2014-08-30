@@ -11,9 +11,10 @@ $.Game = $.Base.extend({
     this.started = false;
 
     var self = this;
+    var mctx = this.modalsCtx;
 
     this.levelModal = new $.Modal({
-      ctx: this.modalsCtx,
+      ctx: mctx,
       type: "level",
       onExit: function(){
         self.createManager();
@@ -24,7 +25,7 @@ $.Game = $.Base.extend({
     });
 
     this.mainModal = new $.Modal({
-      ctx: this.modalsCtx,
+      ctx: mctx,
       type: "main",
       onExit: function(){
         if (self.started){
@@ -37,7 +38,7 @@ $.Game = $.Base.extend({
     });
 
     this.endModal = new $.Modal({
-      ctx: this.modalsCtx,
+      ctx: mctx,
       type: "end"
     });
 
@@ -91,7 +92,6 @@ $.Game = $.Base.extend({
   },
 
   loop: function(){
-    //console.log(Time.frameTime + "( " + Time.deltaTime + " ) / " + Time.time);
     this.manager.update();
     this.manager.draw(this.viewCtx, this.worldCtx, this.vacuumCtx);
   },
