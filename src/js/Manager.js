@@ -4,6 +4,7 @@ $.Manager = $.Base.extend({
   level: 0,
 
   start: function(){
+    Particles = new $.Particles();
 
     var lvl = config.levels[this.level];
     this.spidersAm = lvl[0];
@@ -82,9 +83,12 @@ $.Manager = $.Base.extend({
     var s = config.size;
     var vs = config.vacuum.size;
 
+    
     viewCtx.clearRect(0, 0, s.x, s.y);
     worldCtx.clearRect(0, 0, s.x, s.y);
     vacuumCtx.clearRect(0, 0, vs.x, vs.y);
+
+    Particles.draw(viewCtx);
 
     this.cursor.draw(viewCtx);
     this.nodes.draw(worldCtx);
@@ -94,19 +98,6 @@ $.Manager = $.Base.extend({
     this.vacuum.draw(vacuumCtx);
     this.stats.draw(viewCtx);
     this.elements.draw(viewCtx);
-
-    Particles.draw(viewCtx);
   },
-
-  destroy: function(){
-    this.cursor = null;
-    this.nodes = null;
-    this.paths = null;
-    this.target = null;
-    this.vacuum = null;
-    this.elements = null;
-    this.spiders = null;
-    this.stats = null;
-  }
 
 });

@@ -2,12 +2,14 @@
 $.Creator = $.Base.extend({}, {
 
   getSprites: function(){
-    var sprites = $.sprites;
+    var sprites = $.sprites
+      , gen = this.generate;
 
     return {
-      spider: this.generate(sprites.spider, sprites.color, true, 3),
-      favicon: this.generate(sprites.spider, sprites.color, true, 1, 1, true),
-      elements: this.generate(sprites.elements, sprites.colors),
+      bg: gen(sprites.bg, sprites.bgColor, true, 1),
+      spider: gen(sprites.spider, sprites.color, true, 3),
+      favicon: gen(sprites.spider, sprites.color, true, 1, 1, true),
+      elements: gen(sprites.elements, sprites.colors),
       vacuum: this.drawPath(sprites.vacuum)
     };
   },
@@ -38,12 +40,12 @@ $.Creator = $.Base.extend({}, {
 
           if (multiple){
             v = sprite[y][x];
-            c = _color;
+            c = (_color.indexOf("rgb") > -1 ? _color : "#" + _color);
             sp = k+2;
           }
           else {
             v = sprite[k][y][x];
-            c = _color[k][v];
+            c = "#" + _color[k][v];
             sp = k;
           }
 
@@ -57,7 +59,7 @@ $.Creator = $.Base.extend({}, {
             (!multiple && v) 
           ){
             ctx.save();
-            ctx.fillStyle = "#" + c;
+            ctx.fillStyle = c;
             ctx.fillRect( (x*pw) + w*k, y*ph, pw, ph );
             ctx.restore();
           }
@@ -120,7 +122,7 @@ $.Creator = $.Base.extend({}, {
 
     ctx.closePath();
 
-    $.Renderer.drawRect(ctx, opts.box);
+    $.Renderer.rect(ctx, opts.box);
 
     img.src = canvas.toDataURL("image/png");
     canvas = null;

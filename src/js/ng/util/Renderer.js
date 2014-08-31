@@ -18,14 +18,14 @@ $.Renderer = $.Base.extend({ }, {
     }
   },
 
-  _drawRect: function(ctx, ps){
+  _rect: function(ctx, ps){
     ctx.beginPath();
     ctx.rect(ps.pos.x, ps.pos.y, ps.size.x, ps.size.y);
     $.Renderer.fill(ctx, ps);
     $.Renderer.stroke(ctx, ps);
   },
 
-  drawCircle: function(ctx, ps){
+  circle: function(ctx, ps){
     var start = (ps.angles && ps.angles.start) || 0,
       end = (ps.angles && ps.angles.end) || 2 * Math.PI;
 
@@ -41,7 +41,7 @@ $.Renderer = $.Base.extend({ }, {
     $.Renderer.stroke(ctx, ps);
   },
 
-  drawLine: function(ctx, ps){
+  line: function(ctx, ps){
     var a = ps.from
       , b = ps.to;
 
@@ -57,7 +57,7 @@ $.Renderer = $.Base.extend({ }, {
     ctx.stroke();
   },
 
-  drawSprite: function(ctx, ps){
+  sprite: function(ctx, ps){
     var img = $.repo[ps.resource]
       , p = $.V.origin(ps.pos, ps.size)
       , x = p.x
@@ -91,55 +91,23 @@ $.Renderer = $.Base.extend({ }, {
 
     draw();
   },
-/*
-  drawTextWrap: function(ctx, ps){
-    var x = ps.pos.x
-      , y = ps.pos.y
-      , maxWidth = ps.width
-      , lineHeight = ps.lineHeight
-      , text = ps.text;
 
-    var words = text.split(' ');
-    var line = '';
-
-    for(var n = 0; n < words.length; n++) {
-      var testLine = line + words[n] + ' ';
-      var metrics = ctx.measureText(testLine);
-      var testWidth = metrics.width;
-      if (testWidth > maxWidth && n > 0) {
-        ctx.fillText(line, x, y);
-        line = words[n] + ' ';
-        y += lineHeight;
-      }
-      else {
-        line = testLine;
-      }
-    }
-
-    ctx.fillText(line, x, y);
-  },
-*/
-  drawText: function(ctx, ps){
+  text: function(ctx, ps){
     ctx.font = ps.size + 'pt Arial';
     ctx.textBaseline = ps.baseline || 'middle';
     ctx.fillStyle = ps.color;
-/*
-    if (ps.wrap){
-      this.drawTextWrap(ctx, ps);
-      return;
-    }
-*/
+
     ctx.fillText(ps.text, ps.pos.x, ps.pos.y);
   },
 
-  drawRect: function(ctx, ps){
+  rect: function(ctx, ps){
     var x = ps.pos.x
       , y = ps.pos.y
       , w = ps.size.x
       , h = ps.size.y;
 
     if (!ps.hasOwnProperty("corner")){
-      $.Renderer._drawRect(ctx, ps);
+      $.Renderer.rect(ctx, ps);
       return;
     }
 

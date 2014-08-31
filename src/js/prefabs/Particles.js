@@ -2,7 +2,7 @@
 
 $.Particles = $.Collection.extend({
 
-  max: 100, //max particles in world
+  max: 200, //max particles in world
 
   start: function(){
     this.entities = [];
@@ -32,7 +32,10 @@ $.Particles = $.Collection.extend({
   },
 
   toggleEmiter: function(eid, active){
-    this.emitters[eid].active = active;
+    var e = this.emitters[eid];
+    if (e) {
+      e.active = active;
+    }
   },
 
   playEmiter: function(emitter){
@@ -41,19 +44,6 @@ $.Particles = $.Collection.extend({
 
   stopEmiter: function(emitter){
     this.toggleEmiter(emitter.cid, false);
-  },
-
-  removeEmitter: function(emitterId){
-    this.emitters[emitterId].active = false;
-/*
-    this.entities.forEach(function(p){
-      if (p.emitter.id === emitterId){
-        p.active = false;
-      }
-    });
-
-    this.emitters[emitterId] = null;
-*/
   },
 
   createEmitterParticles: function(cid, howMany){
@@ -66,11 +56,9 @@ $.Particles = $.Collection.extend({
   },
 
   runEmitters: function(){
-    var dt = Time.deltaTime;
-
     for (var cid in this.emitters){
       var e = this.emitters[cid];
-      e.lastr -= dt;
+      e.lastr -= $.dt;
 
       if (e.active && e.count < e.options.max && e.lastr <= 0){
         e.lastr = e.options.rate;
@@ -87,11 +75,8 @@ $.Particles = $.Collection.extend({
     if (p){
 
       p.active = true;
-      
-      p.type = opts.type;
 
-      //p.pos = opts.pos;
-      p.g = opts.g || $.V.one;
+      p.g = opts.g || $.V.zero;
       p.d = opts.d || $.V.one;
       p.f = opts.f || $.V.one;
 
@@ -134,36 +119,29 @@ $.Particles = $.Collection.extend({
   },
 
   updateParticle: function(p){
-    var dt = Time.deltaTime;
-
-    p.f = $.V.multiply(p.g, dt);
+    p.f = $.V.multiply(p.g, $.dt);
     p.d = $.V.add(p.d, p.f);
-    p.pos = $.V.add(p.pos, $.V.multiply(p.d, dt));
+    p.pos = $.V.add(p.pos, $.V.multiply(p.d, $.dt));
 
     if (!p.size) {
       p.size = 1;
     }
 
-    //p.size += p.deltaScale * dt;
-
     if (p.cFrom && p.cTo) {
       p.color = $.C.lerp(p.cFrom, p.cTo, 1 - ((p.life*100) / p.tlife)/100);
     }
 
-    p.life -= dt;
+    p.life -= $.dt;
   },
 
   drawParticle: function(ctx, p){
 
-    switch(p.type){
-      case "circle":
-        $.Renderer.drawCircle(ctx, {
-          pos: p.pos,
-          radius: p.size,
-          fill: $.C.toRGBA(p.color)
-        });
-      break;
-    }
+    $.Renderer.circle(ctx, {
+      pos: p.pos,
+      radius: p.size,
+      fill: $.C.toRGBA(p.color)
+    });
+
   },
 
   update: function(){

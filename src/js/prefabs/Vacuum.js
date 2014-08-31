@@ -60,7 +60,7 @@ $.Vacuum = $.Entity.extend({
       , s = this.recipeSize
       , centerY = p.y + (s.y/2)
       , centerX = p.x + (s.x/2)
-      , sinTime = Time.time * 2 * Math.PI;
+      , sinTime = $.tm * 2 * Math.PI;
 
     this.target.saved.forEach(function(spider){
 

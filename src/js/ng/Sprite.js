@@ -27,7 +27,7 @@ $.Sprite = $.Entity.extend({
       opts.angle = this.angle;
     }
 
-    $.Renderer.drawSprite(ctx, opts);
+    $.Renderer.sprite(ctx, opts);
 
   },
 

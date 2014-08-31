@@ -29,7 +29,7 @@ $.Circle = $.Entity.extend({
       opts.angles = this.angles;
     }
 
-    $.Renderer.drawCircle(ctx, opts);
+    $.Renderer.circle(ctx, opts);
   },
 
 });

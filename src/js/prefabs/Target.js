@@ -43,7 +43,7 @@ $.Target = $.Circle.extend({
   update: function(spiders){
 
     spiders.forEach(function(spider){
-      if (!spider.dead && !spider.exited){
+      if (!spider.burning && !spider.dead && !spider.exited){
 
         if ($.V.pointInCircle(spider.pos, this.pos, this.size)){
           spider.building = false;
@@ -54,8 +54,7 @@ $.Target = $.Circle.extend({
       }
     }, this);
 
-    var dt = Time.deltaTime
-      , force = dt * this.suckForce
+    var force = $.dt * this.suckForce
       , p = this.pos;
 
     this.saving.forEach(function(spider){

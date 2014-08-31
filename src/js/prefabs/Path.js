@@ -60,7 +60,7 @@ $.Path = $.Line.extend({
     $.Path._super.draw.apply(this, arguments);
 
     if (this.heat){
-      $.Renderer.drawLine(ctx, {
+      $.Renderer.line(ctx, {
         from: this.heat.from,
         to: this.heat.to,
         size: 5,

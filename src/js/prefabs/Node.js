@@ -108,7 +108,7 @@ $.Node = $.Circle.extend({
     if (!this.burned){
       this.blowing = true;
       this.hasEarth = false;
-      this.blowingEnd = Time.time + 500;
+      this.blowingEnd = $.tm + 500;
     }
   },
 
@@ -147,7 +147,7 @@ $.Node = $.Circle.extend({
       return;
     }
 
-    if (this.blowing && Time.time > this.blowingEnd){
+    if (this.blowing && $.tm > this.blowingEnd){
       this.blowing = false;
     }
 
@@ -182,7 +182,7 @@ $.Node = $.Circle.extend({
       this.endShake();
     }
 
-    this.temp += this.incTemp * this.incTempSize * Time.deltaTime;
+    this.temp += this.incTemp * this.incTempSize * $.dt;
 
     if (this.temp <= 0){
       this.resetTemp();

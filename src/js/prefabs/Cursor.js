@@ -8,6 +8,7 @@ $.Cursor = $.Circle.extend({
 
   active: false,
   element: "fire",
+  last: "",
 
   start: function(){
     var self = this;
@@ -25,16 +26,13 @@ $.Cursor = $.Circle.extend({
       })
       .on("element", function(element){
         self.element = element;
-        self.setEmitter();        
       });
 
     this.emiter = Particles.createEmitter(this, {
-      type: "circle",
       max: 50,
       rate: 0.1,
       ratep: 2,
       life: 1,
-      size: 5,
       rad: 5,
       g: { x: 0, y: 0}
     });
@@ -43,11 +41,12 @@ $.Cursor = $.Circle.extend({
   },
 
   setEmitter: function(){
+    var size = this.active ? 10 : 5;
     var effects = [
-        [ -100, [100,,,0.8] ]
-      , [ 100, [,,200,0.8], [200,200,250,0.1] ]
-      , [ 100, [165,140,80,0.8] ]
-    ]
+          [ -100, [100,,,0.8] ]
+        , [ 100, [75,180,240,0.8], [200,200,250,0.1] ]
+        , [ 100, [165,140,80,0.8] ]
+      ]
       , e = this.emiter.options
       , effect = effects[config.elements.indexOf(this.element)];
 
@@ -56,7 +55,10 @@ $.Cursor = $.Circle.extend({
       e.g.y = g;
       e.cFrom = from;
       e.cTo = to;
+      e.size = size;
     }
+
+    this.last = this.element + ":" + this.active;
 
     if (effect){
       Particles.playEmiter(this);
@@ -69,17 +71,22 @@ $.Cursor = $.Circle.extend({
 
   update: function(){
     var elements = config.elements
+      , element = this.element
       , alpha = 0.4
       , sizes = [20,20,20,50]
       , colors = [
           [255,,, alpha]
-        , [,,255, alpha]
+        , [75,180,240, alpha]
         , [165,140,80, alpha]
         , [,220,255, alpha]
       ];
 
-    this.color = colors[elements.indexOf(this.element)];
-    this.radius = sizes[elements.indexOf(this.element)];
+    this.color = colors[elements.indexOf(element)];
+    this.radius = sizes[elements.indexOf(element)];
+
+    if (this.last !== (element + ":" + this.active)){
+      this.setEmitter();
+    }
   },
 
 });

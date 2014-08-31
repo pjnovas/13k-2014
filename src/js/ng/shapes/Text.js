@@ -19,14 +19,8 @@ $.Text = $.Entity.extend({
       size: this.size,
       color: $.C.toRGBA(this.color)
     };
-/*
-    if (this.wrap) {
-      opts.wrap = this.wrap;
-      opts.width = this.width || 100;
-      opts.lineHeight = this.lineHeight || 1;
-    }
-*/
-    $.Renderer.drawText(ctx, opts);
+
+    $.Renderer.text(ctx, opts);
   },
 
 });

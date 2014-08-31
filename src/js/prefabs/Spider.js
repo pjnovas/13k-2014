@@ -55,7 +55,7 @@ $.Spider = $.Sprite.extend({
     this.nFrom = nFrom;
     this.nTo = nTo;
 
-    this.t_startMove = Time.time;
+    this.t_startMove = $.tm;
     this.journeyLength = $.V.magnitude(nFrom.pos, nTo.pos);
     this.traveling = true;
 
@@ -64,19 +64,41 @@ $.Spider = $.Sprite.extend({
 
   setDead: function(){
     if (!this.isDead){
-      this.isDead = true;
+      this.nFrom = null;
+      this.nTo = null;
+      this.dying = true;
+      this.vel = 1;
+      this.pos = {
+        x: this.pos.x,
+        y: this.pos.y
+      };
       this.onDead();
     }
   },
 
   burn: function(){
-    this.setDead();
+    this.building = false;
+    this.burning = $.tm + 3000;
+    this.temp = 1;
+
+    Particles.createEmitter(this, {
+      auto: true,
+      max: 50,
+      rate: 0.1,
+      ratep: 2,
+      life: 1,
+      rad: 10,
+      size: 10,
+      cFrom: [100,,,0.4],
+      cTo: [10,10,10,0.1],
+      g: { x: 0, y: -100}
+    });
   },
 
   animate: function(){
 
     if (!this.staying){
-      this.lastFrameTime -= Time.frameTime;
+      this.lastFrameTime -= $.ft;
 
       if (this.lastFrameTime <= 0){
         this.spriteIndex++;
@@ -97,6 +119,10 @@ $.Spider = $.Sprite.extend({
       , ntoT = nto.temp
       , nfromB = nfrom.blowing
       , ntoB = nfrom.blowing;
+
+    if (this.temp === 1){
+      return;
+    }
 
     if (nfromB || ntoB){
       this.temp = 0.1;
@@ -123,7 +149,7 @@ $.Spider = $.Sprite.extend({
   },
 
   updateState: function(){
-    var tm = Time.time
+    var tm = $.tm
       , cfgTm = this.behaviour
       , tstart = this.t_startStay
       , tstay = this.t_stay;
@@ -159,13 +185,17 @@ $.Spider = $.Sprite.extend({
       return;
     }
 
-    var distCovered = (Time.time - this.t_startMove) * this.speed;
+    var distCovered = ($.tm - this.t_startMove) * this.speed;
     var fracJourney = distCovered / this.journeyLength;
     
     if (fracJourney > 1) {
-      this.pos = this.nTo.pos;
+      this.pos = $.V.clone(this.nTo.pos);
       this.nTo.revive();
-
+      
+      if (this.burning){
+        this.nTo.burn();
+      }
+      
       this.traveling = false;
       this.building = false;
 
@@ -189,6 +219,17 @@ $.Spider = $.Sprite.extend({
     if (this.isDead || this.exited || this.inVacuum){
       return;
     }
+
+    if (this.dying){
+      this.vel++;
+      this.pos.y += this.vel;
+
+      if (this.pos.y > config.size.y){
+        this.isDead = true;
+        Particles.stopEmiter(this);
+      }
+      return;
+    }
     
     this.updateTemp();
 
@@ -200,6 +241,10 @@ $.Spider = $.Sprite.extend({
     }
 
     this.updateState();
+
+    if (this.burning && this.burning < $.tm){
+      this.setDead();
+    }
   },
 
   draw: function(ctx){
@@ -208,7 +253,7 @@ $.Spider = $.Sprite.extend({
     }
 
     if (this.building){
-      $.Renderer.drawLine(ctx, {
+      $.Renderer.line(ctx, {
         from: this.pos,
         to: this.nFrom.pos,
         size: 2,

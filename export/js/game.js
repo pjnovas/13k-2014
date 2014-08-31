@@ -343,14 +343,14 @@ $.Renderer = $.Base.extend({ }, {
     }
   },
 
-  _drawRect: function(ctx, ps){
+  _rect: function(ctx, ps){
     ctx.beginPath();
     ctx.rect(ps.pos.x, ps.pos.y, ps.size.x, ps.size.y);
     $.Renderer.fill(ctx, ps);
     $.Renderer.stroke(ctx, ps);
   },
 
-  drawCircle: function(ctx, ps){
+  circle: function(ctx, ps){
     var start = (ps.angles && ps.angles.start) || 0,
       end = (ps.angles && ps.angles.end) || 2 * Math.PI;
 
@@ -366,7 +366,7 @@ $.Renderer = $.Base.extend({ }, {
     $.Renderer.stroke(ctx, ps);
   },
 
-  drawLine: function(ctx, ps){
+  line: function(ctx, ps){
     var a = ps.from
       , b = ps.to;
 
@@ -382,7 +382,7 @@ $.Renderer = $.Base.extend({ }, {
     ctx.stroke();
   },
 
-  drawSprite: function(ctx, ps){
+  sprite: function(ctx, ps){
     var img = $.repo[ps.resource]
       , p = $.V.origin(ps.pos, ps.size)
       , x = p.x
@@ -416,55 +416,23 @@ $.Renderer = $.Base.extend({ }, {
 
     draw();
   },
-/*
-  drawTextWrap: function(ctx, ps){
-    var x = ps.pos.x
-      , y = ps.pos.y
-      , maxWidth = ps.width
-      , lineHeight = ps.lineHeight
-      , text = ps.text;
 
-    var words = text.split(' ');
-    var line = '';
-
-    for(var n = 0; n < words.length; n++) {
-      var testLine = line + words[n] + ' ';
-      var metrics = ctx.measureText(testLine);
-      var testWidth = metrics.width;
-      if (testWidth > maxWidth && n > 0) {
-        ctx.fillText(line, x, y);
-        line = words[n] + ' ';
-        y += lineHeight;
-      }
-      else {
-        line = testLine;
-      }
-    }
-
-    ctx.fillText(line, x, y);
-  },
-*/
-  drawText: function(ctx, ps){
+  text: function(ctx, ps){
     ctx.font = ps.size + 'pt Arial';
     ctx.textBaseline = ps.baseline || 'middle';
     ctx.fillStyle = ps.color;
-/*
-    if (ps.wrap){
-      this.drawTextWrap(ctx, ps);
-      return;
-    }
-*/
+
     ctx.fillText(ps.text, ps.pos.x, ps.pos.y);
   },
 
-  drawRect: function(ctx, ps){
+  rect: function(ctx, ps){
     var x = ps.pos.x
       , y = ps.pos.y
       , w = ps.size.x
       , h = ps.size.y;
 
     if (!ps.hasOwnProperty("corner")){
-      $.Renderer._drawRect(ctx, ps);
+      $.Renderer.rect(ctx, ps);
       return;
     }
 
@@ -519,7 +487,7 @@ $.Circle = $.Entity.extend({
       opts.angles = this.angles;
     }
 
-    $.Renderer.drawCircle(ctx, opts);
+    $.Renderer.circle(ctx, opts);
   },
 
 });
@@ -539,7 +507,7 @@ $.Line = $.Entity.extend({
 
   draw: function(ctx){
 
-    $.Renderer.drawLine(ctx, {
+    $.Renderer.line(ctx, {
       from: this.pos,
       to: this.to,
       size: this.size,
@@ -586,7 +554,7 @@ $.Rect = $.Entity.extend({
       opts.corner = this.corner;
     }
 
-    $.Renderer.drawRect(ctx, opts);
+    $.Renderer.rect(ctx, opts);
 
   },
 
@@ -613,14 +581,8 @@ $.Text = $.Entity.extend({
       size: this.size,
       color: $.C.toRGBA(this.color)
     };
-/*
-    if (this.wrap) {
-      opts.wrap = this.wrap;
-      opts.width = this.width || 100;
-      opts.lineHeight = this.lineHeight || 1;
-    }
-*/
-    $.Renderer.drawText(ctx, opts);
+
+    $.Renderer.text(ctx, opts);
   },
 
 });
@@ -655,7 +617,7 @@ $.Sprite = $.Entity.extend({
       opts.angle = this.angle;
     }
 
-    $.Renderer.drawSprite(ctx, opts);
+    $.Renderer.sprite(ctx, opts);
 
   },
 
@@ -797,7 +759,7 @@ $.Controls = $.Base.extend({
 
 $.Particles = $.Collection.extend({
 
-  max: 100, //max particles in world
+  max: 200, //max particles in world
 
   start: function(){
     this.entities = [];
@@ -827,7 +789,10 @@ $.Particles = $.Collection.extend({
   },
 
   toggleEmiter: function(eid, active){
-    this.emitters[eid].active = active;
+    var e = this.emitters[eid];
+    if (e) {
+      e.active = active;
+    }
   },
 
   playEmiter: function(emitter){
@@ -836,19 +801,6 @@ $.Particles = $.Collection.extend({
 
   stopEmiter: function(emitter){
     this.toggleEmiter(emitter.cid, false);
-  },
-
-  removeEmitter: function(emitterId){
-    this.emitters[emitterId].active = false;
-/*
-    this.entities.forEach(function(p){
-      if (p.emitter.id === emitterId){
-        p.active = false;
-      }
-    });
-
-    this.emitters[emitterId] = null;
-*/
   },
 
   createEmitterParticles: function(cid, howMany){
@@ -861,11 +813,9 @@ $.Particles = $.Collection.extend({
   },
 
   runEmitters: function(){
-    var dt = Time.deltaTime;
-
     for (var cid in this.emitters){
       var e = this.emitters[cid];
-      e.lastr -= dt;
+      e.lastr -= $.dt;
 
       if (e.active && e.count < e.options.max && e.lastr <= 0){
         e.lastr = e.options.rate;
@@ -882,11 +832,8 @@ $.Particles = $.Collection.extend({
     if (p){
 
       p.active = true;
-      
-      p.type = opts.type;
 
-      //p.pos = opts.pos;
-      p.g = opts.g || $.V.one;
+      p.g = opts.g || $.V.zero;
       p.d = opts.d || $.V.one;
       p.f = opts.f || $.V.one;
 
@@ -929,36 +876,29 @@ $.Particles = $.Collection.extend({
   },
 
   updateParticle: function(p){
-    var dt = Time.deltaTime;
-
-    p.f = $.V.multiply(p.g, dt);
+    p.f = $.V.multiply(p.g, $.dt);
     p.d = $.V.add(p.d, p.f);
-    p.pos = $.V.add(p.pos, $.V.multiply(p.d, dt));
+    p.pos = $.V.add(p.pos, $.V.multiply(p.d, $.dt));
 
     if (!p.size) {
       p.size = 1;
     }
 
-    //p.size += p.deltaScale * dt;
-
     if (p.cFrom && p.cTo) {
       p.color = $.C.lerp(p.cFrom, p.cTo, 1 - ((p.life*100) / p.tlife)/100);
     }
 
-    p.life -= dt;
+    p.life -= $.dt;
   },
 
   drawParticle: function(ctx, p){
 
-    switch(p.type){
-      case "circle":
-        $.Renderer.drawCircle(ctx, {
-          pos: p.pos,
-          radius: p.size,
-          fill: $.C.toRGBA(p.color)
-        });
-      break;
-    }
+    $.Renderer.circle(ctx, {
+      pos: p.pos,
+      radius: p.size,
+      fill: $.C.toRGBA(p.color)
+    });
+
   },
 
   update: function(){
@@ -1102,7 +1042,7 @@ $.Node = $.Circle.extend({
     if (!this.burned){
       this.blowing = true;
       this.hasEarth = false;
-      this.blowingEnd = Time.time + 500;
+      this.blowingEnd = $.tm + 500;
     }
   },
 
@@ -1141,7 +1081,7 @@ $.Node = $.Circle.extend({
       return;
     }
 
-    if (this.blowing && Time.time > this.blowingEnd){
+    if (this.blowing && $.tm > this.blowingEnd){
       this.blowing = false;
     }
 
@@ -1176,7 +1116,7 @@ $.Node = $.Circle.extend({
       this.endShake();
     }
 
-    this.temp += this.incTemp * this.incTempSize * Time.deltaTime;
+    this.temp += this.incTemp * this.incTempSize * $.dt;
 
     if (this.temp <= 0){
       this.resetTemp();
@@ -1440,7 +1380,7 @@ $.Path = $.Line.extend({
     $.Path._super.draw.apply(this, arguments);
 
     if (this.heat){
-      $.Renderer.drawLine(ctx, {
+      $.Renderer.line(ctx, {
         from: this.heat.from,
         to: this.heat.to,
         size: 5,
@@ -1491,6 +1431,7 @@ $.Cursor = $.Circle.extend({
 
   active: false,
   element: "fire",
+  last: "",
 
   start: function(){
     var self = this;
@@ -1508,16 +1449,13 @@ $.Cursor = $.Circle.extend({
       })
       .on("element", function(element){
         self.element = element;
-        self.setEmitter();        
       });
 
     this.emiter = Particles.createEmitter(this, {
-      type: "circle",
       max: 50,
       rate: 0.1,
       ratep: 2,
       life: 1,
-      size: 5,
       rad: 5,
       g: { x: 0, y: 0}
     });
@@ -1526,11 +1464,12 @@ $.Cursor = $.Circle.extend({
   },
 
   setEmitter: function(){
+    var size = this.active ? 10 : 5;
     var effects = [
-        [ -100, [100,,,0.8] ]
-      , [ 100, [,,200,0.8], [200,200,250,0.1] ]
-      , [ 100, [165,140,80,0.8] ]
-    ]
+          [ -100, [100,,,0.8] ]
+        , [ 100, [75,180,240,0.8], [200,200,250,0.1] ]
+        , [ 100, [165,140,80,0.8] ]
+      ]
       , e = this.emiter.options
       , effect = effects[config.elements.indexOf(this.element)];
 
@@ -1539,7 +1478,10 @@ $.Cursor = $.Circle.extend({
       e.g.y = g;
       e.cFrom = from;
       e.cTo = to;
+      e.size = size;
     }
+
+    this.last = this.element + ":" + this.active;
 
     if (effect){
       Particles.playEmiter(this);
@@ -1552,17 +1494,22 @@ $.Cursor = $.Circle.extend({
 
   update: function(){
     var elements = config.elements
+      , element = this.element
       , alpha = 0.4
       , sizes = [20,20,20,50]
       , colors = [
           [255,,, alpha]
-        , [,,255, alpha]
+        , [75,180,240, alpha]
         , [165,140,80, alpha]
         , [,220,255, alpha]
       ];
 
-    this.color = colors[elements.indexOf(this.element)];
-    this.radius = sizes[elements.indexOf(this.element)];
+    this.color = colors[elements.indexOf(element)];
+    this.radius = sizes[elements.indexOf(element)];
+
+    if (this.last !== (element + ":" + this.active)){
+      this.setEmitter();
+    }
   },
 
 });
@@ -1624,7 +1571,7 @@ $.Spider = $.Sprite.extend({
     this.nFrom = nFrom;
     this.nTo = nTo;
 
-    this.t_startMove = Time.time;
+    this.t_startMove = $.tm;
     this.journeyLength = $.V.magnitude(nFrom.pos, nTo.pos);
     this.traveling = true;
 
@@ -1633,19 +1580,41 @@ $.Spider = $.Sprite.extend({
 
   setDead: function(){
     if (!this.isDead){
-      this.isDead = true;
+      this.nFrom = null;
+      this.nTo = null;
+      this.dying = true;
+      this.vel = 1;
+      this.pos = {
+        x: this.pos.x,
+        y: this.pos.y
+      };
       this.onDead();
     }
   },
 
   burn: function(){
-    this.setDead();
+    this.building = false;
+    this.burning = $.tm + 3000;
+    this.temp = 1;
+
+    Particles.createEmitter(this, {
+      auto: true,
+      max: 50,
+      rate: 0.1,
+      ratep: 2,
+      life: 1,
+      rad: 10,
+      size: 10,
+      cFrom: [100,,,0.4],
+      cTo: [10,10,10,0.1],
+      g: { x: 0, y: -100}
+    });
   },
 
   animate: function(){
 
     if (!this.staying){
-      this.lastFrameTime -= Time.frameTime;
+      this.lastFrameTime -= $.ft;
 
       if (this.lastFrameTime <= 0){
         this.spriteIndex++;
@@ -1666,6 +1635,10 @@ $.Spider = $.Sprite.extend({
       , ntoT = nto.temp
       , nfromB = nfrom.blowing
       , ntoB = nfrom.blowing;
+
+    if (this.temp === 1){
+      return;
+    }
 
     if (nfromB || ntoB){
       this.temp = 0.1;
@@ -1692,7 +1665,7 @@ $.Spider = $.Sprite.extend({
   },
 
   updateState: function(){
-    var tm = Time.time
+    var tm = $.tm
       , cfgTm = this.behaviour
       , tstart = this.t_startStay
       , tstay = this.t_stay;
@@ -1728,13 +1701,17 @@ $.Spider = $.Sprite.extend({
       return;
     }
 
-    var distCovered = (Time.time - this.t_startMove) * this.speed;
+    var distCovered = ($.tm - this.t_startMove) * this.speed;
     var fracJourney = distCovered / this.journeyLength;
     
     if (fracJourney > 1) {
-      this.pos = this.nTo.pos;
+      this.pos = $.V.clone(this.nTo.pos);
       this.nTo.revive();
-
+      
+      if (this.burning){
+        this.nTo.burn();
+      }
+      
       this.traveling = false;
       this.building = false;
 
@@ -1758,6 +1735,17 @@ $.Spider = $.Sprite.extend({
     if (this.isDead || this.exited || this.inVacuum){
       return;
     }
+
+    if (this.dying){
+      this.vel++;
+      this.pos.y += this.vel;
+
+      if (this.pos.y > config.size.y){
+        this.isDead = true;
+        Particles.stopEmiter(this);
+      }
+      return;
+    }
     
     this.updateTemp();
 
@@ -1769,6 +1757,10 @@ $.Spider = $.Sprite.extend({
     }
 
     this.updateState();
+
+    if (this.burning && this.burning < $.tm){
+      this.setDead();
+    }
   },
 
   draw: function(ctx){
@@ -1777,7 +1769,7 @@ $.Spider = $.Sprite.extend({
     }
 
     if (this.building){
-      $.Renderer.drawLine(ctx, {
+      $.Renderer.line(ctx, {
         from: this.pos,
         to: this.nFrom.pos,
         size: 2,
@@ -1985,7 +1977,7 @@ $.Target = $.Circle.extend({
   update: function(spiders){
 
     spiders.forEach(function(spider){
-      if (!spider.dead && !spider.exited){
+      if (!spider.burning && !spider.dead && !spider.exited){
 
         if ($.V.pointInCircle(spider.pos, this.pos, this.size)){
           spider.building = false;
@@ -1996,8 +1988,7 @@ $.Target = $.Circle.extend({
       }
     }, this);
 
-    var dt = Time.deltaTime
-      , force = dt * this.suckForce
+    var force = $.dt * this.suckForce
       , p = this.pos;
 
     this.saving.forEach(function(spider){
@@ -2082,7 +2073,7 @@ $.Vacuum = $.Entity.extend({
       , s = this.recipeSize
       , centerY = p.y + (s.y/2)
       , centerX = p.x + (s.x/2)
-      , sinTime = Time.time * 2 * Math.PI;
+      , sinTime = $.tm * 2 * Math.PI;
 
     this.target.saved.forEach(function(spider){
 
@@ -2376,6 +2367,22 @@ $.Elements = $.Collection.extend({
 
 $.sprites = {
 
+  bgColor: "rgba(0,0,0,0.1)",
+
+  bg: [
+    [1, , , ,1, , , , ,1],
+    [ ,1, ,1, , , , ,1, ],
+    [ , ,1, , , , ,1, , ],
+    [ ,1, ,1, , ,1, , , ],
+    [1, , , ,1,1, , , , ],
+    [ , , , ,1,1, , , ,1],
+    [ , , ,1, , ,1, ,1, ],
+    [ , ,1, , , , ,1, , ],
+    [ ,1, , , , ,1, ,1, ],
+    [1, , , , ,1, , , ,1],
+  ],
+
+
   // 0: transparent
   // 1: all
   // 2, 3 & 4: 0,1,2 sprites
@@ -2499,19 +2506,23 @@ $.sprites = {
         size: 2
       }
     }
-  }
+  },
+
+//  bg: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAkElEQVQ4T72U0Q2AIAxEy0yu4U4u5YAK4YwQ26ONQGL4oHm0x51JRI77y+use7/t5Bz1pS7NAG71ir4TV2eYMHc4DdhoYWhq1r07/B04qqGpbURDChz1ISTR/FrOPT4cBsI2SlAEIzLgk5RlQE180w1fPmR+dANDGUYXS5PCXh1+bCaykhIGsqSwR3L/sV3AC8ZkM9liakt+AAAAAElFTkSuQmCC"
 
 };
 
 $.Creator = $.Base.extend({}, {
 
   getSprites: function(){
-    var sprites = $.sprites;
+    var sprites = $.sprites
+      , gen = this.generate;
 
     return {
-      spider: this.generate(sprites.spider, sprites.color, true, 3),
-      favicon: this.generate(sprites.spider, sprites.color, true, 1, 1, true),
-      elements: this.generate(sprites.elements, sprites.colors),
+      bg: gen(sprites.bg, sprites.bgColor, true, 1),
+      spider: gen(sprites.spider, sprites.color, true, 3),
+      favicon: gen(sprites.spider, sprites.color, true, 1, 1, true),
+      elements: gen(sprites.elements, sprites.colors),
       vacuum: this.drawPath(sprites.vacuum)
     };
   },
@@ -2542,12 +2553,12 @@ $.Creator = $.Base.extend({}, {
 
           if (multiple){
             v = sprite[y][x];
-            c = _color;
+            c = (_color.indexOf("rgb") > -1 ? _color : "#" + _color);
             sp = k+2;
           }
           else {
             v = sprite[k][y][x];
-            c = _color[k][v];
+            c = "#" + _color[k][v];
             sp = k;
           }
 
@@ -2561,7 +2572,7 @@ $.Creator = $.Base.extend({}, {
             (!multiple && v) 
           ){
             ctx.save();
-            ctx.fillStyle = "#" + c;
+            ctx.fillStyle = c;
             ctx.fillRect( (x*pw) + w*k, y*ph, pw, ph );
             ctx.restore();
           }
@@ -2624,7 +2635,7 @@ $.Creator = $.Base.extend({}, {
 
     ctx.closePath();
 
-    $.Renderer.drawRect(ctx, opts.box);
+    $.Renderer.rect(ctx, opts.box);
 
     img.src = canvas.toDataURL("image/png");
     canvas = null;
@@ -2908,6 +2919,7 @@ $.Manager = $.Base.extend({
   level: 0,
 
   start: function(){
+    Particles = new $.Particles();
 
     var lvl = config.levels[this.level];
     this.spidersAm = lvl[0];
@@ -2986,9 +2998,12 @@ $.Manager = $.Base.extend({
     var s = config.size;
     var vs = config.vacuum.size;
 
+    
     viewCtx.clearRect(0, 0, s.x, s.y);
     worldCtx.clearRect(0, 0, s.x, s.y);
     vacuumCtx.clearRect(0, 0, vs.x, vs.y);
+
+    Particles.draw(viewCtx);
 
     this.cursor.draw(viewCtx);
     this.nodes.draw(worldCtx);
@@ -2998,20 +3013,7 @@ $.Manager = $.Base.extend({
     this.vacuum.draw(vacuumCtx);
     this.stats.draw(viewCtx);
     this.elements.draw(viewCtx);
-
-    Particles.draw(viewCtx);
   },
-
-  destroy: function(){
-    this.cursor = null;
-    this.nodes = null;
-    this.paths = null;
-    this.target = null;
-    this.vacuum = null;
-    this.elements = null;
-    this.spiders = null;
-    this.stats = null;
-  }
 
 });
 
@@ -3027,6 +3029,10 @@ $.GameTime = $.Base.extend({
 
   start: function(){
     this.lastTime = Date.now();
+
+    $.tm = this.time;
+    $.dt = this.deltaTime;
+    $.ft = this.frameTime;
   },
 
   tick: function(){
@@ -3038,13 +3044,17 @@ $.GameTime = $.Base.extend({
     }
 
     if (delta > 2 * this.typicalFrameTime) { // +1 frame if too much time elapsed
-      this.frameTime = this.typicalFrameTime;
+      $.ft = this.typicalFrameTime;
     } else {  
-      this.frameTime = delta;      
+      $.ft = delta;      
     }
 
-    this.deltaTime = this.frameTime/1000;
-    this.time += this.frameTime;
+    this.frameTime = $.ft;
+    $.dt = $.ft/1000;
+
+    this.time += $.ft;
+    $.tm = this.time;
+    
     this.lastTime = now;
 
     return true;
@@ -3052,16 +3062,6 @@ $.GameTime = $.Base.extend({
 
 });
 
-/*
-GameTime.prototype.reset = function() {
-  this.lastTime = Date.now();
-  this.frameTime = 0;
-  this.deltaTime = 0;
-  this.typicalFrameTime = 20;
-  this.minFrameTime = 12; 
-  this.time = 0;
-};
-*/
 
 $.Game = $.Base.extend({
 
@@ -3110,11 +3110,6 @@ $.Game = $.Base.extend({
   },
 
   createManager: function(){
-    if (this.manager){
-      this.manager.destroy();
-      this.manager = null;
-    }
-    
     this.manager = new $.Manager({
       onEnd: this._endGame.bind(this),
       level: this.levelModal.levelIndex
@@ -3141,16 +3136,18 @@ $.Game = $.Base.extend({
 
   initContexts: function(){
     var size = config.size
-      , vsize = config.vacuum.size;
+      , vsize = config.vacuum.size
+      , i = 0;
 
     function getContext(canvas, _size){
       canvas.width = _size.x;
       canvas.height = _size.y;
+      canvas.style.zIndex = ++i;
       return canvas.getContext("2d");
     }
 
-    this.viewCtx = getContext(this.cview, size);
     this.worldCtx = getContext(this.cworld, size);
+    this.viewCtx = getContext(this.cview, size);
     this.vacuumCtx = getContext(this.cvacuum, vsize);
     this.modalsCtx = getContext(this.cmodals, size);
   },
@@ -3194,6 +3191,7 @@ $.Game = $.Base.extend({
   }
 
   var gameCtn = $get("ctn");
+  //gameCtn.style.backgroundImage = 'url("'+$.sprites.bg+'")';
 
   function $newCanvas(id){
     var cv = doc.createElement("canvas");
@@ -3253,7 +3251,6 @@ $.Game = $.Base.extend({
   function initGame(){
 
     w.Time = new $.GameTime();
-    w.Particles = new $.Particles();
 
     w.Controls = new $.Controls({
       container: gameCtn
@@ -3284,6 +3281,8 @@ $.Game = $.Base.extend({
     w.config = configGame();
 
     $.repo = $.Creator.getSprites();
+
+    gameCtn.style.backgroundImage = 'url("' + $.repo.bg.src + '")';
 
     var favicon = $get("favicon");
     favicon.href = $.repo.favicon;

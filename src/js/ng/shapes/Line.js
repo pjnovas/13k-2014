@@ -13,7 +13,7 @@ $.Line = $.Entity.extend({
 
   draw: function(ctx){
 
-    $.Renderer.drawLine(ctx, {
+    $.Renderer.line(ctx, {
       from: this.pos,
       to: this.to,
       size: this.size,

@@ -33,7 +33,7 @@ $.Rect = $.Entity.extend({
       opts.corner = this.corner;
     }
 
-    $.Renderer.drawRect(ctx, opts);
+    $.Renderer.rect(ctx, opts);
 
   },
 

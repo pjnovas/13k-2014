@@ -10,6 +10,10 @@ $.GameTime = $.Base.extend({
 
   start: function(){
     this.lastTime = Date.now();
+
+    $.tm = this.time;
+    $.dt = this.deltaTime;
+    $.ft = this.frameTime;
   },
 
   tick: function(){
@@ -21,27 +25,20 @@ $.GameTime = $.Base.extend({
     }
 
     if (delta > 2 * this.typicalFrameTime) { // +1 frame if too much time elapsed
-      this.frameTime = this.typicalFrameTime;
+      $.ft = this.typicalFrameTime;
     } else {  
-      this.frameTime = delta;      
+      $.ft = delta;      
     }
 
-    this.deltaTime = this.frameTime/1000;
-    this.time += this.frameTime;
+    this.frameTime = $.ft;
+    $.dt = $.ft/1000;
+
+    this.time += $.ft;
+    $.tm = this.time;
+    
     this.lastTime = now;
 
     return true;
   }
 
 });
-
-/*
-GameTime.prototype.reset = function() {
-  this.lastTime = Date.now();
-  this.frameTime = 0;
-  this.deltaTime = 0;
-  this.typicalFrameTime = 20;
-  this.minFrameTime = 12; 
-  this.time = 0;
-};
-*/

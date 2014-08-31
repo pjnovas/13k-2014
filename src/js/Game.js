@@ -46,11 +46,6 @@ $.Game = $.Base.extend({
   },
 
   createManager: function(){
-    if (this.manager){
-      this.manager.destroy();
-      this.manager = null;
-    }
-    
     this.manager = new $.Manager({
       onEnd: this._endGame.bind(this),
       level: this.levelModal.levelIndex
@@ -77,16 +72,18 @@ $.Game = $.Base.extend({
 
   initContexts: function(){
     var size = config.size
-      , vsize = config.vacuum.size;
+      , vsize = config.vacuum.size
+      , i = 0;
 
     function getContext(canvas, _size){
       canvas.width = _size.x;
       canvas.height = _size.y;
+      canvas.style.zIndex = ++i;
       return canvas.getContext("2d");
     }
 
-    this.viewCtx = getContext(this.cview, size);
     this.worldCtx = getContext(this.cworld, size);
+    this.viewCtx = getContext(this.cview, size);
     this.vacuumCtx = getContext(this.cvacuum, vsize);
     this.modalsCtx = getContext(this.cmodals, size);
   },

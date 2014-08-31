@@ -11,6 +11,7 @@
   }
 
   var gameCtn = $get("ctn");
+  //gameCtn.style.backgroundImage = 'url("'+$.sprites.bg+'")';
 
   function $newCanvas(id){
     var cv = doc.createElement("canvas");
@@ -70,7 +71,6 @@
   function initGame(){
 
     w.Time = new $.GameTime();
-    w.Particles = new $.Particles();
 
     w.Controls = new $.Controls({
       container: gameCtn
@@ -101,6 +101,8 @@
     w.config = configGame();
 
     $.repo = $.Creator.getSprites();
+
+    gameCtn.style.backgroundImage = 'url("' + $.repo.bg.src + '")';
 
     var favicon = $get("favicon");
     favicon.href = $.repo.favicon;
