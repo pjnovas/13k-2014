@@ -12,29 +12,7 @@ $.Rect = $.Entity.extend({
   update: function(){ },
 
   draw: function(ctx){
-
-    var opts = {
-      pos: this.pos,
-      size: this.size,
-    };
-
-    if (this.stroke){
-      opts.stroke = this.stroke;
-      if (opts.stroke.color) {
-        opts.stroke.color = $.C.toRGBA(opts.stroke.color);
-      }
-    }
-
-    if (this.fill){
-      opts.fill = $.C.toRGBA(this.fill);
-    }
-
-    if (this.corner){
-      opts.corner = this.corner;
-    }
-
-    $.Renderer.rect(ctx, opts);
-
+    $.Renderer.rect(ctx, this);
   },
 
 });

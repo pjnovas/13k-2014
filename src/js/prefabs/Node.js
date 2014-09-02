@@ -2,7 +2,7 @@
 $.Node = $.Circle.extend({
 
   radius: 3,
-  color: $.C.white,
+  fill: $.C.white,
 
   nears: null,
 
@@ -136,7 +136,7 @@ $.Node = $.Circle.extend({
 
   setBurned: function(){
     this.burned = true;
-    this.fill = this.color = this.colors.burned;
+    this.fill = this.colors.burned;
     this.resetTemp();
   },
 
@@ -151,7 +151,7 @@ $.Node = $.Circle.extend({
     }
 
     if (this.hasEarth){
-      this.fill = this.color = this.colors.earth;
+      this.fill = this.colors.earth;
       this.resetTemp();
       return;
     }
@@ -183,7 +183,7 @@ $.Node = $.Circle.extend({
       this.resetTemp();
     }
 
-    this.fill = this.color = $.C.lerp(this.colors.cold, this.colors.burn, this.temp);
+    this.fill = $.C.lerp(this.colors.cold, this.colors.burn, this.temp);
 
     if (this.temp > 1){
       this.setBurned();

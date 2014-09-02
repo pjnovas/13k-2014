@@ -12,23 +12,7 @@ $.Sprite = $.Entity.extend({
   update: function(){ },
 
   draw: function(ctx){
-
-    var opts = {
-      resource: this.resource,
-      pos: this.pos,
-      size: this.size
-    };
-
-    if (this.sprite){
-      opts.sp = this.sprite;
-    }
-
-    if (this.angle){
-      opts.angle = this.angle;
-    }
-
-    $.Renderer.sprite(ctx, opts);
-
+    $.Renderer.sprite(ctx, this);
   },
 
 });

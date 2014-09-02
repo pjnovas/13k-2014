@@ -251,10 +251,10 @@ $.Spider = $.Sprite.extend({
 
     if (this.building){
       $.Renderer.line(ctx, {
-        from: this.pos,
+        pos: this.pos,
         to: this.nFrom.pos,
         size: 2,
-        color: $.C.toRGBA($.C.white)
+        color: $.C.white
       });
     }
 

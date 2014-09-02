@@ -2,18 +2,16 @@
 $.Renderer = $.Base.extend({ }, {
 
   fill: function(ctx, ps){
-    if (ps.hasOwnProperty("fill")){
-      ctx.fillStyle = ps.fill;
+    if (ps.fill){
+      ctx.fillStyle = $.C.toRGBA(ps.fill);
       ctx.fill();
     }
   },
 
   stroke: function(ctx, ps){
-    if (ps.hasOwnProperty("stroke")){
-      ctx.lineWidth = ps.strokeWidth || ps.stroke.size || 1;
-
-      var strokeColor = ps.stroke.color || ps.stroke || "#000";
-      ctx.strokeStyle = Array.isArray(strokeColor) ? $.C.toRGBA(strokeColor) : strokeColor;
+    if (ps.stroke){
+      ctx.lineWidth = ps.stroke.size || 1;
+      ctx.strokeStyle = $.C.toRGBA(ps.stroke.color);
       ctx.stroke();
     }
   },
@@ -42,7 +40,7 @@ $.Renderer = $.Base.extend({ }, {
   },
 
   line: function(ctx, ps){
-    var a = ps.from
+    var a = ps.pos
       , b = ps.to;
 
     ctx.beginPath();
@@ -53,7 +51,7 @@ $.Renderer = $.Base.extend({ }, {
     ctx.lineTo(b.x, b.y);
 
     ctx.lineWidth = ps.size;
-    ctx.strokeStyle = ps.color;
+    ctx.strokeStyle = $.C.toRGBA(ps.color);
     ctx.stroke();
   },
 
@@ -64,7 +62,7 @@ $.Renderer = $.Base.extend({ }, {
       , y = p.y
       , w = ps.size.x
       , h = ps.size.y
-      , sp = ps.sp;
+      , sp = ps.sprite;
 
     function draw(){
       if (sp){
@@ -75,7 +73,7 @@ $.Renderer = $.Base.extend({ }, {
       }
     }
 
-    if (ps.hasOwnProperty("angle")){
+    if (!isNaN(ps.angle)){
       ctx.save();
 
       ctx.translate(x + w/2, y + h/2);
@@ -95,7 +93,7 @@ $.Renderer = $.Base.extend({ }, {
   text: function(ctx, ps){
     ctx.font = ps.size + 'pt Arial';
     ctx.textBaseline = ps.baseline || 'middle';
-    ctx.fillStyle = ps.color;
+    ctx.fillStyle = $.C.toRGBA(ps.color);
 
     ctx.fillText(ps.text, ps.pos.x, ps.pos.y);
   },
@@ -106,7 +104,7 @@ $.Renderer = $.Base.extend({ }, {
       , w = ps.size.x
       , h = ps.size.y;
 
-    if (!ps.hasOwnProperty("corner")){
+    if (!ps.corner){
       $.Renderer.rect(ctx, ps);
       return;
     }

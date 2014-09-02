@@ -135,7 +135,7 @@ $.Particles = $.Collection.extend({
     $.Renderer.circle(ctx, {
       pos: p.pos,
       radius: p.size,
-      fill: $.C.toRGBA(p.color)
+      fill: p.color
     });
 
   },

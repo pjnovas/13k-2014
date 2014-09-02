@@ -12,14 +12,7 @@ $.Line = $.Entity.extend({
   update: function(){ },
 
   draw: function(ctx){
-
-    $.Renderer.line(ctx, {
-      from: this.pos,
-      to: this.to,
-      size: this.size,
-      color: $.C.toRGBA(this.color)
-    });
-
+    $.Renderer.line(ctx, this);
   },
 
 });

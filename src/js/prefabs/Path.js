@@ -22,8 +22,8 @@ $.Path = $.Line.extend({
       , nb = this.nb
       , naT = na.temp
       , nbT = nb.temp
-      , naC = na.color
-      , nbC = nb.color;
+      , naC = na.fill
+      , nbC = nb.fill;
 
     if (!naT && !nbT){
       this.heat = null;
@@ -64,10 +64,10 @@ $.Path = $.Line.extend({
 
     if (this.heat){
       $.Renderer.line(ctx, {
-        from: this.heat.from,
+        pos: this.heat.from,
         to: this.heat.to,
         size: 5,
-        color: "rgba(255,0,0,0.4)"
+        color: [255,0,0,0.4]
       });
     }
 

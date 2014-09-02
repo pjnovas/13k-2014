@@ -81,12 +81,12 @@ $.Cursor = $.Circle.extend({
         , [,220,255, alpha]
       ];
 
-    this.color = colors[idx];
+    this.fill = colors[idx];
     this.radius = sizes[idx];
 
     if (this.last !== (element + ":" + this.active)){
       this.setEmitter();
     }
-  },
-
+  }
+  
 });

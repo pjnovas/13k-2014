@@ -12,15 +12,7 @@ $.Text = $.Entity.extend({
   update: function(){ },
 
   draw: function(ctx){
-
-    var opts = {
-      text: this.text,
-      pos: this.pos,
-      size: this.size,
-      color: $.C.toRGBA(this.color)
-    };
-
-    $.Renderer.text(ctx, opts);
+    $.Renderer.text(ctx, this);
   },
 
 });
