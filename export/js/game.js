@@ -686,7 +686,7 @@ $.Controls = $.Base.extend({
 
 $.Particles = $.Collection.extend({
 
-  max: 200, //max particles in world
+  max: 250, //max particles in world
 
   start: function(){
     this.entities = [];
@@ -879,7 +879,7 @@ $.Node = $.Circle.extend({
   colors: {
       cold: [200,200,200,1]
     , burn: [255,0,0,1]
-    , burned: [0,0,0,0.2]
+    , burned: [,,,0.2]
     , earth: [190,160,40,1]
   },
 
@@ -1306,7 +1306,7 @@ $.Path = $.Line.extend({
     if (na.burned || nb.burned) {
       this.heat = null;
       this.burned = true;
-      this.color = [,,,0.5];
+      this.color = [,,,0.2];
     }
 
     this.pos = this.na.pos;
@@ -1889,6 +1889,25 @@ $.Target = $.Circle.extend({
     
     this.saved = [];
     this.saving = [];
+
+    var emitter = new $.Entity({
+      pos: { x: this.pos.x - 100, y: this.pos.y - 100 }
+    });
+
+    var g = $.V.normal(emitter.pos, this.pos);
+
+    Particles.createEmitter(emitter, {
+      auto: true,
+      max: 10,
+      rate: 0.5,
+      ratep: 1,
+      life: 1,
+      rad: 50,
+      size: 2,
+      cFrom: [200,200,200,0.5],
+      cTo: [200,200,200,0.1],
+      g: $.V.multiply(g, 150)
+    });
   },
 
   setNodesInside: function(nodes){
@@ -2742,7 +2761,7 @@ $.Modal = $.Base.extend({
     var levels = this.levels = [];
 
     var size = { x: 600, y: 500 };
-    var holderCtn = this.createHolder(size, "How good you think you are?", 0.65);
+    var holderCtn = this.createHolder(size, "How good you think you are?", 0.6);
     var pos = holderCtn.holder.pos;
     var tltPos = holderCtn.title.pos;
 
@@ -2753,7 +2772,7 @@ $.Modal = $.Base.extend({
       "     BUSTER!"
     ];
 
-    var posOpts = { x: pos.x + size.x/2 - 80 , y: tltPos.y + 100 };
+    var posOpts = { x: pos.x + size.x/2 - 70 , y: tltPos.y + 80 };
     textsOpts.forEach(function(txt, i){
       var p = { x: posOpts.x, y: (i * 60) + posOpts.y + 10 };
 
@@ -2769,6 +2788,18 @@ $.Modal = $.Base.extend({
     });
 
     this.levelIndex = 0;
+
+    var info = {
+      text: "~ shh .. be quiet, don't scare spiders ~",
+      pos: $.V.center(pos, size),
+      size: 15,
+      color: [200, 200, 200]
+    };
+
+    info.pos.x -= (info.size*info.text.length*0.55)/2;
+    info.pos.y = size.y-10;
+
+    items.push(new $.Text(info));
 
     var enter = $.V.clone(pos);
     enter.y += size.y-30;

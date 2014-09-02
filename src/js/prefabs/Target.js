@@ -26,6 +26,25 @@ $.Target = $.Circle.extend({
     
     this.saved = [];
     this.saving = [];
+
+    var emitter = new $.Entity({
+      pos: { x: this.pos.x - 100, y: this.pos.y - 100 }
+    });
+
+    var g = $.V.normal(emitter.pos, this.pos);
+
+    Particles.createEmitter(emitter, {
+      auto: true,
+      max: 10,
+      rate: 0.5,
+      ratep: 1,
+      life: 1,
+      rad: 50,
+      size: 2,
+      cFrom: [200,200,200,0.5],
+      cTo: [200,200,200,0.1],
+      g: $.V.multiply(g, 150)
+    });
   },
 
   setNodesInside: function(nodes){

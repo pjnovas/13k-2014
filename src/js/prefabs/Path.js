@@ -52,7 +52,7 @@ $.Path = $.Line.extend({
     if (na.burned || nb.burned) {
       this.heat = null;
       this.burned = true;
-      this.color = [,,,0.5];
+      this.color = [,,,0.2];
     }
 
     this.pos = this.na.pos;

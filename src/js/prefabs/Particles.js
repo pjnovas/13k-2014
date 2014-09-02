@@ -2,7 +2,7 @@
 
 $.Particles = $.Collection.extend({
 
-  max: 200, //max particles in world
+  max: 250, //max particles in world
 
   start: function(){
     this.entities = [];
