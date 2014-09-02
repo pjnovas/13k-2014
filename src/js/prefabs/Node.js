@@ -41,7 +41,7 @@ $.Node = $.Circle.extend({
     });
 
     if (!oneBurned && $.M.rnd01() < 0.15){
-      this.setBurned();
+      this.setBurned(true);
     }
   },
 
@@ -155,10 +155,30 @@ $.Node = $.Circle.extend({
     this.incTempSize = 0;
   },
 
-  setBurned: function(){
+  setBurned: function(init){
     this.burned = true;
     this.fill = this.colors.burned;
     this.resetTemp();
+
+    if (!init){
+      Particles.createEmitter(this, {
+        auto: true,
+        max: 20,
+        rate: 0.2,
+        ratep: 10,
+        life: 1,
+        rad: 20,
+        size: 2,
+        cFrom: [255,0,0,0.8],
+        cTo: [10,0,0,0.1],
+        g: { x: 0, y: 100}
+      });
+
+      var self = this;
+      window.setTimeout(function(){
+        Particles.stopEmiter(self);
+      }, 1000);
+    }
   },
 
   update: function(){
