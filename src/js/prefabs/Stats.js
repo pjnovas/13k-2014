@@ -29,7 +29,7 @@ $.Stats = $.Collection.extend({
       , mW = 30
       , mH = 40
       , spSize = { x: size, y: size }
-      , hSpSize = { x: size/2, y: size/2 };
+      /*, hSpSize = { x: size/2, y: size/2 }*/;
 
     var spider = {
       resource: "spider",
@@ -54,19 +54,13 @@ $.Stats = $.Collection.extend({
     this.iconKPos = spider.pos;
     this.entities.push(new $.Sprite(spider));
     
-    this.entities.push(new $.Line({
-      pos: $.V.origin(spider.pos, spSize),
-      to: $.V.add(hSpSize, spider.pos),
-      size: 3,
+    this.entities.push(new $.Text({
+      pos: { x: spider.pos.x-15, y: spider.pos.y },
+      text: "X",
+      size: 30,
       color: this.colors.kills
     }));
 
-    this.entities.push(new $.Line({
-      pos: { x: spider.pos.x + hSpSize.x, y: spider.pos.y - hSpSize.y },
-      to: { x: spider.pos.x - hSpSize.x, y: spider.pos.y + hSpSize.y },
-      size: 3,
-      color: this.colors.kills
-    }));
   },
 
   createText: function(){

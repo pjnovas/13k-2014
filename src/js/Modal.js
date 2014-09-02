@@ -107,7 +107,7 @@ $.Modal = $.Base.extend({
   initmain: function(){ 
     var items = this.modalItems = [];
 
-    var size = { x: 600, y: 500 };
+    var size = { x: 600, y: 550 };
     var holderCtn = this.createHolder(size, document.title, 0.8);
     var pos = holderCtn.holder.pos;
     var tltPos = holderCtn.title.pos;
@@ -139,10 +139,10 @@ $.Modal = $.Base.extend({
     ];
 
     var textsDesc = [
-      "Burn the web but could kill spiders too!",
-      "Fire propagates fast!, use the water to stop it",
-      "Stops the fire and won't let spiders re-build the web",
-      "Burn faster, annoys spiders and removes dirty"
+      "Burn the web but watch to not burn Spiders!",
+      "Fire propagates fast!, use the water to cool it",
+      "Stops the fire and avoid spiders re-build the web",
+      "Burn faster, annoy spiders and removes dirty"
     ];
 
     textsTlts.forEach(function(txt, i){
@@ -160,6 +160,18 @@ $.Modal = $.Base.extend({
         size: 15
       }));
     });
+
+    var info = {
+      text: "~ Apply an Element by clicking on the Web ~",
+      pos: $.V.center(pos, size),
+      size: 15,
+      color: [255, 150, ]
+    };
+
+    info.pos.x -= (info.size*info.text.length*0.6)/2;
+    info.pos.y = size.y-25;
+
+    items.push(new $.Text(info));
 
     var enter = $.V.clone(pos);
     enter.y += size.y-30;

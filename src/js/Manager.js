@@ -33,6 +33,12 @@ $.Manager = $.Base.extend({
     });
 
     this.target.setNodesInside(this.nodes.getNodes());
+
+    this.pauseMsg = new $.Text({
+      pos: { x: 10, y: config.size.y - 20 },
+      text: "[P] Pause/Help",
+      size: 15
+    });
   },
 
   checkState: function(){
@@ -83,7 +89,6 @@ $.Manager = $.Base.extend({
     var s = config.size;
     var vs = config.vacuum.size;
 
-    
     viewCtx.clearRect(0, 0, s.x, s.y);
     worldCtx.clearRect(0, 0, s.x, s.y);
     vacuumCtx.clearRect(0, 0, vs.x, vs.y);
@@ -98,6 +103,8 @@ $.Manager = $.Base.extend({
     this.vacuum.draw(vacuumCtx);
     this.stats.draw(viewCtx);
     this.elements.draw(viewCtx);
+
+    this.pauseMsg.draw(viewCtx);
   },
 
 });
