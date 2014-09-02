@@ -106,6 +106,27 @@ $.Node = $.Circle.extend({
   blow: function(){
     if (!this.burned){
       this.blowing = true;
+
+      if (this.hasEarth){
+        Particles.createEmitter(this, {
+          auto: true,
+          max: 20,
+          rate: 0.2,
+          ratep: 10,
+          life: 1,
+          rad: 10,
+          size: 10,
+          cFrom: [165,140,80,0.8],
+          cTo: [10,10,10,0.1],
+          g: { x: 0, y: -100}
+        });
+
+        var self = this;
+        window.setTimeout(function(){
+          Particles.stopEmiter(self);
+        }, 1000);
+      }
+
       this.hasEarth = false;
       this.blowingEnd = $.tm + 500;
     }
