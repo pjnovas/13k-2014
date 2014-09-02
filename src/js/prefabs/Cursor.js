@@ -70,8 +70,8 @@ $.Cursor = $.Circle.extend({
   },
 
   update: function(){
-    var elements = config.elements
-      , element = this.element
+    var element = this.element
+      , idx = config.elements.indexOf(element)
       , alpha = 0.4
       , sizes = [20,20,20,50]
       , colors = [
@@ -81,8 +81,8 @@ $.Cursor = $.Circle.extend({
         , [,220,255, alpha]
       ];
 
-    this.color = colors[elements.indexOf(element)];
-    this.radius = sizes[elements.indexOf(element)];
+    this.color = colors[idx];
+    this.radius = sizes[idx];
 
     if (this.last !== (element + ":" + this.active)){
       this.setEmitter();

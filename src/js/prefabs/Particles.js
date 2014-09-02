@@ -95,7 +95,7 @@ $.Particles = $.Collection.extend({
 
       p.life = opts.life;
       p.tlife = opts.life;
-      p.size = opts.size;
+      p.size = opts.size || 1;
 
       p.emitter = emitter;
       
@@ -122,10 +122,6 @@ $.Particles = $.Collection.extend({
     p.f = $.V.multiply(p.g, $.dt);
     p.d = $.V.add(p.d, p.f);
     p.pos = $.V.add(p.pos, $.V.multiply(p.d, $.dt));
-
-    if (!p.size) {
-      p.size = 1;
-    }
 
     if (p.cFrom && p.cTo) {
       p.color = $.C.lerp(p.cFrom, p.cTo, 1 - ((p.life*100) / p.tlife)/100);

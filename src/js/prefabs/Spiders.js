@@ -1,7 +1,6 @@
 
 $.Spiders = $.Collection.extend({
 
-  nodes: null,
   spidersExit: 0,
   spidersKilled: 0,
   stats: {},
@@ -11,9 +10,8 @@ $.Spiders = $.Collection.extend({
   applyRatio: 0,
   element: null,
 
-  start: function(options){
+  start: function(){
     this.entities = [];
-    this.nodes = options.nodes;
 
     this.generateSpiders();
     this.updateGUI();
@@ -63,7 +61,7 @@ $.Spiders = $.Collection.extend({
   },
 
   gonnaBuildWeb: function(node, spider){
-    if (!node.hasEarth && node.temp === 0 && $.M.rnd01() > 0.7) {
+    if (!node.hasEarth && !node.temp && $.M.rnd01() > 0.7) {
       var nearBurned = node.getNearBurned();
       if (nearBurned){
         spider.buildWeb(node, nearBurned);
@@ -97,12 +95,9 @@ $.Spiders = $.Collection.extend({
   },
 
   findSpidersByCollider: function(){
-    var elements = config.elements
-      , methods = config.methods;
-
     this.entities.forEach(function (spider) {
-      if (this.applyPos && $.V.pointInCircle(this.applyPos, spider.pos, this.applyRatio)) {
-        spider[methods[elements.indexOf(this.element)]]();
+      if ($.V.pointInCircle(this.applyPos, spider.pos, this.applyRatio)) {
+        spider[config.methods[config.elements.indexOf(this.element)]]();
       }
     }, this);
   },

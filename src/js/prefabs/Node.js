@@ -5,7 +5,6 @@ $.Node = $.Circle.extend({
   color: $.C.white,
 
   nears: null,
-  selected: false,
 
   temp: 0,
   incTemp: 0,
@@ -157,11 +156,7 @@ $.Node = $.Circle.extend({
       return;
     }
 
-    var isAlone = this.nears.every(function(n){
-      return n.burned;
-    });
-
-    if (isAlone){
+    if (this.nears.every(function(n){ return n.burned; })){ //has no paths
       this.setBurned();
       return;
     }

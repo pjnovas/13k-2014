@@ -1,9 +1,9 @@
 
 $.Circle = $.Entity.extend({
 
-  pos: { x: 0, y: 0 },
-  radius: 5,
-  stroke: null,
+  //pos: { x: 0, y: 0 },
+  //radius: 5,
+  //stroke: null,
 
   start: function(){},
 

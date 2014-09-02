@@ -3,14 +3,13 @@ $.Element = $.Collection.extend({
 
   size: { x: 96, y: 96 },
 
-  start: function(options){
+  start: function(/*options*/){
     this.entities = [];
 
-    this.name = options.name;
-    this.key = options.key;
-    this.showKeys = options.showKeys;
-    this.color = [255,255,255, 0.1];
-    this.sprite = options.sprite;
+    //this.name = options.name;
+    //this.key = options.key;
+    //this.showKeys = options.showKeys;
+    //this.sprite = options.sprite;
 
     this.active = false;
     this.current = false;
@@ -25,7 +24,7 @@ $.Element = $.Collection.extend({
     this.bg = new $.Rect({
       pos: pos,
       size: size,
-      fill: this.color,
+      fill: [255,255,255, 0.1],
       stroke: { size: 4, color: [30,30,30,1] },
       corner: 8
     });

@@ -3,12 +3,8 @@ $.Stats = $.Collection.extend({
 
   pos: { x: 1, y: 0 },
 
-  marginW: 30,
-  marginH: 40,
-
   colors: {
-    kills: "#ff0000",
-    alives: ""
+    kills: "#ff0000"
   },
 
   start: function(){
@@ -30,8 +26,8 @@ $.Stats = $.Collection.extend({
 
   createIcons: function(){
     var size = 40
-      , mW = this.marginW
-      , mH = this.marginH
+      , mW = 30
+      , mH = 40
       , spSize = { x: size, y: size }
       , hSpSize = { x: size/2, y: size/2 };
 
@@ -47,46 +43,46 @@ $.Stats = $.Collection.extend({
       y: this.pos.y + mH + size*1.5
     };
 
-    this.iconAlives = new $.Sprite(spider);
-    this.entities.push(this.iconAlives);
+    this.iconAPos = spider.pos;
+    this.entities.push(new $.Sprite(spider));
 
     spider.pos = {
       x: this.pos.x - mW,
       y: this.pos.y + mH
     };
 
-    this.iconKills = new $.Sprite(spider);
-    this.entities.push(this.iconKills);
+    this.iconKPos = spider.pos;
+    this.entities.push(new $.Sprite(spider));
     
-    this.lineAKills = new $.Line({
+    this.entities.push(new $.Line({
       pos: $.V.origin(spider.pos, spSize),
       to: $.V.add(hSpSize, spider.pos),
       size: 3,
       color: this.colors.kills
-    });
-    this.entities.push(this.lineAKills);
+    }));
 
-    this.lineBKills = new $.Line({
+    this.entities.push(new $.Line({
       pos: { x: spider.pos.x + hSpSize.x, y: spider.pos.y - hSpSize.y },
       to: { x: spider.pos.x - hSpSize.x, y: spider.pos.y + hSpSize.y },
       size: 3,
       color: this.colors.kills
-    });
-    this.entities.push(this.lineBKills);
+    }));
   },
 
   createText: function(){
-    var txtSize = 30;
+    var txtSize = 30
+      , killPos = this.iconKPos
+      , alivePos = this.iconAPos;
 
     this.textKills = new $.Text({
-      pos: { x: this.iconKills.pos.x - txtSize*3.5, y: this.iconKills.pos.y },
+      pos: { x: killPos.x - txtSize*3.5, y: killPos.y },
       size: txtSize,
       color: this.colors.kills
     });
     this.entities.push(this.textKills);
 
     this.textAlives = new $.Text({
-      pos: { x: this.iconAlives.pos.x - txtSize*2.5, y: this.iconAlives.pos.y },
+      pos: { x: alivePos.x - txtSize*2.5, y: alivePos.y },
       size: txtSize,
       color: this.colors.alives
     });

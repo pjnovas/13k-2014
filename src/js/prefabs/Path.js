@@ -11,9 +11,9 @@ $.Path = $.Line.extend({
   heat: null,
 
   setHeat: function(from, to, t){
-    var h = this.heat || {};
+    var h = this.heat || {}, dblT = t*2;
     h.from = from.pos;
-    h.to = $.V.round($.V.lerp(from.pos, to.pos, t * 2 > 1 ? 1 : t * 2 ));
+    h.to = $.V.round($.V.lerp(from.pos, to.pos, dblT > 1 ? 1 : dblT ));
     this.heat = h;
   },
 
@@ -23,9 +23,12 @@ $.Path = $.Line.extend({
       , naT = na.temp
       , nbT = nb.temp
       , naC = na.color
-      , nbC = this.nb.color;
+      , nbC = nb.color;
 
-    if (naT > 0){
+    if (!naT && !nbT){
+      this.heat = null;
+    }
+    else if (naT > 0){
       this.setHeat(na, nb, naT);
     }
     else if (nbT > 0){

@@ -11,16 +11,14 @@ $.Nodes = $.Collection.extend({
   start: function(){
     this.entities = [];
     this.paths = new $.Paths();
-
-    var marginW = config.world.margin.x;
-    var marginH = config.world.margin.y;
     
     // Full-screen
     var radius = $.V.divide(config.size, 2);
 
     // Full-screen with margin
-    radius.x -= marginW;
-    radius.y -= marginH;
+    var margin = config.world.margin;
+    radius.x -= margin.x;
+    radius.y -= margin.y;
 
     // Center of Screen
     var center = $.V.center($.V.zero, config.size);
@@ -98,15 +96,15 @@ $.Nodes = $.Collection.extend({
       this.paths.addOne(cNode, rNode);
     }, this);
 
-    var j, k, l1, l2;
+    var j = ringsAm, k, l1, l2;
 
     // Paths connections between rings
-    for (j=0; j<ringsAm; j++){
+    while(j--){
       var currRing = rings[j];
       var max = currRing.length;
+      k = max;
 
-      for (k=0; k<max; k++){
-
+      while(k--){
         l1 = k+1;
         l2 = k*increaseBy;
         if (l1 > max-1){
@@ -151,12 +149,9 @@ $.Nodes = $.Collection.extend({
   },
 
   findNodeByCollider: function(){
-    var elements = config.elements
-      , methods = config.methods;
-
     this.entities.forEach(function (node) {
-      if (this.applyPos && $.V.pointInCircle(this.applyPos, node.pos, this.applyRatio)) {
-        node[methods[elements.indexOf(this.element)]]();
+      if ($.V.pointInCircle(this.applyPos, node.pos, this.applyRatio)) {
+        node[config.methods[config.elements.indexOf(this.element)]]();
       }
     }, this);
   },

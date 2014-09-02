@@ -24,14 +24,15 @@ $.Elements = $.Collection.extend({
   },
 
   createElements: function(){
-    var gap = this.gap
-      , size = this.size
+    var size = this.size
+      , gap = this.gap + size
+      , p = this.pos
       , showKeys = this.showKeys;
 
     this.elements.forEach(function(ele, i){
 
       this.entities.push(new $.Element({
-        pos: { x: this.pos.x, y: this.pos.y + (i * (size + gap)) },
+        pos: { x: p.x, y: p.y + (i * gap) },
         size: { x: size, y: size },
         name: ele,
         key: this.keys[i],
@@ -43,18 +44,13 @@ $.Elements = $.Collection.extend({
   },
 
   update: function(){
-    var isActive = this.active
-      , current = this.current;
-
     this.entities.forEach(function(e){
-      e.active = e.current = false;
-      if (e.name === current){
-        e.current = true;
-        e.active = isActive;
-      }
-      
+
+      e.current = (e.name === this.current);
+      e.active = (e.current && this.active);
       e.update();
-    });
+      
+    }, this);
   },
 
 });

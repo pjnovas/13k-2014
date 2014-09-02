@@ -116,25 +116,23 @@ $.Spider = $.Sprite.extend({
     var nfrom = this.nFrom
       , nto = this.nTo
       , nfromT = nfrom.temp
-      , ntoT = nto.temp
-      , nfromB = nfrom.blowing
-      , ntoB = nfrom.blowing;
+      , ntoT = nto.temp;
 
     if (this.temp === 1){
       return;
     }
 
-    if (nfromB || ntoB){
+    if (nfrom.blowing || nto.blowing){
       this.temp = 0.1;
       return;
     }
 
-    if (nfromT === 0 && ntoT === 0){
+    if (!nfromT && !ntoT){  
       this.temp = 0;
       return;
     }
 
-    if (nfromT > ntoT){
+    if (nfromT >= ntoT){
       this.temp = nfromT;
       return;
     }
@@ -234,8 +232,7 @@ $.Spider = $.Sprite.extend({
     this.updateTemp();
 
     if (this.building || this.traveling){
-      var ended = this.updateMove();
-      if (!ended){
+      if (!this.updateMove()){
         return;
       }
     }

@@ -459,9 +459,9 @@ $.Renderer = $.Base.extend({ }, {
 
 $.Circle = $.Entity.extend({
 
-  pos: { x: 0, y: 0 },
-  radius: 5,
-  stroke: null,
+  //pos: { x: 0, y: 0 },
+  //radius: 5,
+  //stroke: null,
 
   start: function(){},
 
@@ -495,11 +495,11 @@ $.Circle = $.Entity.extend({
 
 $.Line = $.Entity.extend({
 
-  pos: { x: 0, y: 0 },
-  to: { x: 0, y: 0 },
+  //pos: { x: 0, y: 0 },
+  //to: { x: 0, y: 0 },
 
-  size: 1,
-  color: $.C.white,
+  //size: 1,
+  //color: $.C.white,
   
   start: function(){},
 
@@ -522,9 +522,9 @@ $.Line = $.Entity.extend({
 
 $.Rect = $.Entity.extend({
 
-  pos: { x: 0, y: 0 },
-  size: { x: 20, y: 20},
-  fill: null,
+  //pos: { x: 0, y: 0 },
+  //size: { x: 20, y: 20},
+  //fill: null,
   //stroke: null,
   //corner: null,
 
@@ -563,10 +563,10 @@ $.Rect = $.Entity.extend({
 
 $.Text = $.Entity.extend({
 
-  pos: { x: 0, y: 0 },
-  text: "",
+  //pos: { x: 0, y: 0 },
+  //text: "",
 
-  size: 1,
+  //size: 1,
   color: $.C.white,
   
   start: function(){},
@@ -591,10 +591,10 @@ $.Text = $.Entity.extend({
 
 $.Sprite = $.Entity.extend({
 
-  resource: "",
-  pos: { x: 0, y: 0 },
+  //resource: "",
+  //pos: { x: 0, y: 0 },
   //sprite: { x: 0, y: 0, w: 20, h: 20 },
-  size: { x: 20, y: 20 },
+  //size: { x: 20, y: 20 },
   //angle: 0,
 
   start: function(){},
@@ -852,7 +852,7 @@ $.Particles = $.Collection.extend({
 
       p.life = opts.life;
       p.tlife = opts.life;
-      p.size = opts.size;
+      p.size = opts.size || 1;
 
       p.emitter = emitter;
       
@@ -879,10 +879,6 @@ $.Particles = $.Collection.extend({
     p.f = $.V.multiply(p.g, $.dt);
     p.d = $.V.add(p.d, p.f);
     p.pos = $.V.add(p.pos, $.V.multiply(p.d, $.dt));
-
-    if (!p.size) {
-      p.size = 1;
-    }
 
     if (p.cFrom && p.cTo) {
       p.color = $.C.lerp(p.cFrom, p.cTo, 1 - ((p.life*100) / p.tlife)/100);
@@ -939,7 +935,6 @@ $.Node = $.Circle.extend({
   color: $.C.white,
 
   nears: null,
-  selected: false,
 
   temp: 0,
   incTemp: 0,
@@ -1091,11 +1086,7 @@ $.Node = $.Circle.extend({
       return;
     }
 
-    var isAlone = this.nears.every(function(n){
-      return n.burned;
-    });
-
-    if (isAlone){
+    if (this.nears.every(function(n){ return n.burned; })){ //has no paths
       this.setBurned();
       return;
     }
@@ -1147,16 +1138,14 @@ $.Nodes = $.Collection.extend({
   start: function(){
     this.entities = [];
     this.paths = new $.Paths();
-
-    var marginW = config.world.margin.x;
-    var marginH = config.world.margin.y;
     
     // Full-screen
     var radius = $.V.divide(config.size, 2);
 
     // Full-screen with margin
-    radius.x -= marginW;
-    radius.y -= marginH;
+    var margin = config.world.margin;
+    radius.x -= margin.x;
+    radius.y -= margin.y;
 
     // Center of Screen
     var center = $.V.center($.V.zero, config.size);
@@ -1234,15 +1223,15 @@ $.Nodes = $.Collection.extend({
       this.paths.addOne(cNode, rNode);
     }, this);
 
-    var j, k, l1, l2;
+    var j = ringsAm, k, l1, l2;
 
     // Paths connections between rings
-    for (j=0; j<ringsAm; j++){
+    while(j--){
       var currRing = rings[j];
       var max = currRing.length;
+      k = max;
 
-      for (k=0; k<max; k++){
-
+      while(k--){
         l1 = k+1;
         l2 = k*increaseBy;
         if (l1 > max-1){
@@ -1287,12 +1276,9 @@ $.Nodes = $.Collection.extend({
   },
 
   findNodeByCollider: function(){
-    var elements = config.elements
-      , methods = config.methods;
-
     this.entities.forEach(function (node) {
-      if (this.applyPos && $.V.pointInCircle(this.applyPos, node.pos, this.applyRatio)) {
-        node[methods[elements.indexOf(this.element)]]();
+      if ($.V.pointInCircle(this.applyPos, node.pos, this.applyRatio)) {
+        node[config.methods[config.elements.indexOf(this.element)]]();
       }
     }, this);
   },
@@ -1331,9 +1317,9 @@ $.Path = $.Line.extend({
   heat: null,
 
   setHeat: function(from, to, t){
-    var h = this.heat || {};
+    var h = this.heat || {}, dblT = t*2;
     h.from = from.pos;
-    h.to = $.V.round($.V.lerp(from.pos, to.pos, t * 2 > 1 ? 1 : t * 2 ));
+    h.to = $.V.round($.V.lerp(from.pos, to.pos, dblT > 1 ? 1 : dblT ));
     this.heat = h;
   },
 
@@ -1343,9 +1329,12 @@ $.Path = $.Line.extend({
       , naT = na.temp
       , nbT = nb.temp
       , naC = na.color
-      , nbC = this.nb.color;
+      , nbC = nb.color;
 
-    if (naT > 0){
+    if (!naT && !nbT){
+      this.heat = null;
+    }
+    else if (naT > 0){
       this.setHeat(na, nb, naT);
     }
     else if (nbT > 0){
@@ -1493,8 +1482,8 @@ $.Cursor = $.Circle.extend({
   },
 
   update: function(){
-    var elements = config.elements
-      , element = this.element
+    var element = this.element
+      , idx = config.elements.indexOf(element)
       , alpha = 0.4
       , sizes = [20,20,20,50]
       , colors = [
@@ -1504,8 +1493,8 @@ $.Cursor = $.Circle.extend({
         , [,220,255, alpha]
       ];
 
-    this.color = colors[elements.indexOf(element)];
-    this.radius = sizes[elements.indexOf(element)];
+    this.color = colors[idx];
+    this.radius = sizes[idx];
 
     if (this.last !== (element + ":" + this.active)){
       this.setEmitter();
@@ -1632,25 +1621,23 @@ $.Spider = $.Sprite.extend({
     var nfrom = this.nFrom
       , nto = this.nTo
       , nfromT = nfrom.temp
-      , ntoT = nto.temp
-      , nfromB = nfrom.blowing
-      , ntoB = nfrom.blowing;
+      , ntoT = nto.temp;
 
     if (this.temp === 1){
       return;
     }
 
-    if (nfromB || ntoB){
+    if (nfrom.blowing || nto.blowing){
       this.temp = 0.1;
       return;
     }
 
-    if (nfromT === 0 && ntoT === 0){
+    if (!nfromT && !ntoT){  
       this.temp = 0;
       return;
     }
 
-    if (nfromT > ntoT){
+    if (nfromT >= ntoT){
       this.temp = nfromT;
       return;
     }
@@ -1750,8 +1737,7 @@ $.Spider = $.Sprite.extend({
     this.updateTemp();
 
     if (this.building || this.traveling){
-      var ended = this.updateMove();
-      if (!ended){
+      if (!this.updateMove()){
         return;
       }
     }
@@ -1785,7 +1771,6 @@ $.Spider = $.Sprite.extend({
 
 $.Spiders = $.Collection.extend({
 
-  nodes: null,
   spidersExit: 0,
   spidersKilled: 0,
   stats: {},
@@ -1795,9 +1780,8 @@ $.Spiders = $.Collection.extend({
   applyRatio: 0,
   element: null,
 
-  start: function(options){
+  start: function(){
     this.entities = [];
-    this.nodes = options.nodes;
 
     this.generateSpiders();
     this.updateGUI();
@@ -1847,7 +1831,7 @@ $.Spiders = $.Collection.extend({
   },
 
   gonnaBuildWeb: function(node, spider){
-    if (!node.hasEarth && node.temp === 0 && $.M.rnd01() > 0.7) {
+    if (!node.hasEarth && !node.temp && $.M.rnd01() > 0.7) {
       var nearBurned = node.getNearBurned();
       if (nearBurned){
         spider.buildWeb(node, nearBurned);
@@ -1881,12 +1865,9 @@ $.Spiders = $.Collection.extend({
   },
 
   findSpidersByCollider: function(){
-    var elements = config.elements
-      , methods = config.methods;
-
     this.entities.forEach(function (spider) {
-      if (this.applyPos && $.V.pointInCircle(this.applyPos, spider.pos, this.applyRatio)) {
-        spider[methods[elements.indexOf(this.element)]]();
+      if ($.V.pointInCircle(this.applyPos, spider.pos, this.applyRatio)) {
+        spider[config.methods[config.elements.indexOf(this.element)]]();
       }
     }, this);
   },
@@ -2131,12 +2112,8 @@ $.Stats = $.Collection.extend({
 
   pos: { x: 1, y: 0 },
 
-  marginW: 30,
-  marginH: 40,
-
   colors: {
-    kills: "#ff0000",
-    alives: ""
+    kills: "#ff0000"
   },
 
   start: function(){
@@ -2158,8 +2135,8 @@ $.Stats = $.Collection.extend({
 
   createIcons: function(){
     var size = 40
-      , mW = this.marginW
-      , mH = this.marginH
+      , mW = 30
+      , mH = 40
       , spSize = { x: size, y: size }
       , hSpSize = { x: size/2, y: size/2 };
 
@@ -2175,46 +2152,46 @@ $.Stats = $.Collection.extend({
       y: this.pos.y + mH + size*1.5
     };
 
-    this.iconAlives = new $.Sprite(spider);
-    this.entities.push(this.iconAlives);
+    this.iconAPos = spider.pos;
+    this.entities.push(new $.Sprite(spider));
 
     spider.pos = {
       x: this.pos.x - mW,
       y: this.pos.y + mH
     };
 
-    this.iconKills = new $.Sprite(spider);
-    this.entities.push(this.iconKills);
+    this.iconKPos = spider.pos;
+    this.entities.push(new $.Sprite(spider));
     
-    this.lineAKills = new $.Line({
+    this.entities.push(new $.Line({
       pos: $.V.origin(spider.pos, spSize),
       to: $.V.add(hSpSize, spider.pos),
       size: 3,
       color: this.colors.kills
-    });
-    this.entities.push(this.lineAKills);
+    }));
 
-    this.lineBKills = new $.Line({
+    this.entities.push(new $.Line({
       pos: { x: spider.pos.x + hSpSize.x, y: spider.pos.y - hSpSize.y },
       to: { x: spider.pos.x - hSpSize.x, y: spider.pos.y + hSpSize.y },
       size: 3,
       color: this.colors.kills
-    });
-    this.entities.push(this.lineBKills);
+    }));
   },
 
   createText: function(){
-    var txtSize = 30;
+    var txtSize = 30
+      , killPos = this.iconKPos
+      , alivePos = this.iconAPos;
 
     this.textKills = new $.Text({
-      pos: { x: this.iconKills.pos.x - txtSize*3.5, y: this.iconKills.pos.y },
+      pos: { x: killPos.x - txtSize*3.5, y: killPos.y },
       size: txtSize,
       color: this.colors.kills
     });
     this.entities.push(this.textKills);
 
     this.textAlives = new $.Text({
-      pos: { x: this.iconAlives.pos.x - txtSize*2.5, y: this.iconAlives.pos.y },
+      pos: { x: alivePos.x - txtSize*2.5, y: alivePos.y },
       size: txtSize,
       color: this.colors.alives
     });
@@ -2236,14 +2213,13 @@ $.Element = $.Collection.extend({
 
   size: { x: 96, y: 96 },
 
-  start: function(options){
+  start: function(/*options*/){
     this.entities = [];
 
-    this.name = options.name;
-    this.key = options.key;
-    this.showKeys = options.showKeys;
-    this.color = [255,255,255, 0.1];
-    this.sprite = options.sprite;
+    //this.name = options.name;
+    //this.key = options.key;
+    //this.showKeys = options.showKeys;
+    //this.sprite = options.sprite;
 
     this.active = false;
     this.current = false;
@@ -2258,7 +2234,7 @@ $.Element = $.Collection.extend({
     this.bg = new $.Rect({
       pos: pos,
       size: size,
-      fill: this.color,
+      fill: [255,255,255, 0.1],
       stroke: { size: 4, color: [30,30,30,1] },
       corner: 8
     });
@@ -2329,14 +2305,15 @@ $.Elements = $.Collection.extend({
   },
 
   createElements: function(){
-    var gap = this.gap
-      , size = this.size
+    var size = this.size
+      , gap = this.gap + size
+      , p = this.pos
       , showKeys = this.showKeys;
 
     this.elements.forEach(function(ele, i){
 
       this.entities.push(new $.Element({
-        pos: { x: this.pos.x, y: this.pos.y + (i * (size + gap)) },
+        pos: { x: p.x, y: p.y + (i * gap) },
         size: { x: size, y: size },
         name: ele,
         key: this.keys[i],
@@ -2348,18 +2325,13 @@ $.Elements = $.Collection.extend({
   },
 
   update: function(){
-    var isActive = this.active
-      , current = this.current;
-
     this.entities.forEach(function(e){
-      e.active = e.current = false;
-      if (e.name === current){
-        e.current = true;
-        e.active = isActive;
-      }
-      
+
+      e.current = (e.name === this.current);
+      e.active = (e.current && this.active);
       e.update();
-    });
+      
+    }, this);
   },
 
 });
@@ -2506,9 +2478,7 @@ $.sprites = {
         size: 2
       }
     }
-  },
-
-//  bg: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAkElEQVQ4T72U0Q2AIAxEy0yu4U4u5YAK4YwQ26ONQGL4oHm0x51JRI77y+use7/t5Bz1pS7NAG71ir4TV2eYMHc4DdhoYWhq1r07/B04qqGpbURDChz1ISTR/FrOPT4cBsI2SlAEIzLgk5RlQE180w1fPmR+dANDGUYXS5PCXh1+bCaykhIGsqSwR3L/sV3AC8ZkM9liakt+AAAAAElFTkSuQmCC"
+  }
 
 };
 
