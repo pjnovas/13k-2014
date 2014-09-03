@@ -1285,7 +1285,15 @@ $.Path = $.Line.extend({
   heat: null,
 
   setHeat: function(from, to, t){
-    var h = this.heat || {}, dblT = t*2;
+    var h = this.heat;
+    if (h && h.id !== from.cid){
+      return;
+    }
+
+    h = this.heat || {}; 
+
+    var dblT = t*2;
+    h.id = from.cid;
     h.from = from.pos;
     h.to = $.V.round($.V.lerp(from.pos, to.pos, dblT > 1 ? 1 : dblT ));
     this.heat = h;
